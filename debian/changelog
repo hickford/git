@@ -1,8 +1,10 @@
-git (1:2.8.1-0.1) unstable; urgency=low
+git (1:2.8.1-1) unstable; urgency=low
 
   * new upstream point release.
+  * debian/diff/0003-0007-srv-be-more-tolerant-of-broken-DNS-replies.diff:
+    remove.
 
- -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 18 Apr 2016 17:20:21 -0700
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 18 Apr 2016 17:23:33 -0700
 
 git (1:2.8.0~rc3-1) unstable; urgency=medium
 
