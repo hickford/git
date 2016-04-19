@@ -1,3 +1,85 @@
+Version v2.8.1; changes since v2.8.0-rc4:
+-----------------------------------------
+
+Alex Henrie (1):
+      l10n: ca.po: update translation
+
+Johannes Schindelin (4):
+      config --show-origin: report paths with forward slashes
+      t1300-repo-config: make it resilient to being run via 'sh -x'
+      t1300: fix the new --show-origin tests on Windows
+      mingw: skip some tests in t9115 due to file name issues
+
+Junio C Hamano (2):
+      Git 2.8
+      Git 2.8.1
+
+Lars Schneider (2):
+      Documentation: use ASCII quotation marks in git-p4
+      Documentation: fix git-p4 AsciiDoc formatting
+
+Matthieu Moy (1):
+      git.spec.in: use README.md, not README
+
+Stefan Beller (1):
+      submodule: fix regression for deinit without submodules
+
+Trần Ngọc Quân (1):
+      l10n: vi.po (2530t): Update translation
+
+Vasco Almeida (1):
+      l10n: pt_PT: Update and add new translations
+
+
+Version v2.8.0-rc4; changes since v2.8.0-rc3:
+---------------------------------------------
+
+Alexander Shopov (1):
+      gitk: Update Bulgarian translation (311t)
+
+Changwoo Ryu (1):
+      l10n: ko.po: Update Korean translation
+
+Dimitriy Ryazantcev (1):
+      l10n: ru.po: update Russian translation
+
+Eric Sunshine (2):
+      git-compat-util: st_add4: work around gcc 4.2.x compiler crash
+      Revert "config.mak.uname: use clang for Mac OS X 10.6"
+
+Guillermo S. Romero (1):
+      gitk: Follow themed bgcolor in help dialogs
+
+Jean-Noel Avila (3):
+      l10n: fr.po v2.8.0 round 3
+      gitk: Update French translation (311t)
+      gitk: fr.po: Sync translations with git
+
+Junio C Hamano (8):
+      Git 2.4.11
+      Git 2.5.5
+      Git 2.6.6
+      Git 2.7.4
+      Revert "Merge branch 'jc/exclusion-doc'"
+      Revert "Merge branch 'nd/exclusion-regression-fix'"
+      RelNotes: remove the mention of !reinclusion
+      Git 2.8-rc4
+
+Matthieu Moy (1):
+      Documentation: fix broken linkgit to git-config
+
+Peter Krefting (1):
+      l10n: sv.po: Update Swedish translation (2530t0f0u)
+
+Ralf Thielow (3):
+      l10n: de.po: translate 22 new messages
+      l10n: de.po: add missing newlines
+      gitk: Update German translation
+
+Ray Chen (1):
+      l10n: zh_CN: review for git v2.8.0 l10n round 2
+
+
 Version v2.8.0-rc3; changes since v2.8.0-rc2:
 ---------------------------------------------
 
@@ -130,7 +212,7 @@ Torsten Bögershausen (1):
       config.mak.uname: use clang for Mac OS X 10.6
 
 
-Version v2.8.0-rc0; changes since v2.7.3:
+Version v2.8.0-rc0; changes since v2.7.4:
 -----------------------------------------
 
 Alexander Kuleshov (1):
@@ -518,6 +600,25 @@ brian m. carlson (1):
 
 마누엘 (1):
       mingw: try to delete target directory before renaming
+
+
+Version v2.7.4; changes since v2.7.3:
+-------------------------------------
+
+Jeff King (7):
+      add helpers for detecting size_t overflow
+      tree-diff: catch integer overflow in combine_diff_path allocation
+      http-push: stop using name_path
+      show_object_with_name: simplify by using path_name()
+      list-objects: convert name_path to a strbuf
+      list-objects: drop name_path entirely
+      list-objects: pass full pathname to callbacks
+
+Junio C Hamano (4):
+      Git 2.4.11
+      Git 2.5.5
+      Git 2.6.6
+      Git 2.7.4
 
 
 Version v2.7.3; changes since v2.7.2:
@@ -908,7 +1009,7 @@ Stefan Naewe (1):
       revision.c: fix possible null pointer arithmetic
 
 
-Version v2.7.0-rc0; changes since v2.6.5:
+Version v2.7.0-rc0; changes since v2.6.6:
 -----------------------------------------
 
 Alex Henrie (1):
@@ -1300,6 +1401,24 @@ brian m. carlson (12):
       Convert struct object to object_id
       Remove get_object_hash.
       remote: convert functions to struct object_id
+
+
+Version v2.6.6; changes since v2.6.5:
+-------------------------------------
+
+Jeff King (7):
+      add helpers for detecting size_t overflow
+      tree-diff: catch integer overflow in combine_diff_path allocation
+      http-push: stop using name_path
+      show_object_with_name: simplify by using path_name()
+      list-objects: convert name_path to a strbuf
+      list-objects: drop name_path entirely
+      list-objects: pass full pathname to callbacks
+
+Junio C Hamano (3):
+      Git 2.4.11
+      Git 2.5.5
+      Git 2.6.6
 
 
 Version v2.6.5; changes since v2.6.4:
@@ -1787,7 +1906,7 @@ Junio C Hamano (2):
       Git 2.6-rc1
 
 
-Version v2.6.0-rc0; changes since v2.5.4:
+Version v2.6.0-rc0; changes since v2.5.5:
 -----------------------------------------
 
 Alex Henrie (3):
@@ -2202,6 +2321,23 @@ brian m. carlson (7):
       gpg: centralize printing signature buffers
       verify-commit: add option to print raw gpg status information
       verify-tag: add option to print raw gpg status information
+
+
+Version v2.5.5; changes since v2.5.4:
+-------------------------------------
+
+Jeff King (7):
+      add helpers for detecting size_t overflow
+      tree-diff: catch integer overflow in combine_diff_path allocation
+      http-push: stop using name_path
+      show_object_with_name: simplify by using path_name()
+      list-objects: convert name_path to a strbuf
+      list-objects: drop name_path entirely
+      list-objects: pass full pathname to callbacks
+
+Junio C Hamano (2):
+      Git 2.4.11
+      Git 2.5.5
 
 
 Version v2.5.4; changes since v2.5.3:
@@ -38429,7 +38565,7 @@ J. Bruce Fields (5):
       user-manual: fix incorrect header level
 
 Jakub Narębski (1):
-      gitweb: Fix escaping HTML of project owner in 'projects_list' and     'summary' views
+      gitweb: Fix escaping HTML of project owner in 'projects_list' and 'summary' views
 
 Jari Aalto (1):
       git-tag(1): Remove duplicate text
@@ -39913,7 +40049,7 @@ Simon Hausmann (223):
       git-p4 debug doesn't need a git repository
       Added support for mapping p4 labels to git tags
       Fix variable usage in tag import
-      Fix the docs for git-p4 submit and turn git-p4 submit --master=foo into     simply git-p4 submit mytopicbranch.
+      Fix the docs for git-p4 submit and turn git-p4 submit --master=foo into simply git-p4 submit mytopicbranch.
       Fix "compilation" :)
       Clean up python class names.
       Added git-p4 rebase convenience
@@ -39929,7 +40065,7 @@ Simon Hausmann (223):
       Fix the timezone formatting. Now qgit also displays (parses) it correctly.
       Removed the old patch apply code from git-p4 submit.
       Slightly improved formatting of the raw_input questions.
-      A new attempt at fixing the child-fast-import-process-not-finished race condition     in the clone command
+      A new attempt at fixing the child-fast-import-process-not-finished race condition in the clone command
       Handle patch errors in git-p4 submit better.
       Doc cleanups.
       Micro cleanup
@@ -39948,29 +40084,29 @@ Simon Hausmann (223):
       Fix calling git-p4 rebase from within a subdirectory (git rebase wants to be in toplevel)
       A little todo note before I forget it :), based on a suggestion from Lars.
       Fixing syncing (gitdir discovery / cd) for bare repositories
-      Always pass a sha1 for the initial parent so that git-fast-import doesn't think     it's creating a new branch from itself. It's a sensible error in general but     in the case of incremental imports we have to apply force :)
-      Clean up code duplication for revision parsing and fix previous commit to not     import into remotes/p4 (yet!).
+      Always pass a sha1 for the initial parent so that git-fast-import doesn't think it's creating a new branch from itself. It's a sensible error in general but in the case of incremental imports we have to apply force :)
+      Clean up code duplication for revision parsing and fix previous commit to not import into remotes/p4 (yet!).
       Removed cleantags command. It doesn't have any meaning anymore.
-      Removed ancient and unused code to find the last imported revision from previous imports     to use for the current import by looking at the p4 tags. The current approach of using     the log message works better.
-      Create the origin based import branch using git update-ref instead of git branch     so that it's possible to have the import branch in refs/remotes.
-      Changed the default p4 import branch to be refs/remotes/p4/{HEAD,master}     instead of refs/heads/p4.
-      Bite the bullet and automatically convert old style refs/heads/p4 repositories     to the new style refs/remotes/p4 branching.
+      Removed ancient and unused code to find the last imported revision from previous imports to use for the current import by looking at the p4 tags. The current approach of using the log message works better.
+      Create the origin based import branch using git update-ref instead of git branch so that it's possible to have the import branch in refs/remotes.
+      Changed the default p4 import branch to be refs/remotes/p4/{HEAD,master} instead of refs/heads/p4.
+      Bite the bullet and automatically convert old style refs/heads/p4 repositories to the new style refs/remotes/p4 branching.
       Added support for git-p4 sync/rebase --with-origin. See git-p4.txt for details :)
       Removed todo item that is implemented :)
       Fix branch setup after initial clone.
       Removed unused cache variables.
       Started rewriting the branch detection, based on "p4 branches" and "p4 branch -o foo".
-      Give branches a nice project prefix and don't bail out on clone if we failed     to detect the master branch.
-      More work on the incremental importing of multiple branches.     Improved error detection by checking the exit code of git-fast-import.
-      Cleanup/speed up the branch<> file split and removed change range limitation that I added     for debugging (oops).
+      Give branches a nice project prefix and don't bail out on clone if we failed to detect the master branch.
+      More work on the incremental importing of multiple branches. Improved error detection by checking the exit code of git-fast-import.
+      Cleanup/speed up the branch<> file split and removed change range limitation that I added for debugging (oops).
       More cleanups and speedups for labels and branches
       Removed unused variable, more cleanups
       Cache the output of "p4 users" for faster syncs on high latency links.
       Fix gitdir not being set when cloning. Needed for writing the p4 users cache.
       Oops, not only /set/ gitdir on clone, also set it /correctly/ :)
-      Use git format-patch and git apply --apply when extracting patches from git and     applying them to a Perforce checkout. This should make it possible to apply git     commits with binary files that cannot be handled by path.
+      Use git format-patch and git apply --apply when extracting patches from git and applying them to a Perforce checkout. This should make it possible to apply git commits with binary files that cannot be handled by path.
       Added support for git-p4 submit --direct (experimental)
-      Specifying --detect-branches is now only needed for the initial clone/sync.     Afterwards it's turned on implicitly if more p4 branches than remotes/p4/master     are found.
+      Specifying --detect-branches is now only needed for the initial clone/sync. Afterwards it's turned on implicitly if more p4 branches than remotes/p4/master are found.
       Had an idea for debugging, record it :)
       Another (potentially life-saving) idea for submit --direct
       Improved output for multi branch imports and noted another little todo item
@@ -39982,7 +40118,7 @@ Simon Hausmann (223):
       Added a rollback command for debugging. It sets back the heads of the p4 branches to the specified p4 change number or earlier.
       Fix branch detection in multi-branch imports
       Fixes for rollback, delete branches that did not exist at the specified p4 change
-      Added support for importing multiple branches into refs/heads instead of just refs/remotes     using --import-local. Needs some further microfix but seems to work otherwise.
+      Added support for importing multiple branches into refs/heads instead of just refs/remotes using --import-local. Needs some further microfix but seems to work otherwise.
       Added support for --max-changes=<count> to ease import debugging
       Use refs/heads/* instead of refs/heads/p4/* for local imports
       Doc updates
@@ -39999,7 +40135,7 @@ Simon Hausmann (223):
       Added support for --with-origin with multi-branch imports
       Oops, fix --with-origin to /really/ also call git fetch :)
       Avoid creating non-p4 branches in remotes/p4 off of remotes/origin
-      Make git-p4 work with packed refs (don't use os.path.exists to check for the     existance of a ref)
+      Make git-p4 work with packed refs (don't use os.path.exists to check for the existance of a ref)
       Make --with-origin also work without origin :)
       Make --with-origin the default for syncing.
       Shortcut the case where we have no origin branch
@@ -40007,29 +40143,29 @@ Simon Hausmann (223):
       Added git-p4 submit --trust-me-like-a-fool for the adventurous users :)
       Fix creation of refs/remotes/p4/HEAD symbolic ref
       Fix my email address, this isn't really KDE related :)
-      In *_pipe print the command that failed if it fails.     Fixed old calls to mypopen.
+      In *_pipe print the command that failed if it fails. Fixed old calls to mypopen.
       Fix typo in listExistingP4Branches that broke sync.
       Fix support for "depot-path" in older git-p4 imports
-      Fix common path "calculation" from logs of multiple branches.     Need to use min instead of max for prev/cur to avoid out-of-bounds     string access. Also treat "i" as index of the last match instead of     a length because in case of a complete match of the two strings     i was off by one.
-      Don't attempt to set the initialParent on multi-branch imports (useless).     At some point the code paths should be unified, but for now I need a working     git-p4 :)
-      Hack to make the multi-branch import work again with self.depotPaths now that     self.depotPath is gone
+      Fix common path "calculation" from logs of multiple branches. Need to use min instead of max for prev/cur to avoid out-of-bounds string access. Also treat "i" as index of the last match instead of a length because in case of a complete match of the two strings i was off by one.
+      Don't attempt to set the initialParent on multi-branch imports (useless). At some point the code paths should be unified, but for now I need a working git-p4 :)
+      Hack to make the multi-branch import work again with self.depotPaths now that self.depotPath is gone
       Fix git-p4 rebase
       Fix git-p4 submit
       Fix depot-path determination for git-p4 submit
       Make clone behave like git clone by default again.
-      Make git-p4 submit detect the correct reference (origin) branch when     working with multi-branch imports.
-      Only get the expensive branch mapping from the p4 server when not     syncing with the help of an origin remote (which we instead then use     to get new branches from).
-      Fixed the check to make sure to exclude the HEAD symbolic refs when updating     the remotes/p4 branches from origin.
+      Make git-p4 submit detect the correct reference (origin) branch when working with multi-branch imports.
+      Only get the expensive branch mapping from the p4 server when not syncing with the help of an origin remote (which we instead then use to get new branches from).
+      Fixed the check to make sure to exclude the HEAD symbolic refs when updating the remotes/p4 branches from origin.
       Fix updating/creating remotes/p4/* heads from origin/p4/*
       Fix project name guessing
       Fix depot-paths encoding for multi-path imports (don't split up //depot/path/foo)
       Fix support for explicit disabling of syncing with the origin
-      Write out the options tag in the log message of imports only if we actually have     options
+      Write out the options tag in the log message of imports only if we actually have options
       Provide some information for single branch imports where the commits go
       Mention remotes/p4/master also in the documentation.
       git-p4 submit: Fix missing quotes around p4 commands to make them work with spaces in filenames
-      Moved the code from git-p4 submit to figure out the upstream branch point     into a separate helper method.
-      Fix git-p4 rebase to detect the correct upstream branch instead of unconditionally     always rebasing on top of remotes/p4/master
+      Moved the code from git-p4 submit to figure out the upstream branch point into a separate helper method.
+      Fix git-p4 rebase to detect the correct upstream branch instead of unconditionally always rebasing on top of remotes/p4/master
       Fix initial multi-branch import.
       Fix the branch mapping detection to be independent from the order of the "p4 branches" output.
       Warn about conflicting p4 branch mappings and use the first one found.
@@ -40759,7 +40895,7 @@ Junio C Hamano (25):
       t6030: grab commit object name as we go
       Build RPM with ETC_GITCONFIG=/etc/gitconfig
       Diff between two blobs should take mode changes into account now.
-      t/test-lib.sh: Protect ourselves from common misconfiguration     that exports CDPATH to the environment
+      t/test-lib.sh: Protect ourselves from common misconfiguration that exports CDPATH to the environment
       gitattributes documentation: clarify overriding
       applymbox & quiltimport: typofix.
       Add 'ident' conversion.
@@ -41930,7 +42066,7 @@ Jeff King (1):
       New fast-import test case for valid tree sorting
 
 Jim Meyering (2):
-      I like the idea of the new ':/<oneline prefix>' notation, and gave it     a try, but all I could get was a segfault.  It was dereferencing a NULL     commit list.  Fix below.  With it, this example now works:
+      I like the idea of the new ':/<oneline prefix>' notation, and gave it a try, but all I could get was a segfault.  It was dereferencing a NULL commit list.  Fix below.  With it, this example now works:
       git-grep: don't use sscanf
 
 Johannes Schindelin (42):
@@ -42304,8 +42440,8 @@ Shawn O. Pearce (13):
       git-gui: Make 'make' quieter by default
       Catch write_ref_sha1 failure in receive-pack
       git-gui: Allow committing empty merges
-      git-gui: Revert "Don't modify CREDITS-FILE if it hasn't changed."     This reverts commit 92446aba47b0e0db28f7b858ea387efcca30ab44.
-      git-gui: Revert "git-gui: Display all authors of git-gui."     This reverts commit 871f4c97ad7e021d1a0a98c80c5da77fcf70e4af.
+      git-gui: Revert "Don't modify CREDITS-FILE if it hasn't changed." This reverts commit 92446aba47b0e0db28f7b858ea387efcca30ab44.
+      git-gui: Revert "git-gui: Display all authors of git-gui." This reverts commit 871f4c97ad7e021d1a0a98c80c5da77fcf70e4af.
       git-gui: Allow 'git gui version' outside of a repository
       Don't package the git-gui credits file anymore
 
