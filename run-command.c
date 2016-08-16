@@ -233,7 +233,7 @@ static int wait_or_whine(pid_t pid, const char *argv0, int in_signal)
 
 	if (waiting < 0) {
 		failed_errno = errno;
-		error("waitpid for %s failed: %s", argv0, strerror(errno));
+		error_errno("waitpid for %s failed", argv0);
 	} else if (waiting != pid) {
 		error("waitpid is confused (%s)", argv0);
 	} else if (WIFSIGNALED(status)) {
@@ -420,8 +420,7 @@ fail_pipe:
 		}
 	}
 	if (cmd->pid < 0)
-		error("cannot fork() for %s: %s", cmd->argv[0],
-			strerror(errno));
+		error_errno("cannot fork() for %s", cmd->argv[0]);
 	else if (cmd->clean_on_exit)
 		mark_child_for_cleanup(cmd->pid);
 
@@ -482,7 +481,7 @@ fail_pipe:
 			cmd->dir, fhin, fhout, fherr);
 	failed_errno = errno;
 	if (cmd->pid < 0 && (!cmd->silent_exec_failure || errno != ENOENT))
-		error("cannot spawn %s: %s", cmd->argv[0], strerror(errno));
+		error_errno("cannot spawn %s", cmd->argv[0]);
 	if (cmd->clean_on_exit && cmd->pid >= 0)
 		mark_child_for_cleanup(cmd->pid);
 
@@ -590,6 +589,16 @@ static void *run_thread(void *data)
 	struct async *async = data;
 	intptr_t ret;
 
+	if (async->isolate_sigpipe) {
+		sigset_t mask;
+		sigemptyset(&mask);
+		sigaddset(&mask, SIGPIPE);
+		if (pthread_sigmask(SIG_BLOCK, &mask, NULL) < 0) {
+			ret = error("unable to block SIGPIPE in async thread");
+			return (void *)ret;
+		}
+	}
+
 	pthread_setspecific(async_key, async);
 	ret = async->proc(async->proc_in, async->proc_out, async->data);
 	return (void *)ret;
@@ -693,7 +702,7 @@ int start_async(struct async *async)
 		if (pipe(fdin) < 0) {
 			if (async->out > 0)
 				close(async->out);
-			return error("cannot create pipe: %s", strerror(errno));
+			return error_errno("cannot create pipe");
 		}
 		async->in = fdin[1];
 	}
@@ -705,7 +714,7 @@ int start_async(struct async *async)
 				close_pair(fdin);
 			else if (async->in)
 				close(async->in);
-			return error("cannot create pipe: %s", strerror(errno));
+			return error_errno("cannot create pipe");
 		}
 		async->out = fdout[0];
 	}
@@ -730,7 +739,7 @@ int start_async(struct async *async)
 
 	async->pid = fork();
 	if (async->pid < 0) {
-		error("fork (async) failed: %s", strerror(errno));
+		error_errno("fork (async) failed");
 		goto error;
 	}
 	if (!async->pid) {
@@ -777,7 +786,7 @@ int start_async(struct async *async)
 	{
 		int err = pthread_create(&async->tid, NULL, run_thread, async);
 		if (err) {
-			error("cannot create thread: %s", strerror(err));
+			error_errno("cannot create thread");
 			goto error;
 		}
 	}
@@ -815,7 +824,10 @@ const char *find_hook(const char *name)
 	static struct strbuf path = STRBUF_INIT;
 
 	strbuf_reset(&path);
-	strbuf_git_path(&path, "hooks/%s", name);
+	if (git_hooks_path)
+		strbuf_addf(&path, "%s/%s", git_hooks_path, name);
+	else
+		strbuf_git_path(&path, "hooks/%s", name);
 	if (access(path.buf, X_OK) < 0)
 		return NULL;
 	return path.buf;
@@ -902,7 +914,7 @@ struct parallel_processes {
 	struct strbuf buffered_output; /* of finished children */
 };
 
-static int default_start_failure(struct strbuf *err,
+static int default_start_failure(struct strbuf *out,
 				 void *pp_cb,
 				 void *pp_task_cb)
 {
@@ -910,7 +922,7 @@ static int default_start_failure(struct strbuf *err,
 }
 
 static int default_task_finished(int result,
-				 struct strbuf *err,
+				 struct strbuf *out,
 				 void *pp_cb,
 				 void *pp_task_cb)
 {
@@ -994,7 +1006,7 @@ static void pp_cleanup(struct parallel_processes *pp)
 	 * When get_next_task added messages to the buffer in its last
 	 * iteration, the buffered output is non empty.
 	 */
-	fputs(pp->buffered_output.buf, stderr);
+	strbuf_write(&pp->buffered_output, stderr);
 	strbuf_release(&pp->buffered_output);
 
 	sigchain_pop_common();
@@ -1079,7 +1091,7 @@ static void pp_output(struct parallel_processes *pp)
 	int i = pp->output_owner;
 	if (pp->children[i].state == GIT_CP_WORKING &&
 	    pp->children[i].err.len) {
-		fputs(pp->children[i].err.buf, stderr);
+		strbuf_write(&pp->children[i].err, stderr);
 		strbuf_reset(&pp->children[i].err);
 	}
 }
@@ -1117,11 +1129,11 @@ static int pp_collect_finished(struct parallel_processes *pp)
 			strbuf_addbuf(&pp->buffered_output, &pp->children[i].err);
 			strbuf_reset(&pp->children[i].err);
 		} else {
-			fputs(pp->children[i].err.buf, stderr);
+			strbuf_write(&pp->children[i].err, stderr);
 			strbuf_reset(&pp->children[i].err);
 
 			/* Output all other finished child processes */
-			fputs(pp->buffered_output.buf, stderr);
+			strbuf_write(&pp->buffered_output, stderr);
 			strbuf_reset(&pp->buffered_output);
 
 			/*

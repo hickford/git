@@ -20,7 +20,7 @@ difftool_test_setup ()
 prompt_given ()
 {
 	prompt="$1"
-	test "$prompt" = "Launch 'test-tool' [Y/n]: branch"
+	test "$prompt" = "Launch 'test-tool' [Y/n]? branch"
 }
 
 # Create a file on master and change it on branch
@@ -412,6 +412,20 @@ run_dir_diff_test 'difftool --dir-diff from subdirectory' '
 	)
 '
 
+run_dir_diff_test 'difftool --dir-diff from subdirectory with GIT_DIR set' '
+	(
+		GIT_DIR=$(pwd)/.git &&
+		export GIT_DIR &&
+		GIT_WORK_TREE=$(pwd) &&
+		export GIT_WORK_TREE &&
+		cd sub &&
+		git difftool --dir-diff $symlinks --extcmd ls \
+			branch -- sub >output &&
+		grep sub output &&
+		! grep file output
+	)
+'
+
 run_dir_diff_test 'difftool --dir-diff when worktree file is missing' '
 	test_when_finished git reset --hard &&
 	rm file2 &&
@@ -419,11 +433,34 @@ run_dir_diff_test 'difftool --dir-diff when worktree file is missing' '
 	grep file2 output
 '
 
+run_dir_diff_test 'difftool --dir-diff with unmerged files' '
+	test_when_finished git reset --hard &&
+	test_config difftool.echo.cmd "echo ok" &&
+	git checkout -B conflict-a &&
+	git checkout -B conflict-b &&
+	git checkout conflict-a &&
+	echo a >>file &&
+	git add file &&
+	git commit -m conflict-a &&
+	git checkout conflict-b &&
+	echo b >>file &&
+	git add file &&
+	git commit -m conflict-b &&
+	git checkout master &&
+	git merge conflict-a &&
+	test_must_fail git merge conflict-b &&
+	cat >expect <<-EOF &&
+		ok
+	EOF
+	git difftool --dir-diff $symlinks -t echo >actual &&
+	test_cmp expect actual
+'
+
 write_script .git/CHECK_SYMLINKS <<\EOF
 for f in file file2 sub/sub
 do
 	echo "$f"
-	readlink "$2/$f"
+	ls -ld "$2/$f" | sed -e 's/.* -> //'
 done >actual
 EOF
 

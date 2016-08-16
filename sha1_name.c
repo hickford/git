@@ -1215,6 +1215,15 @@ int get_sha1(const char *name, unsigned char *sha1)
 }
 
 /*
+ * This is like "get_sha1()", but for struct object_id.
+ */
+int get_oid(const char *name, struct object_id *oid)
+{
+	return get_sha1(name, oid->hash);
+}
+
+
+/*
  * Many callers know that the user meant to name a commit-ish by
  * syntactical positions where the object name appears.  Calling this
  * function allows the machinery to disambiguate shorter-than-unique
@@ -1352,9 +1361,6 @@ static char *resolve_relative_path(const char *rel)
 {
 	if (!starts_with(rel, "./") && !starts_with(rel, "../"))
 		return NULL;
-
-	if (!startup_info)
-		die("BUG: startup_info struct is not initialized.");
 
 	if (!is_inside_work_tree())
 		die("relative path syntax can't be used outside working tree.");

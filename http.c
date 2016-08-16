@@ -114,6 +114,7 @@ static unsigned long http_auth_methods = CURLAUTH_ANY;
 
 static struct curl_slist *pragma_header;
 static struct curl_slist *no_pragma_header;
+static struct curl_slist *extra_http_headers;
 
 static struct active_request_slot *active_queue_head;
 
@@ -293,7 +294,7 @@ static int http_options(const char *var, const char *value, void *cb)
 		return git_config_string(&http_proxy_authmethod, var, value);
 
 	if (!strcmp("http.cookiefile", var))
-		return git_config_string(&curl_cookie_file, var, value);
+		return git_config_pathname(&curl_cookie_file, var, value);
 	if (!strcmp("http.savecookies", var)) {
 		curl_save_cookies = git_config_bool(var, value);
 		return 0;
@@ -321,6 +322,19 @@ static int http_options(const char *var, const char *value, void *cb)
 		warning(_("Public key pinning not supported with cURL < 7.44.0"));
 		return 0;
 #endif
+	}
+
+	if (!strcmp("http.extraheader", var)) {
+		if (!value) {
+			return config_error_nonbool(var);
+		} else if (!*value) {
+			curl_slist_free_all(extra_http_headers);
+			extra_http_headers = NULL;
+		} else {
+			extra_http_headers =
+				curl_slist_append(extra_http_headers, value);
+		}
+		return 0;
 	}
 
 	/* Fall back on the default ones */
@@ -446,8 +460,7 @@ static int sockopt_callback(void *client, curl_socket_t fd, curlsocktype type)
 
 	rc = setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (void *)&ka, len);
 	if (rc < 0)
-		warning("unable to set SO_KEEPALIVE on socket %s",
-			strerror(errno));
+		warning_errno("unable to set SO_KEEPALIVE on socket");
 
 	return 0; /* CURL_SOCKOPT_OK only exists since curl 7.21.5 */
 }
@@ -605,7 +618,10 @@ static CURL *get_curl_handle(void)
 	if (curl_http_proxy) {
 		curl_easy_setopt(result, CURLOPT_PROXY, curl_http_proxy);
 #if LIBCURL_VERSION_NUM >= 0x071800
-		if (starts_with(curl_http_proxy, "socks5"))
+		if (starts_with(curl_http_proxy, "socks5h"))
+			curl_easy_setopt(result,
+				CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5_HOSTNAME);
+		else if (starts_with(curl_http_proxy, "socks5"))
 			curl_easy_setopt(result,
 				CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
 		else if (starts_with(curl_http_proxy, "socks4a"))
@@ -675,8 +691,10 @@ void http_init(struct remote *remote, const char *url, int proactive_auth)
 	if (remote)
 		var_override(&http_proxy_authmethod, remote->http_proxy_authmethod);
 
-	pragma_header = curl_slist_append(pragma_header, "Pragma: no-cache");
-	no_pragma_header = curl_slist_append(no_pragma_header, "Pragma:");
+	pragma_header = curl_slist_append(http_copy_default_headers(),
+		"Pragma: no-cache");
+	no_pragma_header = curl_slist_append(http_copy_default_headers(),
+		"Pragma:");
 
 #ifdef USE_CURL_MULTI
 	{
@@ -761,6 +779,9 @@ void http_cleanup(void)
 	curl_multi_cleanup(curlm);
 #endif
 	curl_global_cleanup();
+
+	curl_slist_free_all(extra_http_headers);
+	extra_http_headers = NULL;
 
 	curl_slist_free_all(pragma_header);
 	pragma_header = NULL;
@@ -1084,7 +1105,7 @@ void append_remote_object_url(struct strbuf *buf, const char *url,
 
 	strbuf_addf(buf, "objects/%.*s/", 2, hex);
 	if (!only_two_digit_prefix)
-		strbuf_addf(buf, "%s", hex+2);
+		strbuf_addstr(buf, hex + 2);
 }
 
 char *get_remote_object_url(const char *url, const char *hex,
@@ -1158,6 +1179,16 @@ int run_one_slot(struct active_request_slot *slot,
 
 	run_active_slot(slot);
 	return handle_curl_result(results);
+}
+
+struct curl_slist *http_copy_default_headers(void)
+{
+	struct curl_slist *headers = NULL, *h;
+
+	for (h = extra_http_headers; h; h = h->next)
+		headers = curl_slist_append(headers, h->data);
+
+	return headers;
 }
 
 static CURLcode curlinfo_strbuf(CURL *curl, CURLINFO info, struct strbuf *buf)
@@ -1377,7 +1408,7 @@ static int http_request(const char *url,
 {
 	struct active_request_slot *slot;
 	struct slot_results results;
-	struct curl_slist *headers = NULL;
+	struct curl_slist *headers = http_copy_default_headers();
 	struct strbuf buf = STRBUF_INIT;
 	const char *accept_language;
 	int ret;
@@ -1891,8 +1922,7 @@ struct http_object_request *new_http_object_request(const char *base_url,
 	}
 
 	if (freq->localfile < 0) {
-		error("Couldn't create temporary file %s: %s",
-		      freq->tmpfile, strerror(errno));
+		error_errno("Couldn't create temporary file %s", freq->tmpfile);
 		goto abort;
 	}
 
@@ -1937,8 +1967,8 @@ struct http_object_request *new_http_object_request(const char *base_url,
 			prev_posn = 0;
 			lseek(freq->localfile, 0, SEEK_SET);
 			if (ftruncate(freq->localfile, 0) < 0) {
-				error("Couldn't truncate temporary file %s: %s",
-					  freq->tmpfile, strerror(errno));
+				error_errno("Couldn't truncate temporary file %s",
+					    freq->tmpfile);
 				goto abort;
 			}
 		}

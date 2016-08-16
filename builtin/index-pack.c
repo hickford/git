@@ -338,10 +338,10 @@ static void parse_pack_header(void)
 	use(sizeof(struct pack_header));
 }
 
-static NORETURN void bad_object(unsigned long offset, const char *format,
+static NORETURN void bad_object(off_t offset, const char *format,
 		       ...) __attribute__((format (printf, 2, 3)));
 
-static NORETURN void bad_object(unsigned long offset, const char *format, ...)
+static NORETURN void bad_object(off_t offset, const char *format, ...)
 {
 	va_list params;
 	char buf[1024];
@@ -349,7 +349,8 @@ static NORETURN void bad_object(unsigned long offset, const char *format, ...)
 	va_start(params, format);
 	vsnprintf(buf, sizeof(buf), format, params);
 	va_end(params);
-	die(_("pack has bad object at offset %lu: %s"), offset, buf);
+	die(_("pack has bad object at offset %"PRIuMAX": %s"),
+	    (uintmax_t)offset, buf);
 }
 
 static inline struct thread_local *get_thread_data(void)
@@ -429,7 +430,7 @@ static int is_delta_type(enum object_type type)
 	return (type == OBJ_REF_DELTA || type == OBJ_OFS_DELTA);
 }
 
-static void *unpack_entry_data(unsigned long offset, unsigned long size,
+static void *unpack_entry_data(off_t offset, unsigned long size,
 			       enum object_type type, unsigned char *sha1)
 {
 	static char fixed_buf[8192];
@@ -549,13 +550,13 @@ static void *unpack_data(struct object_entry *obj,
 			 void *cb_data)
 {
 	off_t from = obj[0].idx.offset + obj[0].hdr_size;
-	unsigned long len = obj[1].idx.offset - from;
+	off_t len = obj[1].idx.offset - from;
 	unsigned char *data, *inbuf;
 	git_zstream stream;
 	int status;
 
 	data = xmallocz(consume ? 64*1024 : obj->size);
-	inbuf = xmalloc((len < 64*1024) ? len : 64*1024);
+	inbuf = xmalloc((len < 64*1024) ? (int)len : 64*1024);
 
 	memset(&stream, 0, sizeof(stream));
 	git_inflate_init(&stream);
@@ -563,15 +564,15 @@ static void *unpack_data(struct object_entry *obj,
 	stream.avail_out = consume ? 64*1024 : obj->size;
 
 	do {
-		ssize_t n = (len < 64*1024) ? len : 64*1024;
+		ssize_t n = (len < 64*1024) ? (ssize_t)len : 64*1024;
 		n = xpread(get_thread_data()->pack_fd, inbuf, n, from);
 		if (n < 0)
 			die_errno(_("cannot pread pack file"));
 		if (!n)
-			die(Q_("premature end of pack file, %lu byte missing",
-			       "premature end of pack file, %lu bytes missing",
-			       len),
-			    len);
+			die(Q_("premature end of pack file, %"PRIuMAX" byte missing",
+			       "premature end of pack file, %"PRIuMAX" bytes missing",
+			       (unsigned int)len),
+			    (uintmax_t)len);
 		from += n;
 		len -= n;
 		stream.next_in = inbuf;
@@ -1250,7 +1251,9 @@ static void conclude_pack(int fix_thin_pack, const char *curr_pack, unsigned cha
 		       nr_unresolved * sizeof(*objects));
 		f = sha1fd(output_fd, curr_pack);
 		fix_unresolved_deltas(f);
-		strbuf_addf(&msg, _("completed with %d local objects"),
+		strbuf_addf(&msg, Q_("completed with %d local object",
+				     "completed with %d local objects",
+				     nr_objects - nr_objects_initial),
 			    nr_objects - nr_objects_initial);
 		stop_progress_msg(&progress, msg.buf);
 		strbuf_release(&msg);
@@ -1599,6 +1602,18 @@ static void show_pack_info(int stat_only)
 	}
 }
 
+static const char *derive_filename(const char *pack_name, const char *suffix,
+				   struct strbuf *buf)
+{
+	size_t len;
+	if (!strip_suffix(pack_name, ".pack", &len))
+		die(_("packfile name '%s' does not end with '.pack'"),
+		    pack_name);
+	strbuf_add(buf, pack_name, len);
+	strbuf_addstr(buf, suffix);
+	return buf->buf;
+}
+
 int cmd_index_pack(int argc, const char **argv, const char *prefix)
 {
 	int i, fix_thin_pack = 0, verify = 0, stat_only = 0;
@@ -1707,24 +1722,11 @@ int cmd_index_pack(int argc, const char **argv, const char *prefix)
 		usage(index_pack_usage);
 	if (fix_thin_pack && !from_stdin)
 		die(_("--fix-thin cannot be used without --stdin"));
-	if (!index_name && pack_name) {
-		size_t len;
-		if (!strip_suffix(pack_name, ".pack", &len))
-			die(_("packfile name '%s' does not end with '.pack'"),
-			    pack_name);
-		strbuf_add(&index_name_buf, pack_name, len);
-		strbuf_addstr(&index_name_buf, ".idx");
-		index_name = index_name_buf.buf;
-	}
-	if (keep_msg && !keep_name && pack_name) {
-		size_t len;
-		if (!strip_suffix(pack_name, ".pack", &len))
-			die(_("packfile name '%s' does not end with '.pack'"),
-			    pack_name);
-		strbuf_add(&keep_name_buf, pack_name, len);
-		strbuf_addstr(&keep_name_buf, ".idx");
-		keep_name = keep_name_buf.buf;
-	}
+	if (!index_name && pack_name)
+		index_name = derive_filename(pack_name, ".idx", &index_name_buf);
+	if (keep_msg && !keep_name && pack_name)
+		keep_name = derive_filename(pack_name, ".keep", &keep_name_buf);
+
 	if (verify) {
 		if (!index_name)
 			die(_("--verify with no packfile name given"));

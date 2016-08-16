@@ -455,7 +455,6 @@ static void read_config(void)
 {
 	static int loaded;
 	struct object_id oid;
-	const char *head_ref;
 	int flag;
 
 	if (loaded)
@@ -463,10 +462,12 @@ static void read_config(void)
 	loaded = 1;
 
 	current_branch = NULL;
-	head_ref = resolve_ref_unsafe("HEAD", 0, oid.hash, &flag);
-	if (head_ref && (flag & REF_ISSYMREF) &&
-	    skip_prefix(head_ref, "refs/heads/", &head_ref)) {
-		current_branch = make_branch(head_ref, 0);
+	if (startup_info->have_repository) {
+		const char *head_ref = resolve_ref_unsafe("HEAD", 0, oid.hash, &flag);
+		if (head_ref && (flag & REF_ISSYMREF) &&
+		    skip_prefix(head_ref, "refs/heads/", &head_ref)) {
+			current_branch = make_branch(head_ref, 0);
+		}
 	}
 	git_config(handle_config, NULL);
 	alias_all_urls();
@@ -1659,7 +1660,7 @@ int branch_merge_matches(struct branch *branch,
 	return refname_match(branch->merge[i]->src, refname);
 }
 
-__attribute((format (printf,2,3)))
+__attribute__((format (printf,2,3)))
 static const char *error_buf(struct strbuf *err, const char *fmt, ...)
 {
 	if (err) {
@@ -2107,7 +2108,7 @@ int format_tracking_info(struct branch *branch, struct strbuf *sb)
 			   "Your branch and '%s' have diverged,\n"
 			       "and have %d and %d different commits each, "
 			       "respectively.\n",
-			   theirs),
+			   ours + theirs),
 			base, ours, theirs);
 		if (advice_status_hints)
 			strbuf_addf(sb,

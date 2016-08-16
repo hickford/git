@@ -367,8 +367,8 @@ extern void free_name_hash(struct index_state *istate);
 #define rename_cache_entry_at(pos, new_name) rename_index_entry_at(&the_index, (pos), (new_name))
 #define remove_cache_entry_at(pos) remove_index_entry_at(&the_index, (pos))
 #define remove_file_from_cache(path) remove_file_from_index(&the_index, (path))
-#define add_to_cache(path, st, flags) add_to_index(&the_index, (path), (st), (flags))
-#define add_file_to_cache(path, flags) add_file_to_index(&the_index, (path), (flags))
+#define add_to_cache(path, st, flags) add_to_index(&the_index, (path), (st), (flags), 0)
+#define add_file_to_cache(path, flags) add_file_to_index(&the_index, (path), (flags), 0)
 #define refresh_cache(flags) refresh_index(&the_index, (flags), NULL, NULL, NULL)
 #define ce_match_stat(ce, st, options) ie_match_stat(&the_index, (ce), (st), (options))
 #define ce_modified(ce, st, options) ie_modified(&the_index, (ce), (st), (options))
@@ -581,8 +581,8 @@ extern int remove_file_from_index(struct index_state *, const char *path);
 #define ADD_CACHE_IGNORE_ERRORS	4
 #define ADD_CACHE_IGNORE_REMOVAL 8
 #define ADD_CACHE_INTENT 16
-extern int add_to_index(struct index_state *, const char *path, struct stat *, int flags);
-extern int add_file_to_index(struct index_state *, const char *path, int flags);
+extern int add_to_index(struct index_state *, const char *path, struct stat *, int flags, int force_mode);
+extern int add_file_to_index(struct index_state *, const char *path, int flags, int force_mode);
 extern struct cache_entry *make_cache_entry(unsigned int mode, const unsigned char *sha1, const char *path, int stage, unsigned int refresh_options);
 extern int ce_same_name(const struct cache_entry *a, const struct cache_entry *b);
 extern void set_object_name_for_intent_to_add_entry(struct cache_entry *ce);
@@ -651,10 +651,10 @@ extern int prefer_symlink_refs;
 extern int log_all_ref_updates;
 extern int warn_ambiguous_refs;
 extern int warn_on_object_refname_ambiguity;
-extern int shared_repository;
 extern const char *apply_default_whitespace;
 extern const char *apply_default_ignorewhitespace;
 extern const char *git_attributes_file;
+extern const char *git_hooks_path;
 extern int zlib_compression_level;
 extern int core_compression_level;
 extern int core_compression_seen;
@@ -663,6 +663,9 @@ extern size_t packed_git_limit;
 extern size_t delta_base_cache_limit;
 extern unsigned long big_file_threshold;
 extern unsigned long pack_size_limit_cfg;
+
+void set_shared_repository(int value);
+int get_shared_repository(void);
 
 /*
  * Do replace refs need to be checked this run?  This variable is
@@ -697,6 +700,14 @@ extern int ref_paranoia;
  */
 extern char comment_line_char;
 extern int auto_comment_line_char;
+
+/* Windows only */
+enum hide_dotfiles_type {
+	HIDE_DOTFILES_FALSE = 0,
+	HIDE_DOTFILES_TRUE,
+	HIDE_DOTFILES_DOTGITONLY
+};
+extern enum hide_dotfiles_type hide_dotfiles;
 
 enum branch_track {
 	BRANCH_TRACK_UNSPECIFIED = -1,
@@ -745,9 +756,39 @@ extern int grafts_replace_parents;
  */
 #define GIT_REPO_VERSION 0
 #define GIT_REPO_VERSION_READ 1
-extern int repository_format_version;
 extern int repository_format_precious_objects;
-extern int check_repository_format(void);
+
+struct repository_format {
+	int version;
+	int precious_objects;
+	int is_bare;
+	char *work_tree;
+	struct string_list unknown_extensions;
+};
+
+/*
+ * Read the repository format characteristics from the config file "path" into
+ * "format" struct. Returns the numeric version. On error, -1 is returned,
+ * format->version is set to -1, and all other fields in the struct are
+ * undefined.
+ */
+int read_repository_format(struct repository_format *format, const char *path);
+
+/*
+ * Verify that the repository described by repository_format is something we
+ * can read. If it is, return 0. Otherwise, return -1, and "err" will describe
+ * any errors encountered.
+ */
+int verify_repository_format(const struct repository_format *format,
+			     struct strbuf *err);
+
+/*
+ * Check the repository format version in the path found in get_git_dir(),
+ * and die if it is a version we don't understand. Generally one would
+ * set_git_dir() before calling this, and use it only for "are we in a valid
+ * repo?".
+ */
+extern void check_repository_format(void);
 
 #define MTIME_CHANGED	0x0001
 #define CTIME_CHANGED	0x0002
@@ -767,10 +808,13 @@ extern int check_repository_format(void);
  */
 extern const char *mkpath(const char *fmt, ...) __attribute__((format (printf, 1, 2)));
 extern const char *git_path(const char *fmt, ...) __attribute__((format (printf, 1, 2)));
+extern const char *git_common_path(const char *fmt, ...) __attribute__((format (printf, 1, 2)));
 
 extern char *mksnpath(char *buf, size_t n, const char *fmt, ...)
 	__attribute__((format (printf, 3, 4)));
 extern void strbuf_git_path(struct strbuf *sb, const char *fmt, ...)
+	__attribute__((format (printf, 2, 3)));
+extern void strbuf_git_common_path(struct strbuf *sb, const char *fmt, ...)
 	__attribute__((format (printf, 2, 3)));
 extern char *git_path_buf(struct strbuf *buf, const char *fmt, ...)
 	__attribute__((format (printf, 2, 3)));
@@ -925,8 +969,6 @@ static inline int is_empty_blob_sha1(const unsigned char *sha1)
 }
 
 int git_mkstemp(char *path, size_t n, const char *template);
-
-int git_mkstemps(char *path, size_t n, const char *template, int suffix_len);
 
 /* set default permissions by passing mode arguments to open(2) */
 int git_mkstemps_mode(char *pattern, int suffix_len, int mode);
@@ -1124,6 +1166,8 @@ extern int get_sha1_blob(const char *str, unsigned char *sha1);
 extern void maybe_die_on_misspelt_object_name(const char *name, const char *prefix);
 extern int get_sha1_with_context(const char *str, unsigned flags, unsigned char *sha1, struct object_context *orc);
 
+extern int get_oid(const char *str, struct object_id *oid);
+
 typedef int each_abbrev_fn(const unsigned char *sha1, void *);
 extern int for_each_abbrev(const char *prefix, each_abbrev_fn, void *);
 
@@ -1218,6 +1262,7 @@ extern const char *ident_default_email(void);
 extern const char *git_editor(void);
 extern const char *git_pager(int stdout_is_tty);
 extern int git_ident_config(const char *, const char *, void *);
+extern void reset_ident_date(void);
 
 struct ident_split {
 	const char *name_begin;
@@ -1464,7 +1509,7 @@ struct object_info {
 	/* Request */
 	enum object_type *typep;
 	unsigned long *sizep;
-	unsigned long *disk_sizep;
+	off_t *disk_sizep;
 	unsigned char *delta_base_sha1;
 	struct strbuf *typename;
 
@@ -1526,7 +1571,6 @@ extern void git_config(config_fn_t fn, void *);
 extern int git_config_with_options(config_fn_t fn, void *,
 				   struct git_config_source *config_source,
 				   int respect_includes);
-extern int git_config_early(config_fn_t fn, void *, const char *repo_config);
 extern int git_parse_ulong(const char *, unsigned long *);
 extern int git_parse_maybe_bool(const char *);
 extern int git_config_int(const char *, const char *);
@@ -1550,7 +1594,6 @@ extern void git_config_set_multivar_in_file(const char *, const char *, const ch
 extern int git_config_rename_section(const char *, const char *);
 extern int git_config_rename_section_in_file(const char *, const char *, const char *);
 extern const char *git_etc_gitconfig(void);
-extern int check_repository_format_version(const char *var, const char *value, void *cb);
 extern int git_env_bool(const char *, int);
 extern unsigned long git_env_ulong(const char *, unsigned long);
 extern int git_config_system(void);
@@ -1679,7 +1722,6 @@ extern int copy_file(const char *dst, const char *src, int mode);
 extern int copy_file_with_time(const char *dst, const char *src, int mode);
 
 extern void write_or_die(int fd, const void *buf, size_t count);
-extern int write_or_whine(int fd, const void *buf, size_t count, const char *msg);
 extern int write_or_whine_pipe(int fd, const void *buf, size_t count, const char *msg);
 extern void fsync_or_die(int fd, const char *);
 
@@ -1730,14 +1772,14 @@ void packet_trace_identity(const char *prog);
  * return 0 if success, 1 - if addition of a file failed and
  * ADD_FILES_IGNORE_ERRORS was specified in flags
  */
-int add_files_to_cache(const char *prefix, const struct pathspec *pathspec, int flags);
+int add_files_to_cache(const char *prefix, const struct pathspec *pathspec, int flags, int force_mode);
 
 /* diff.c */
 extern int diff_auto_refresh_index;
 
 /* match-trees.c */
-void shift_tree(const unsigned char *, const unsigned char *, unsigned char *, int);
-void shift_tree_by(const unsigned char *, const unsigned char *, unsigned char *, const char *);
+void shift_tree(const struct object_id *, const struct object_id *, struct object_id *, int);
+void shift_tree_by(const struct object_id *, const struct object_id *, struct object_id *, const char *);
 
 /*
  * whitespace rules.
@@ -1771,7 +1813,7 @@ int split_cmdline(char *cmdline, const char ***argv);
 /* Takes a negative value returned by split_cmdline */
 const char *split_cmdline_strerror(int cmdline_errno);
 
-/* git.c */
+/* setup.c */
 struct startup_info {
 	int have_repository;
 	const char *prefix;
