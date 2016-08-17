@@ -62,12 +62,13 @@ config --add format.suffix .diff' to make that the default)
  $ git format-patch release..release+patches
  $ git checkout debian-sid
 
-Now move the extracted patches into the debian/diff/ directory, add a
-meaningful message to debian/changelog, and commit the changes to the
-debian-sid branch
+Now move the extracted patches into the debian/patches/ directory, add
+their filenames to debian/patches/series, add a meaningful message to
+debian/changelog, and commit the changes to the debian-sid branch:
 
- $ mv ????-*.diff debian/diff/
- $ git add debian/diff
+ $ ls ????-*.diff >> debian/patches/series
+ $ mv ????-*.diff debian/patches/
+ $ git add debian/patches
  $ debchange -pi
  $ git add debian/changelog
  $ git commit

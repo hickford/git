@@ -51,18 +51,10 @@ PKG_INDEP += git-man
 TMP =$(shell pwd)/tmp
 GIT =$(shell pwd)/debian/git
 
-patch: deb-checkdir patch-stamp
-patch-stamp:
-	for i in `ls -1 debian/diff/*.diff debian/diff/*.patch \
-	    2>/dev/null || :`; do \
-	  patch -p1 -N -r- <$$i || test $$? = 1 || exit 1; \
-	done
-	touch patch-stamp
-
 build: build-arch build-indep
 
 build-arch: deb-checkdir build-arch-stamp
-build-arch-stamp: patch-stamp
+build-arch-stamp:
 	-$(CC) -v
 	DESTDIR='$(GIT)' $(MAKE) all $(OPTS)
 	DESTDIR='$(GIT)' $(MAKE) -C contrib/subtree all $(OPTS)
@@ -76,7 +68,7 @@ build-arch-stamp: patch-stamp
 	touch build-arch-stamp
 
 build-indep: deb-checkdir build-indep-stamp
-build-indep-stamp: patch-stamp build-arch-stamp
+build-indep-stamp: build-arch-stamp
 	# git-man, git-doc
 	$(MAKE) -CDocumentation man html $(DOC_OPTS)
 	# git-mediawiki
@@ -87,16 +79,8 @@ clean: deb-checkdir
 	$(MAKE) -C contrib/mw-to-git clean $(OPTS)
 	$(MAKE) -C contrib/subtree clean $(OPTS)
 	$(MAKE) clean $(OPTS)
-	! test -e patch-stamp || \
-	{ \
-	  set -e; \
-	  for i in `ls -1r debian/diff/*.diff debian/diff/*.patch \
-	      2>/dev/null || :`; do \
-	    patch -p1 -NR -r- <$$i || test $$? = 1 || exit 1; \
-	  done; \
-	}
 	rm -rf '$(TMP)'
-	rm -f patch-stamp build-arch-stamp build-indep-stamp
+	rm -f build-arch-stamp build-indep-stamp
 	set -e; \
 	  for i in '' $(patsubst git%,%,$(PKG_INDEP)) -core; do \
 	    rm -rf '$(GIT)'$$i; \
@@ -362,7 +346,7 @@ binary-indep: install-indep $(patsubst %,%.deb,$(PKG_INDEP)) git-core.deb-DEBIAN
 	  dpkg -b '$(GIT)'$$i .. || exit 1; \
 	done
 
-.PHONY: patch clean
+.PHONY: clean
 .PHONY: build build-arch build-indep
 .PHONY: install install-arch install-indep
 .PHONY: binary binary-arch binary-indep

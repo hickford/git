@@ -4,6 +4,7 @@ git (1:2.9.3-2) UNRELEASED; urgency=medium
     contrib/subtree build products.  (Closes: #834870)
   * Fix a missing reference in /usr/share/doc-base/everyday-git.
     (Closes: #836516)
+  * Migrate patches to 3.0 (quilt) format.  (Closes: #834566)
 
  -- Anders Kaseorg <andersk@mit.edu>  Fri, 19 Aug 2016 23:00:23 -0400
 
