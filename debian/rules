@@ -96,136 +96,20 @@ override_dh_auto_install-indep:
 	install -m 0644 contrib/subtree/git-subtree.txt '$(TMP)'/html
 	# RelNotes are shipped in git
 	rm -rf '$(TMP)'/html/RelNotes
-	# git-man
-	install -d -m0755 '$(GIT)'-man/usr/share/man/man3
-	DESTDIR='$(GIT)'-man $(MAKE) install-doc $(OPTS)
-	DESTDIR='$(GIT)'-man $(MAKE) -Ccontrib/subtree install-man $(OPTS)
-	install -m 0644 '$(TMP)'/usr/share/man/man3/Git* \
-	  '$(GIT)'-man/usr/share/man/man3/
-	# don't include arch, cvs, p4, svn, email, gui, and gitk man pages
+	# don't include git-p4 man page
+	rm -f '$(TMP)'/html/git-p4.*
+
+override_dh_install-arch:
+	dh_install --arch
+	rm -rf '$(GIT)'/usr/share/git-core/contrib/hooks/multimail
+
+override_dh_install-indep:
+	dh_install --indep
 	for i in git-archimport git-cvs git-p4 git-svn git-send-email gitk \
 	 git-gui git-citool; do \
 	  rm -f '$(GIT)'-man/usr/share/man/man1/$$i*; \
 	done
 	rm -f '$(GIT)'-man/usr/share/man/man3/Git::SVN*.3pm
-	chmod 0644 '$(GIT)'-man/usr/share/man/man?/*.[0-9]*
-	# git-doc
-	# don't include git-p4 man page
-	rm -f '$(TMP)'/html/git-p4.*
-	install -d -m0755 '$(GIT)'-doc/usr/share/doc/git
-	ln -s ../git-doc '$(GIT)'-doc/usr/share/doc/git/html
-	# git-cvs, git-svn
-	for i in cvs svn; do \
-	  install -d -m0755 '$(GIT)'-$$i/usr/lib/git-core && \
-	  install -m0755 '$(TMP)'/usr/lib/git-core/git-$$i* \
-	    '$(GIT)'-$$i/usr/lib/git-core/ && \
-	  install -d -m0755 '$(GIT)'-$$i/usr/share/man/man1 && \
-	  install -m0644 '$(TMP)'/usr/share/man/man1/git-$$i* \
-	    '$(GIT)'-$$i/usr/share/man/man1/; \
-	done
-	install -d -m0755 '$(GIT)'-svn/usr/share/perl5/Git
-	cp -R '$(TMP)'/usr/share/perl5/Git/SVN* \
-	  '$(GIT)'-svn/usr/share/perl5/Git/
-	find '$(GIT)'-svn/usr/share/perl5/Git -type d | xargs chmod 0755
-	find '$(GIT)'-svn/usr/share/perl5/Git -type f | xargs chmod 0644
-	install -d -m0755 '$(GIT)'-svn/usr/share/man/man3
-	install -m 0644 '$(TMP)'/usr/share/man/man3/Git::SVN*.3pm \
-	  '$(GIT)'-svn/usr/share/man/man3/
-	# git-cvs
-	install -d -m0755 '$(GIT)'-cvs/usr/bin
-	install -m0755 '$(TMP)'/usr/bin/git-cvsserver '$(GIT)'-cvs/usr/bin/
-	# git-arch
-	install -d -m0755 '$(GIT)'-arch/usr/lib/git-core
-	install -m0755 '$(TMP)'/usr/lib/git-core/git-archimport \
-	  '$(GIT)'-arch/usr/lib/git-core/
-	install -d -m0755 '$(GIT)'-arch/usr/share/man/man1
-	install -m0644 '$(TMP)'/usr/share/man/man1/git-archimport.1 \
-	  '$(GIT)'-arch/usr/share/man/man1/
-	# git-mediawiki
-	install -d -m0755 '$(GIT)'-mediawiki/usr/share/perl5/Git
-	install -m0644 '$(TMP)'/usr/share/perl5/Git/Mediawiki.pm \
-	  '$(GIT)'-mediawiki/usr/share/perl5/Git/
-	install -d -m0755 '$(GIT)'-mediawiki/usr/lib/git-core
-	install -m0755 '$(TMP)'/usr/lib/git-core/git-mw \
-	  '$(GIT)'-mediawiki/usr/lib/git-core/
-	install -m0755 '$(TMP)'/usr/lib/git-core/git-remote-mediawiki \
-	  '$(GIT)'-mediawiki/usr/lib/git-core/
-	# git-email
-	install -d -m0755 '$(GIT)'-email/usr/lib/git-core
-	install -m0755 '$(TMP)'/usr/lib/git-core/git-send-email \
-	  '$(GIT)'-email/usr/lib/git-core/
-	install -d -m0755 '$(GIT)'-email/usr/share/man/man1
-	install -m0644 '$(TMP)'/usr/share/man/man1/git-send-email.1 \
-	  '$(GIT)'-email/usr/share/man/man1/
-	# git-daemon-run
-	install -d -m0755 '$(GIT)'-daemon-run/etc/sv/git-daemon/log
-	install -m0755 debian/git-daemon/run \
-	  '$(GIT)'-daemon-run/etc/sv/git-daemon/run
-	install -m0755 debian/git-daemon/log/run \
-	  '$(GIT)'-daemon-run/etc/sv/git-daemon/log/run
-	# git-daemon-sysvinit
-	install -d -m0755 '$(GIT)'-daemon-sysvinit/etc/init.d
-	install -m0755 debian/git-daemon.init \
-	  '$(GIT)'-daemon-sysvinit/etc/init.d/git-daemon
-	install -d -m0755 '$(GIT)'-daemon-sysvinit/etc/default
-	install -m0644 debian/git-daemon.default \
-	  '$(GIT)'-daemon-sysvinit/etc/default/git-daemon
-	install -d -m0755 '$(GIT)'-daemon-sysvinit/usr/share/git-core/sysvinit
-	>'$(GIT)'-daemon-sysvinit/usr/share/git-core/sysvinit/sentinel
-	chmod 0644 \
-	  '$(GIT)'-daemon-sysvinit/usr/share/git-core/sysvinit/sentinel
-	# git-el
-	install -m0644 -D debian/git-el.emacsen-startup \
-	  '$(GIT)'-el/etc/emacs/site-start.d/50git-core.el
-	install -m0755 -D debian/git-el.emacsen-install \
-	  '$(GIT)'-el/usr/lib/emacsen-common/packages/install/git
-	install -m0755 -D debian/git-el.emacsen-remove \
-	  '$(GIT)'-el/usr/lib/emacsen-common/packages/remove/git
-	install -d -m0755 '$(GIT)'-el/usr/share/git-core/emacs
-	install -m0644 contrib/emacs/git-blame.el \
-	  '$(GIT)'-el/usr/share/git-core/emacs/git-blame.el
-	install -m0644 contrib/emacs/git.el \
-	  '$(GIT)'-el/usr/share/git-core/emacs/git.el
-	install -d -m0755 '$(GIT)'-el/usr/share/doc/git-el
-	ln -s ../git/README.emacs \
-	  '$(GIT)'-el/usr/share/doc/git-el/README.Debian
-	install -d -m0755 '$(GIT)'-el/usr/share/doc/git/contrib
-	ln -s ../../../git-core/emacs \
-	  '$(GIT)'-el/usr/share/doc/git/contrib/emacs
-	# git-gui
-	install -d -m0755 '$(GIT)'-gui/usr/lib/git-core
-	install -m0755 '$(TMP)'/usr/lib/git-core/git-gui \
-	  '$(GIT)'-gui/usr/lib/git-core/
-	install -m0755 '$(TMP)'/usr/lib/git-core/git-gui--askpass \
-	  '$(GIT)'-gui/usr/lib/git-core/
-	install -m0755 '$(TMP)'/usr/lib/git-core/git-citool \
-	  '$(GIT)'-gui/usr/lib/git-core/
-	install -d -m0755 '$(GIT)'-gui/usr/share/man/man1
-	for i in gui citool; do \
-	  install -m0644 '$(TMP)'/usr/share/man/man1/git-$$i* \
-	    '$(GIT)'-gui/usr/share/man/man1/; \
-	done
-	install -d -m0755 '$(GIT)'-gui/usr/share/git-gui
-	cp -a '$(TMP)'/usr/share/git-gui/lib '$(GIT)'-gui/usr/share/git-gui/
-	# gitk
-	install -d -m0755 '$(GIT)'k/usr/bin
-	install -m0755 '$(TMP)'/usr/bin/gitk \
-	  '$(GIT)'k/usr/bin/gitk
-	install -d -m0755 '$(GIT)'k/usr/share/man/man1
-	install -m0644 '$(TMP)'/usr/share/man/man1/gitk.1 \
-	  '$(GIT)'k/usr/share/man/man1/
-	install -d -m0755 '$(GIT)'k/usr/share/gitk
-	cp -a '$(TMP)'/usr/share/gitk/lib '$(GIT)'k/usr/share/gitk/
-	# gitweb
-	install -d -m0755 '$(GIT)'web/usr/lib/cgi-bin
-	ln -s ../../share/gitweb/gitweb.cgi \
-	  '$(GIT)'web/usr/lib/cgi-bin/gitweb.cgi
-	install -d -m0755 '$(GIT)'web/etc
-	install -m0644 debian/gitweb.conf '$(GIT)'web/etc/gitweb.conf
-
-override_dh_install-arch:
-	dh_install --arch
-	rm -rf '$(GIT)'/usr/share/git-core/contrib/hooks/multimail
 
 override_dh_installdocs:
 	install -d -m0755 '$(GIT)'-core/usr/share/doc
@@ -242,6 +126,10 @@ override_dh_installdocs:
 
 override_dh_installchangelogs:
 	dh_installchangelogs debian/changelog.upstream
+
+override_dh_installinit:
+	dh_installinit -pgit-daemon-sysvinit --name=git-daemon
+	dh_installinit
 
 # Skip dh_installemacsen to avoid having to rename
 # /etc/emacs/site-start.d/50git-core.el to

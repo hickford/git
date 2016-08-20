@@ -1,0 +1,2 @@
+debian/tmp/usr/lib/git-core/git-archimport usr/lib/git-core
+debian/tmp/usr/share/man/man1/git-archimport.1 usr/share/man/man1

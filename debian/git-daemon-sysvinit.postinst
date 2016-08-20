@@ -1,21 +1,8 @@
 #!/bin/sh
 set -e
 
-#DEBHELPER#
-
-test "$1" = 'configure' || exit 0
-
+test "$1" != 'configure' || \
 getent passwd gitdaemon >/dev/null || \
   adduser --system --home /nonexistent --no-create-home gitdaemon
 
-if [ -x "/etc/init.d/git-daemon" ]; then
-	# enable git-daemon service
-	update-rc.d git-daemon defaults >/dev/null
-
-	# restart git-daemon service if it was running
-	if [ -x "`which invoke-rc.d 2>/dev/null`" ]; then
-		invoke-rc.d git-daemon start || exit $?
-	else
-		/etc/init.d/git-daemon start || exit $?
-	fi
-fi
+#DEBHELPER#
