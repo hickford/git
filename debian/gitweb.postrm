@@ -6,13 +6,3 @@ set -e
 dpkg-maintscript-helper mv_conffile \
   /etc/apache2/conf.d/gitweb /etc/apache2/conf-available/gitweb.conf \
   1:2.1.4-2~ -- "$@"
-
-test "$1" = remove || test "$1" = purge || exit 0
-
-# This should not be needed because prerm already disabled the
-# configuration.  Try again in case Apache was not installed at
-# prerm time and has been reinstalled since then.
-if [ -e /usr/share/apache2/apache2-maintscript-helper ]; then
-  . /usr/share/apache2/apache2-maintscript-helper
-  apache2_invoke disconf gitweb || exit
-fi

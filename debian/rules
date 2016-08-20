@@ -30,7 +30,7 @@ TMP = $(CURDIR)/debian/tmp
 GIT = $(CURDIR)/debian/git
 
 %:
-	dh $@
+	dh $@ --with apache2
 
 override_dh_auto_configure:
 
@@ -260,9 +260,6 @@ override_dh_auto_install-indep:
 	  '$(GIT)'web/usr/lib/cgi-bin/gitweb.cgi
 	install -d -m0755 '$(GIT)'web/etc
 	install -m0644 debian/gitweb.conf '$(GIT)'web/etc/gitweb.conf
-	install -d -m0755 '$(GIT)'web/etc/apache2/conf-available
-	install -m0644 debian/gitweb.apache2.conf \
-	  '$(GIT)'web/etc/apache2/conf-available/gitweb.conf
 
 override_dh_installdocs:
 	install -d -m0755 '$(GIT)'-core/usr/share/doc

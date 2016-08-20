@@ -6,11 +6,3 @@ set -e
 dpkg-maintscript-helper mv_conffile \
   /etc/apache2/conf.d/gitweb /etc/apache2/conf-available/gitweb.conf \
   1:2.1.4-2~ -- "$@"
-
-test "$1" = configure || test "$1" = triggered || exit 0
-
-if [ -e /usr/share/apache2/apache2-maintscript-helper ]
-then
-  . /usr/share/apache2/apache2-maintscript-helper
-  apache2_invoke enconf gitweb || exit
-fi
