@@ -2,6 +2,8 @@ git (1:2.9.3-2) UNRELEASED; urgency=medium
 
   * debian/rules: Fix clean target to remove GIT-VERSION-FILE and
     contrib/subtree build products.  (Closes: #834870)
+  * Fix a missing reference in /usr/share/doc-base/everyday-git.
+    (Closes: #836516)
 
  -- Anders Kaseorg <andersk@mit.edu>  Fri, 19 Aug 2016 23:00:23 -0400
 
