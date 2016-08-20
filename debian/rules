@@ -1,12 +1,9 @@
 #!/usr/bin/make -f
 
-ARCH ?=$(shell dpkg-architecture -qDEB_HOST_ARCH)
-
 CC =gcc
 CPPFLAGS :=$(shell dpkg-buildflags --get CPPFLAGS)
 CFLAGS :=-Wall $(shell dpkg-buildflags --get CFLAGS) $(CPPFLAGS)
 LDFLAGS :=$(shell dpkg-buildflags --get LDFLAGS)
-STRIP =strip
 TEST =test
 OPTS =NO_OPENSSL=1 prefix=/usr gitexecdir=/usr/lib/git-core \
   libexecdir=/usr/lib/git-core \
@@ -21,9 +18,6 @@ OPTS =NO_OPENSSL=1 prefix=/usr gitexecdir=/usr/lib/git-core \
 DOC_OPTS =prefix=/usr htmldir=/usr/share/doc/git/html \
   ASCIIDOC8=1 ASCIIDOC_NO_ROFF=1
 
-ifneq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
-  STRIP =: strip
-endif
 ifneq (,$(findstring nocheck,$(DEB_BUILD_OPTIONS)))
   TEST =
 endif
@@ -32,68 +26,44 @@ ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
   MAKEFLAGS += -j$(NUMJOBS)
 endif
 
-PKG_INDEP =
-PKG_INDEP += git-doc
-PKG_INDEP += git-arch
-PKG_INDEP += git-cvs
-PKG_INDEP += git-svn
-PKG_INDEP += git-mediawiki
-PKG_INDEP += git-daemon-run
-PKG_INDEP += git-daemon-sysvinit
-PKG_INDEP += git-email
-PKG_INDEP += git-gui
-PKG_INDEP += gitk
-PKG_INDEP += gitweb
-PKG_INDEP += git-all
-PKG_INDEP += git-el
-PKG_INDEP += git-man
+TMP = $(CURDIR)/debian/tmp
+GIT = $(CURDIR)/debian/git
 
-TMP =$(shell pwd)/tmp
-GIT =$(shell pwd)/debian/git
+%:
+	dh $@
 
-build: build-arch build-indep
+override_dh_auto_configure:
 
-build-arch: deb-checkdir build-arch-stamp
-build-arch-stamp:
+override_dh_auto_build-arch:
 	-$(CC) -v
 	DESTDIR='$(GIT)' $(MAKE) all $(OPTS)
 	DESTDIR='$(GIT)' $(MAKE) -C contrib/subtree all $(OPTS)
 	ln -s contrib/subtree/git-subtree
+
+override_dh_auto_test-arch:
 	test -z '$(TEST)' || \
 	  DESTDIR='$(GIT)' $(MAKE) $(TEST) $(OPTS) || \
 	  GIT_TEST_OPTS=--verbose DESTDIR='$(GIT)' $(MAKE) $(TEST) $(OPTS)
 	test -z '$(TEST)' || \
 	  DESTDIR='$(GIT)' $(MAKE) -C contrib/subtree $(TEST) $(OPTS) || \
 	  GIT_TEST_OPTS=--verbose DESTDIR='$(GIT)' $(MAKE) -C contrib/subtree $(TEST) $(OPTS)
-	touch build-arch-stamp
 
-build-indep: deb-checkdir build-indep-stamp
-build-indep-stamp: build-arch-stamp
+override_dh_auto_build-indep:
 	# git-man, git-doc
 	$(MAKE) -CDocumentation man html $(DOC_OPTS)
 	# git-mediawiki
 	$(MAKE) -Ccontrib/mw-to-git all $(OPTS)
-	touch build-indep-stamp
 
-clean: deb-checkdir
+override_dh_auto_test-indep:
+
+override_dh_auto_clean:
 	$(MAKE) -C contrib/mw-to-git clean $(OPTS)
 	$(MAKE) -C contrib/subtree clean $(OPTS)
 	$(MAKE) clean $(OPTS)
-	rm -rf '$(TMP)'
-	rm -f build-arch-stamp build-indep-stamp
-	set -e; \
-	  for i in '' $(patsubst git%,%,$(PKG_INDEP)) -core; do \
-	    rm -rf '$(GIT)'$$i; \
-	  done
-	rm -f debian/files debian/substvars
 	rm -f git-subtree
 
-install: install-arch install-indep
-git.install: install-arch
-install-arch: deb-checkdir deb-checkuid build-arch-stamp
+override_dh_auto_install-arch:
 	# git
-	rm -rf '$(GIT)'
-	install -d -m0755 '$(GIT)'/usr/bin
 	DESTDIR='$(GIT)' $(MAKE) install $(OPTS)
 	DESTDIR='$(GIT)' $(MAKE) -C contrib/subtree install $(OPTS)
 	install -d -m0755 '$(GIT)'/var/lib/git
@@ -109,12 +79,6 @@ install-arch: deb-checkdir deb-checkuid build-arch-stamp
 	done
 	rm -f '$(GIT)'/usr/bin/git-cvsserver
 	rm -f '$(GIT)'/usr/bin/gitk
-	for i in '$(GIT)'/usr/bin/* '$(GIT)'/usr/lib/git-core/*; do \
-	  test -d $$i || \
-	  test "`head -c2 $$i`" = '#!' || \
-	  test "`head -c2 $$i`" = '# ' || \
-	  $(STRIP) -R .comment -R .note $$i; \
-	done
 	# don't include git-gui's lib
 	rm -rf '$(GIT)'/usr/share/git-gui/
 	# don't include gitk's lib
@@ -160,12 +124,8 @@ install-arch: deb-checkdir deb-checkuid build-arch-stamp
 	  '$(GIT)'/usr/share/doc/git/contrib/
 	find '$(GIT)'/usr/share/doc/git/ -name .gitignore | xargs rm -f
 
-$(patsubst %,%.install,$(PKG_INDEP)) git-core.install: install-indep
-install-indep: build-arch-stamp build-indep-stamp
-	rm -rf '$(TMP)'
-	install -d -m0755 '$(TMP)'
+override_dh_auto_install-indep:
 	DESTDIR='$(TMP)' $(MAKE) install install-doc $(OPTS)
-	install -d -m0755 '$(TMP)/usr/share/perl5/Git'
 	DESTDIR='$(TMP)' $(MAKE) -Ccontrib/mw-to-git install $(OPTS) \
 	  INSTLIBDIR=/usr/share/perl5
 	$(MAKE) -CDocumentation install-webdoc WEBDOC_DEST='$(TMP)'/html \
@@ -175,7 +135,6 @@ install-indep: build-arch-stamp build-indep-stamp
 	# RelNotes are shipped in git
 	rm -rf '$(TMP)'/html/RelNotes
 	# git-man
-	rm -rf '$(GIT)'-man
 	install -d -m0755 '$(GIT)'-man/usr/share/man/man3
 	DESTDIR='$(GIT)'-man $(MAKE) install-doc $(OPTS)
 	DESTDIR='$(GIT)'-man $(MAKE) -Ccontrib/subtree install-man $(OPTS)
@@ -188,23 +147,19 @@ install-indep: build-arch-stamp build-indep-stamp
 	done
 	rm -f '$(GIT)'-man/usr/share/man/man3/Git::SVN*.3pm
 	chmod 0644 '$(GIT)'-man/usr/share/man/man?/*.[0-9]*
-	gzip -9 '$(GIT)'-man/usr/share/man/man?/*.[0-9]*
 	# git-doc
-	rm -rf '$(GIT)'-doc
 	# don't include git-p4 man page
 	rm -f '$(TMP)'/html/git-p4.*
 	install -d -m0755 '$(GIT)'-doc/usr/share/doc/git
 	ln -s ../git-doc '$(GIT)'-doc/usr/share/doc/git/html
 	# git-cvs, git-svn
 	for i in cvs svn; do \
-	  rm -rf '$(GIT)'-$$i && \
 	  install -d -m0755 '$(GIT)'-$$i/usr/lib/git-core && \
 	  install -m0755 '$(TMP)'/usr/lib/git-core/git-$$i* \
 	    '$(GIT)'-$$i/usr/lib/git-core/ && \
 	  install -d -m0755 '$(GIT)'-$$i/usr/share/man/man1 && \
 	  install -m0644 '$(TMP)'/usr/share/man/man1/git-$$i* \
-	    '$(GIT)'-$$i/usr/share/man/man1/ && \
-	  gzip -9 '$(GIT)'-$$i/usr/share/man/man1/*.1 || exit 1; \
+	    '$(GIT)'-$$i/usr/share/man/man1/; \
 	done
 	install -d -m0755 '$(GIT)'-svn/usr/share/perl5/Git
 	cp -R '$(TMP)'/usr/share/perl5/Git/SVN* \
@@ -214,21 +169,17 @@ install-indep: build-arch-stamp build-indep-stamp
 	install -d -m0755 '$(GIT)'-svn/usr/share/man/man3
 	install -m 0644 '$(TMP)'/usr/share/man/man3/Git::SVN*.3pm \
 	  '$(GIT)'-svn/usr/share/man/man3/
-	gzip -9 '$(GIT)'-svn/usr/share/man/man3/*.3pm
 	# git-cvs
 	install -d -m0755 '$(GIT)'-cvs/usr/bin
 	install -m0755 '$(TMP)'/usr/bin/git-cvsserver '$(GIT)'-cvs/usr/bin/
 	# git-arch
-	rm -rf '$(GIT)'-arch
 	install -d -m0755 '$(GIT)'-arch/usr/lib/git-core
 	install -m0755 '$(TMP)'/usr/lib/git-core/git-archimport \
 	  '$(GIT)'-arch/usr/lib/git-core/
 	install -d -m0755 '$(GIT)'-arch/usr/share/man/man1
 	install -m0644 '$(TMP)'/usr/share/man/man1/git-archimport.1 \
 	  '$(GIT)'-arch/usr/share/man/man1/
-	gzip -9 '$(GIT)'-arch/usr/share/man/man1/*.1
 	# git-mediawiki
-	rm -rf '$(GIT)'-mediawiki
 	install -d -m0755 '$(GIT)'-mediawiki/usr/share/perl5/Git
 	install -m0644 '$(TMP)'/usr/share/perl5/Git/Mediawiki.pm \
 	  '$(GIT)'-mediawiki/usr/share/perl5/Git/
@@ -238,23 +189,19 @@ install-indep: build-arch-stamp build-indep-stamp
 	install -m0755 '$(TMP)'/usr/lib/git-core/git-remote-mediawiki \
 	  '$(GIT)'-mediawiki/usr/lib/git-core/
 	# git-email
-	rm -rf '$(GIT)'-email
 	install -d -m0755 '$(GIT)'-email/usr/lib/git-core
 	install -m0755 '$(TMP)'/usr/lib/git-core/git-send-email \
 	  '$(GIT)'-email/usr/lib/git-core/
 	install -d -m0755 '$(GIT)'-email/usr/share/man/man1
 	install -m0644 '$(TMP)'/usr/share/man/man1/git-send-email.1 \
 	  '$(GIT)'-email/usr/share/man/man1/
-	gzip -9 '$(GIT)'-email/usr/share/man/man1/*.1
 	# git-daemon-run
-	rm -rf '$(GIT)'-daemon-run
 	install -d -m0755 '$(GIT)'-daemon-run/etc/sv/git-daemon/log
 	install -m0755 debian/git-daemon/run \
 	  '$(GIT)'-daemon-run/etc/sv/git-daemon/run
 	install -m0755 debian/git-daemon/log/run \
 	  '$(GIT)'-daemon-run/etc/sv/git-daemon/log/run
 	# git-daemon-sysvinit
-	rm -rf '$(GIT)'-daemon-sysvinit
 	install -d -m0755 '$(GIT)'-daemon-sysvinit/etc/init.d
 	install -m0755 debian/git-daemon.init \
 	  '$(GIT)'-daemon-sysvinit/etc/init.d/git-daemon
@@ -266,7 +213,6 @@ install-indep: build-arch-stamp build-indep-stamp
 	chmod 0644 \
 	  '$(GIT)'-daemon-sysvinit/usr/share/git-core/sysvinit/sentinel
 	# git-el
-	rm -rf '$(GIT)'-el
 	install -m0644 -D debian/git-el.emacsen-startup \
 	  '$(GIT)'-el/etc/emacs/site-start.d/50git-core.el
 	install -m0755 -D debian/git-el.emacsen-install \
@@ -285,7 +231,6 @@ install-indep: build-arch-stamp build-indep-stamp
 	ln -s ../../../git-core/emacs \
 	  '$(GIT)'-el/usr/share/doc/git/contrib/emacs
 	# git-gui
-	rm -rf '$(GIT)'-gui
 	install -d -m0755 '$(GIT)'-gui/usr/lib/git-core
 	install -m0755 '$(TMP)'/usr/lib/git-core/git-gui \
 	  '$(GIT)'-gui/usr/lib/git-core/
@@ -298,22 +243,18 @@ install-indep: build-arch-stamp build-indep-stamp
 	  install -m0644 '$(TMP)'/usr/share/man/man1/git-$$i* \
 	    '$(GIT)'-gui/usr/share/man/man1/; \
 	done
-	gzip -9 '$(GIT)'-gui/usr/share/man/man1/*.1
 	install -d -m0755 '$(GIT)'-gui/usr/share/git-gui
 	cp -a '$(TMP)'/usr/share/git-gui/lib '$(GIT)'-gui/usr/share/git-gui/
 	# gitk
-	rm -rf '$(GIT)'k
 	install -d -m0755 '$(GIT)'k/usr/bin
 	install -m0755 '$(TMP)'/usr/bin/gitk \
 	  '$(GIT)'k/usr/bin/gitk
 	install -d -m0755 '$(GIT)'k/usr/share/man/man1
 	install -m0644 '$(TMP)'/usr/share/man/man1/gitk.1 \
 	  '$(GIT)'k/usr/share/man/man1/
-	gzip -9 '$(GIT)'k/usr/share/man/man1/*.1
 	install -d -m0755 '$(GIT)'k/usr/share/gitk
 	cp -a '$(TMP)'/usr/share/gitk/lib '$(GIT)'k/usr/share/gitk/
 	# gitweb
-	rm -rf '$(GIT)'web
 	install -d -m0755 '$(GIT)'web/usr/lib/cgi-bin
 	ln -s ../../share/gitweb/gitweb.cgi \
 	  '$(GIT)'web/usr/lib/cgi-bin/gitweb.cgi
@@ -322,37 +263,19 @@ install-indep: build-arch-stamp build-indep-stamp
 	install -d -m0755 '$(GIT)'web/etc/apache2/conf-available
 	install -m0644 debian/gitweb.apache2.conf \
 	  '$(GIT)'web/etc/apache2/conf-available/gitweb.conf
-	# git-all
-	rm -rf '$(GIT)'-all
-	install -d -m0755 '$(GIT)'-all
-	# git-core
-	rm -rf '$(GIT)'-core
+
+override_dh_installdocs:
 	install -d -m0755 '$(GIT)'-core/usr/share/doc
 	ln -s git '$(GIT)'-core/usr/share/doc/git-core
+	dh_installdocs -X.gitignore
 
-git-core.deb-docs:
-	: no doc dir
+override_dh_installchangelogs:
+	dh_installchangelogs debian/changelog.upstream
 
-binary: binary-arch binary-indep
-binary-arch: install-arch git.deb
-	rm -f debian/substvars
-	dpkg-shlibdeps '$(GIT)'/usr/bin/* '$(GIT)'/usr/lib/git-core/*
-	dpkg-gencontrol -isp -pgit -P'$(GIT)'
-	dpkg -b '$(GIT)' ..
-binary-indep: install-indep $(patsubst %,%.deb,$(PKG_INDEP)) git-core.deb-DEBIAN
-	rm -f debian/substvars
-	for i in $(patsubst git%,%,$(PKG_INDEP)) -core; do \
-	  dpkg-gencontrol -isp -pgit$$i -P'$(GIT)'$$i && \
-	  dpkg -b '$(GIT)'$$i .. || exit 1; \
-	done
+# Skip dh_installemacsen to avoid having to rename
+# /etc/emacs/site-start.d/50git-core.el to
+# /etc/emacs/site-start.d/50git-el.el.
+override_dh_installemacsen:
 
-.PHONY: clean
-.PHONY: build build-arch build-indep
-.PHONY: install install-arch install-indep
-.PHONY: binary binary-arch binary-indep
-
-# Git's build system supports parallelism (-j) but does not handle
-# multiple concurrent "make" invocations.
-.NOTPARALLEL:
-
-include debian/implicit
+override_dh_compress:
+	dh_compress -X.txt -Xcontrib

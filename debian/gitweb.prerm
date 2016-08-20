@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
+#DEBHELPER#
+
 test "$1" = remove || test "$1" = deconfigure || exit 0
 
 # This block does not run if Apache is removed before gitweb.

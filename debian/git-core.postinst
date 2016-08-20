@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
+#DEBHELPER#
+
 test "$1" = configure || exit 0
 test -n "$2" || exit 0
 dpkg --compare-versions "$2" le '1:1.7.0.4-2' || exit 0

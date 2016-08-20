@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
+#DEBHELPER#
+
 test "$1" = 'remove' || exit 0
 
 update-rc.d git-daemon remove >/dev/null

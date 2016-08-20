@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
+#DEBHELPER#
+
 test "$1" = 'remove' || test "$1" = 'deconfigure' || \
   test "$1" = 'failed-upgrade' || exit 0
 

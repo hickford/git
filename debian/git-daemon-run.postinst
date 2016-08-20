@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
+#DEBHELPER#
+
 test "$1" = 'configure' || exit 0
 
 getent passwd gitlog >/dev/null || \

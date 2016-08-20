@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
+#DEBHELPER#
+
 # /var/cache/git/ -> /var/lib/git/ transition
 if test "$1" = upgrade &&
    dpkg --compare-versions "$2" lt-nl '1:1.8.4~rc0-1'; then
