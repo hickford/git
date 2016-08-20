@@ -69,9 +69,6 @@ override_dh_auto_install-arch:
 	install -d -m0755 '$(GIT)'/var/lib/git
 	rm -f '$(GIT)'/usr/share/perl5/Error.pm
 	rm -rf '$(GIT)'/usr/share/man
-	chmod 644 '$(GIT)'/usr/share/perl5/Git.pm
-	find '$(GIT)'/usr/share/perl5/Git -type d | xargs chmod 0755
-	find '$(GIT)'/usr/share/perl5/Git -type f | xargs chmod 0644
 	# don't include arch, cvs, p4, svn, email, gui tools, and gitk program
 	for i in git-archimport git-cvs git-p4 git-svn git-send-email \
 	 git-gui git-citool; do \
@@ -85,44 +82,9 @@ override_dh_auto_install-arch:
 	rm -rf '$(GIT)'/usr/share/gitk/
 	# don't include git-svn's lib
 	rm -rf '$(GIT)'/usr/share/perl5/Git/SVN*
-	# bash completion
-	install -d -m0755 '$(GIT)'/usr/share/bash-completion/completions
-	install -m0644 contrib/completion/git-completion.bash \
-	  '$(GIT)'/usr/share/bash-completion/completions/git
-	ln -s git '$(GIT)'/usr/share/bash-completion/completions/gitk
-	# bash prompt
-	install -m0644 contrib/completion/git-prompt.sh \
-	  '$(GIT)'/usr/lib/git-core/git-sh-prompt
-	install -d -m0755 '$(GIT)'/etc/bash_completion.d
-	install -m0644 debian/git-prompt.completion \
-	  '$(GIT)'/etc/bash_completion.d/git-prompt
 	# sanity check that #642603 fix is still in place
 	test $$(stat -c%h \
 	  '$(GIT)'/usr/lib/git-core/git-branch) -le 10
-	# gitweb
-	install -d -m0755 '$(GIT)'/usr/share/gitweb
-	ln -s gitweb.cgi '$(GIT)'/usr/share/gitweb/index.cgi
-	# contrib hooks
-	install -d -m0755 '$(GIT)'/usr/share/git-core/contrib/hooks
-	set -e; for i in contrib/hooks/*; do \
-	  test "$$i" != contrib/hooks/multimail || continue; \
-	  install -m0755 "$$i" \
-	    '$(GIT)'/usr/share/git-core/contrib/hooks/; \
-	done
-	# contrib
-	install -d -m0755 '$(GIT)'/usr/share/doc/git
-	cp -R contrib '$(GIT)'/usr/share/doc/git/
-	rm -rf '$(GIT)'/usr/share/doc/git/contrib/completion
-	rm -rf '$(GIT)'/usr/share/doc/git/contrib/emacs
-	rm -rf '$(GIT)'/usr/share/doc/git/contrib/mw-to-git
-	find '$(GIT)'/usr/share/doc/git/contrib -type f | xargs chmod 0644
-	find '$(GIT)'/usr/share/doc/git/contrib -type d | xargs chmod 0755
-	  # remove contrib hooks, they are now installed in
-	  # /usr/share/git-core/contrib, keep symlink for backward compatibility
-	rm -rf '$(GIT)'/usr/share/doc/git/contrib/hooks
-	ln -s ../../../git-core/contrib/hooks \
-	  '$(GIT)'/usr/share/doc/git/contrib/
-	find '$(GIT)'/usr/share/doc/git/ -name .gitignore | xargs rm -f
 
 override_dh_auto_install-indep:
 	DESTDIR='$(TMP)' $(MAKE) install install-doc $(OPTS)
@@ -261,10 +223,22 @@ override_dh_auto_install-indep:
 	install -d -m0755 '$(GIT)'web/etc
 	install -m0644 debian/gitweb.conf '$(GIT)'web/etc/gitweb.conf
 
+override_dh_install-arch:
+	dh_install --arch
+	rm -rf '$(GIT)'/usr/share/git-core/contrib/hooks/multimail
+
 override_dh_installdocs:
 	install -d -m0755 '$(GIT)'-core/usr/share/doc
 	ln -s git '$(GIT)'-core/usr/share/doc/git-core
 	dh_installdocs -X.gitignore
+	rm -rf '$(GIT)'/usr/share/doc/git/contrib/completion
+	rm -rf '$(GIT)'/usr/share/doc/git/contrib/emacs
+	rm -rf '$(GIT)'/usr/share/doc/git/contrib/hooks
+	rm -rf '$(GIT)'/usr/share/doc/git/contrib/mw-to-git
+	rm -f '$(GIT)'/usr/share/doc/git/contrib/subtree/git-subtree.1
+	rm -f '$(GIT)'/usr/share/doc/git/contrib/subtree/git-subtree.html
+	rm -f '$(GIT)'/usr/share/doc/git/contrib/subtree/git-subtree.xml
+	find '$(GIT)'/usr/share/doc/git/ -name .gitignore | xargs rm -f
 
 override_dh_installchangelogs:
 	dh_installchangelogs debian/changelog.upstream

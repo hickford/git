@@ -1,0 +1,3 @@
+usr/share/bash-completion/completions/git usr/share/bash-completion/completions/gitk
+usr/share/gitweb/gitweb.cgi usr/share/gitweb/index.cgi
+usr/share/git-core/contrib/hooks usr/share/doc/git/contrib/hooks
