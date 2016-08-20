@@ -9,13 +9,14 @@ OPTS =NO_OPENSSL=1 prefix=/usr gitexecdir=/usr/lib/git-core \
   libexecdir=/usr/lib/git-core \
   mandir=/usr/share/man htmldir=/usr/share/doc/git/html \
   INSTALLDIRS=vendor \
-  USE_SRV_RR=1 \
   USE_LIBPCRE=1 \
   SANE_TOOL_PATH= INSTALL=install TAR=tar \
   NO_CROSS_DIRECTORY_HARDLINKS=1 NO_INSTALL_HARDLINKS=1 \
   DEFAULT_PAGER=pager DEFAULT_EDITOR=editor \
+  V=1 \
   CC='$(CC)' CFLAGS='$(CFLAGS)' LDFLAGS='$(LDFLAGS)'
 DOC_OPTS =prefix=/usr htmldir=/usr/share/doc/git/html \
+  V=1 \
   ASCIIDOC8=1 ASCIIDOC_NO_ROFF=1
 
 ifneq (,$(findstring nocheck,$(DEB_BUILD_OPTIONS)))
