@@ -26,6 +26,7 @@ Architecture: any
 Multi-Arch: foreign
 Depends: ${misc:Depends}, ${shlibs:Depends}, perl-modules, liberror-perl,
  git-man (>> ${source:Upstream-Version}), git-man (<< ${source:Upstream-Version}-.)
+Pre-Depends: ${misc:Pre-Depends}
 Recommends: patch, less, rsync, ssh-client
 Suggests: gettext-base, git-daemon-run | git-daemon-sysvinit,
  git-doc, git-el, git-email, git-gui, gitk, gitweb,
