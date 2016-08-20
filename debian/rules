@@ -84,11 +84,12 @@ build-indep-stamp: patch-stamp build-arch-stamp
 	touch build-indep-stamp
 
 clean: deb-checkdir
+	$(MAKE) -C contrib/mw-to-git clean $(OPTS)
+	$(MAKE) -C contrib/subtree clean $(OPTS)
 	$(MAKE) clean $(OPTS)
 	! test -e patch-stamp || \
 	{ \
 	  set -e; \
-	  $(MAKE) -Ccontrib/mw-to-git clean $(OPTS); \
 	  for i in `ls -1r debian/diff/*.diff debian/diff/*.patch \
 	      2>/dev/null || :`; do \
 	    patch -p1 -NR -r- <$$i || test $$? = 1 || exit 1; \
