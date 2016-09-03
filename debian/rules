@@ -39,9 +39,12 @@ GIT = $(CURDIR)/debian/git
 
 override_dh_auto_configure:
 
-override_dh_auto_build-arch:
+build-stamp:
 	-$(CC) -v
 	DESTDIR='$(GIT)' $(MAKE) all $(OPTS)
+	touch $@
+
+override_dh_auto_build-arch: build-stamp
 	DESTDIR='$(GIT)' $(MAKE) -C contrib/subtree all $(OPTS)
 	ln -s contrib/subtree/git-subtree
 
@@ -53,7 +56,7 @@ override_dh_auto_test-arch:
 	  DESTDIR='$(GIT)' $(MAKE) -C contrib/subtree $(TEST) $(OPTS) || \
 	  GIT_TEST_OPTS=--verbose DESTDIR='$(GIT)' $(MAKE) -C contrib/subtree $(TEST) $(OPTS)
 
-override_dh_auto_build-indep:
+override_dh_auto_build-indep: build-stamp
 	# git-man, git-doc
 	$(MAKE) -CDocumentation man html $(DOC_OPTS)
 	# git-mediawiki
