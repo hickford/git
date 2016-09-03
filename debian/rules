@@ -41,20 +41,20 @@ override_dh_auto_configure:
 
 build-stamp:
 	-$(CC) -v
-	DESTDIR='$(GIT)' $(MAKE) all $(OPTS)
+	$(MAKE) all $(OPTS)
 	touch $@
 
 override_dh_auto_build-arch: build-stamp
-	DESTDIR='$(GIT)' $(MAKE) -C contrib/subtree all $(OPTS)
+	$(MAKE) -C contrib/subtree all $(OPTS)
 	ln -s contrib/subtree/git-subtree
 
 override_dh_auto_test-arch:
 	test -z '$(TEST)' || \
-	  DESTDIR='$(GIT)' $(MAKE) $(TEST) $(OPTS) || \
-	  GIT_TEST_OPTS=--verbose DESTDIR='$(GIT)' $(MAKE) $(TEST) $(OPTS)
+	  $(MAKE) $(TEST) $(OPTS) || \
+	  GIT_TEST_OPTS=--verbose $(MAKE) $(TEST) $(OPTS)
 	test -z '$(TEST)' || \
-	  DESTDIR='$(GIT)' $(MAKE) -C contrib/subtree $(TEST) $(OPTS) || \
-	  GIT_TEST_OPTS=--verbose DESTDIR='$(GIT)' $(MAKE) -C contrib/subtree $(TEST) $(OPTS)
+	  $(MAKE) -C contrib/subtree $(TEST) $(OPTS) || \
+	  GIT_TEST_OPTS=--verbose $(MAKE) -C contrib/subtree $(TEST) $(OPTS)
 
 override_dh_auto_build-indep: build-stamp
 	# git-man, git-doc
