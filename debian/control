@@ -24,7 +24,7 @@ Vcs-Browser: http://repo.or.cz/w/git/debian.git/
 Package: git
 Architecture: any
 Multi-Arch: foreign
-Depends: ${misc:Depends}, ${shlibs:Depends}, perl-modules, liberror-perl,
+Depends: ${misc:Depends}, ${shlibs:Depends}, perl, liberror-perl,
  git-man (>> ${source:Upstream-Version}), git-man (<< ${source:Upstream-Version}-.)
 Pre-Depends: ${misc:Pre-Depends}
 Recommends: patch, less, rsync, ssh-client
