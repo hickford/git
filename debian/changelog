@@ -1,4 +1,4 @@
-git (1:2.10.1-1) UNRELEASED; urgency=medium
+git (1:2.10.1-1) unstable; urgency=medium
 
   * New upstream release (see RelNotes/2.10.0.txt, RelNotes/2.10.1.txt).
     (Closes: #840800)
@@ -12,7 +12,7 @@ git (1:2.10.1-1) UNRELEASED; urgency=medium
   * git-daemon-sysvinit: Depend lsb-base (>= 3.0-6) for
     /lib/lsb/init-functions.
 
- -- Anders Kaseorg <andersk@mit.edu>  Fri, 19 Aug 2016 23:00:23 -0400
+ -- Anders Kaseorg <andersk@mit.edu>  Fri, 14 Oct 2016 21:47:15 -0400
 
 git (1:2.9.3-1) unstable; urgency=medium
 
