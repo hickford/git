@@ -1,5 +1,7 @@
-git (1:2.9.3-2) UNRELEASED; urgency=medium
+git (1:2.10.1-1) UNRELEASED; urgency=medium
 
+  * New upstream release (see RelNotes/2.10.0.txt, RelNotes/2.10.1.txt).
+    (Closes: #840800)
   * debian/rules: Fix clean target to remove GIT-VERSION-FILE and
     contrib/subtree build products.  (Closes: #834870)
   * Fix a missing reference in /usr/share/doc-base/everyday-git.
