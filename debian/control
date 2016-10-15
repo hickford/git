@@ -241,7 +241,7 @@ Package: git-daemon-sysvinit
 Priority: extra
 Architecture: all
 Multi-Arch: foreign
-Depends: ${misc:Depends}, git (>> ${source:Upstream-Version}), git (<< ${source:Upstream-Version}-.), adduser
+Depends: ${misc:Depends}, git (>> ${source:Upstream-Version}), git (<< ${source:Upstream-Version}-.), adduser, lsb-base (>= 3.0-6)
 Conflicts: git-daemon-run
 Description: fast, scalable, distributed revision control system (git-daemon service)
  Git is popular version control system designed to handle very large

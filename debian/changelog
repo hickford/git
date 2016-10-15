@@ -7,6 +7,8 @@ git (1:2.9.3-2) UNRELEASED; urgency=medium
   * Migrate patches to 3.0 (quilt) format.  (Closes: #834566)
   * Migrate packaging to Debhelper.  (Closes: #834886)
   * Replace perl-modules dependency with perl.
+  * git-daemon-sysvinit: Depend lsb-base (>= 3.0-6) for
+    /lib/lsb/init-functions.
 
  -- Anders Kaseorg <andersk@mit.edu>  Fri, 19 Aug 2016 23:00:23 -0400
 
