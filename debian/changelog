@@ -2,6 +2,8 @@ git (1:2.10.2-1) UNRELEASED; urgency=medium
 
   * New upstream point release.
     - imap-send: Tell cURL to use imap:// or imaps:// (Closes: #648329)
+  * Run asciidoc in TZ=UTC to improve the reproducibility of documentation
+    footer timestamps.
 
  -- Anders Kaseorg <andersk@mit.edu>  Sat, 29 Oct 2016 22:30:45 -0400
 

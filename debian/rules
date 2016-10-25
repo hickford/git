@@ -19,6 +19,9 @@ DOC_OPTS =prefix=/usr htmldir=/usr/share/doc/git/html \
   V=1 \
   ASCIIDOC8=1 ASCIIDOC_NO_ROFF=1
 
+# https://wiki.debian.org/ReproducibleBuilds/TimestampsInDocumentationGeneratedByAsciidoc
+DOC_OPTS += ASCIIDOC='TZ=UTC asciidoc'
+
 ifneq (,$(findstring nocheck,$(DEB_BUILD_OPTIONS)))
   TEST =
 endif
