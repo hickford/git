@@ -1,0 +1,54 @@
+From 947eb721c7514f932e167ff71351fe5edde138da Mon Sep 17 00:00:00 2001
+From: Anders Kaseorg <andersk@mit.edu>
+Date: Sat, 29 Oct 2016 21:40:45 -0400
+Subject: git-sh-setup: Restore sourcability from outside scripts
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+v2.10.0-rc0~45^2~2 “i18n: git-sh-setup.sh: mark strings for
+translation” broke outside scripts such as guilt that source
+git-sh-setup as described in the documentation:
+
+$ . "$(git --exec-path)/git-sh-setup"
+sh: 6: .: git-sh-i18n: not found
+
+This also affects contrib/convert-grafts-to-replace-refs.sh and
+contrib/rerere-train.sh in tree.  Fix this by using git --exec-path to
+find git-sh-i18n.
+
+While we’re here, move the sourcing of git-sh-i18n below the shell
+portability fixes.
+
+Signed-off-by: Anders Kaseorg <andersk@mit.edu>
+---
+ git-sh-setup.sh | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/git-sh-setup.sh b/git-sh-setup.sh
+index a8a4576..240c7eb 100644
+--- a/git-sh-setup.sh
++++ b/git-sh-setup.sh
+@@ -2,9 +2,6 @@
+ # to set up some variables pointing at the normal git directories and
+ # a few helper shell functions.
+ 
+-# Source git-sh-i18n for gettext support.
+-. git-sh-i18n
+-
+ # Having this variable in your environment would break scripts because
+ # you would cause "cd" to be taken to unexpected places.  If you
+ # like CDPATH, define it for your interactive shell sessions without
+@@ -46,6 +43,9 @@ git_broken_path_fix () {
+ 
+ # @@BROKEN_PATH_FIX@@
+ 
++# Source git-sh-i18n for gettext support.
++. "$(git --exec-path)/git-sh-i18n"
++
+ die () {
+ 	die_with_status 1 "$@"
+ }
+-- 
+2.10.1
+
