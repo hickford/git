@@ -182,7 +182,7 @@ Multi-Arch: foreign
 Depends: ${misc:Depends}, git (>> ${source:Upstream-Version}), git (<< ${source:Upstream-Version}-.),
  libmediawiki-api-perl (>= 0.39), liblwp-protocol-https-perl, libdatetime-format-iso8601-perl
 Suggests: mediawiki
-Description: fast, scalable, distributed revision control system (MediaWiki interoperability)
+Description: fast, scalable, distributed revision control system (MediaWiki remote helper)
  Git is popular version control system designed to handle very large
  projects with speed and efficiency; it is used for many high profile
  open source projects, most notably the Linux kernel.
