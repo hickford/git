@@ -1,3 +1,106 @@
+Version v2.10.2; changes since v2.10.1:
+---------------------------------------
+
+Anders Kaseorg (1):
+      imap-send: Tell cURL to use imap:// or imaps://
+
+Brandon Williams (1):
+      submodules doc: update documentation for "." used for submodule branches
+
+David Turner (2):
+      add David Turner's Two Sigma address
+      http: http.emptyauth should allow empty (not just NULL) usernames
+
+Dennis Kaarsemaker (1):
+      worktree: allow the main brach of a bare repository to be checked out
+
+Dimitriy Ryazantcev (1):
+      l10n: ru.po: update Russian translation
+
+Jakub Narębski (1):
+      configure.ac: improve description of NO_REGEX test
+
+Jeff King (11):
+      verify_packfile: check pack validity before accessing data
+      graph: fix extra spaces in graph_padding_line
+      clone: detect errors in normalize_path_copy
+      files_read_raw_ref: avoid infinite loop on broken symlinks
+      files_read_raw_ref: prevent infinite retry loops in general
+      merge-base: handle --fork-point without reflog
+      fetch: use "quick" has_sha1_file for tag following
+      test-lib: handle TEST_OUTPUT_DIRECTORY with spaces
+      test-lib: add --verbose-log option
+      travis: use --verbose-log test option
+      test-lib: bail out when "-v" used under "prove"
+
+Johannes Schindelin (1):
+      reset: fix usage
+
+Jonathan Tan (1):
+      fetch-pack: do not reset in_vain on non-novel acks
+
+Junio C Hamano (9):
+      streaming: make sure to notice corrupt object
+      unpack_sha1_header(): detect malformed object header
+      worktree: honor configuration variables
+      blame: use DEFAULT_ABBREV macro
+      diff_unique_abbrev(): document its assumption and limitation
+      Start preparing for 2.10.2
+      cocci: refactor common patterns to use xstrdup_or_null()
+      t3700: fix broken test under !SANITY
+      Git 2.10.2
+
+Kevin Daudt (2):
+      t5100-mailinfo: replace common path prefix with variable
+      mailinfo: unescape quoted-pair in header fields
+
+Nguyễn Thái Ngọc Duy (1):
+      git-commit.txt: clarify --patch mode with pathspec
+
+Philip Oakley (2):
+      doc: fix merge-base ASCII art tab spacing
+      doc: fix the 'revert a faulty merge' ASCII art tab spacing
+
+Pranit Bauva (2):
+      rev-list-options: clarify the usage of --reverse
+      t0040: convert all possible tests to use `test-parse-options --expect`
+
+Ralf Thielow (2):
+      l10n: de.po: fix translation of autostash
+      l10n: de.po: translate 260 new messages
+
+René Scharfe (17):
+      contrib/coccinelle: fix semantic patch for oid_to_hex_r()
+      add coccicheck make target
+      use strbuf_addstr() for adding constant strings to a strbuf, part 2
+      pretty: let %C(auto) reset all attributes
+      add COPY_ARRAY
+      use COPY_ARRAY
+      git-gui: stop using deprecated merge syntax
+      gitignore: ignore output files of coccicheck make target
+      use strbuf_addstr() instead of strbuf_addf() with "%s", part 2
+      use strbuf_add_unique_abbrev() for adding short hashes, part 2
+      pretty: avoid adding reset for %C(auto) if output is empty
+      coccicheck: make transformation for strbuf_addf(sb, "...") more precise
+      remove unnecessary NULL check before free(3)
+      use strbuf_add_unique_abbrev() for adding short hashes, part 3
+      pretty: fix document link for color specification
+      avoid pointer arithmetic involving NULL in FLEX_ALLOC_MEM
+      inline xalloc_flex() into FLEXPTR_ALLOC_MEM
+
+SZEDER Gábor (1):
+      ref-filter: strip format option after a field name only once while parsing
+
+Stefan Beller (1):
+      documentation: improve submodule.<name>.{url, path} description
+
+Younes Khoudli (1):
+      doc: remove reference to the traditional layout in git-tag.txt
+
+Дилян Палаузов (1):
+      ./configure.ac: detect SSL in libcurl using curl-config
+
+
 Version v2.10.1; changes since v2.10.0:
 ---------------------------------------
 
