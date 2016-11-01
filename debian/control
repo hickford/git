@@ -340,7 +340,7 @@ Depends: ${misc:Depends}, git (>> ${source:Upstream-Version}), git (<< ${source:
  perl
 Pre-Depends: ${misc:Pre-Depends}
 Recommends: ${misc:Recommends}, libhttp-date-perl | libtime-modules-perl
-Breaks: apache2.2-common
+Breaks: apache2.2-common (<< 2.3~)
 Suggests: httpd-cgi | libcgi-fast-perl, git-doc
 Description: fast, scalable, distributed revision control system (web interface)
  Git is popular version control system designed to handle very large
