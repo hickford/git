@@ -6,3 +6,5 @@ git binary: binary-without-manpage usr/bin/git-upload-archive
 git binary: binary-without-manpage usr/bin/git-upload-pack
 # every new .git dir contains empty branches/ to support old scripts.
 git binary: package-contains-empty-directory usr/share/git-core/templates/branches/
+# False positive.
+git binary: spelling-error-in-readme-debian DocumentRoot DocumentRoot (duplicate word) DocumentRoot
