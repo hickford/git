@@ -126,6 +126,9 @@ override_dh_installdocs:
 	install -d -m0755 '$(GIT)'-core/usr/share/doc
 	ln -s git '$(GIT)'-core/usr/share/doc/git-core
 	dh_installdocs -X.gitignore
+	# These licenses are replaced with symlinks in git.links.
+	diff -q '$(GIT)'/usr/share/doc/git/contrib/persistent-https/LICENSE /usr/share/common-licenses/Apache-2.0
+	diff -bq '$(GIT)'/usr/share/doc/git/contrib/subtree/COPYING /usr/share/common-licenses/GPL-2
 	rm -rf '$(GIT)'/usr/share/doc/git/contrib/completion
 	rm -rf '$(GIT)'/usr/share/doc/git/contrib/emacs
 	rm -rf '$(GIT)'/usr/share/doc/git/contrib/hooks
