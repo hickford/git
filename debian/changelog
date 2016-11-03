@@ -4,6 +4,8 @@ git (1:2.10.2-2) UNRELEASED; urgency=medium
   * gitweb: Add version to Breaks: apache2.2-common (<< 2.3~).
   * git-mediawiki: Shorten description.
   * Link extra license files to common-licenses.
+  * Invoke dpkg-maintscript-helper dir_to_symlink correctly.
+    (Closes: #843011)
 
  -- Anders Kaseorg <andersk@mit.edu>  Mon, 31 Oct 2016 23:32:46 -0400
 
