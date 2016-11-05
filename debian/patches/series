@@ -1,2 +1,3 @@
 0001-pre-rebase-hook-capture-documentation-in-a-here-docum.diff
 git-sh-setup-Restore-sourcability-from-outside-script.diff
+Documentation-omit-asciidoc-footer-on-generated-input.diff

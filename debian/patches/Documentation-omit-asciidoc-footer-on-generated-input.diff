@@ -1,0 +1,33 @@
+From c7eb23292ad5ac036e58dd14912220d2c176d863 Mon Sep 17 00:00:00 2001
+From: Anders Kaseorg <andersk@mit.edu>
+Date: Sat, 5 Nov 2016 03:53:20 -0400
+Subject: Documentation: omit asciidoc footer on generated input
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Since these asciidoc inputs are generated at build time, the contents
+of the resulting footer was “Last updated: <build timestamp>”.
+Disable it for build reproducibility.
+
+Signed-off-by: Anders Kaseorg <andersk@mit.edu>
+---
+ Documentation/Makefile | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/Documentation/Makefile b/Documentation/Makefile
+index b43d66eae..28b85d02e 100644
+--- a/Documentation/Makefile
++++ b/Documentation/Makefile
+@@ -340,6 +340,8 @@ user-manual.xml: user-manual.txt user-manual.conf
+ 	$(TXT_TO_XML) -d article -o $@+ $< && \
+ 	mv $@+ $@
+ 
++technical/api-index.html howto-index.html howto/%.html: ASCIIDOC_EXTRA += --attribute footer-style=none
++
+ technical/api-index.txt: technical/api-index-skel.txt \
+ 	technical/api-index.sh $(patsubst %,%.txt,$(API_DOCS))
+ 	$(QUIET_GEN)cd technical && '$(SHELL_PATH_SQ)' ./api-index.sh
+-- 
+2.11.0.rc0
+
