@@ -1,3 +1,10 @@
+git (1:2.10.2-3) UNRELEASED; urgency=medium
+
+  * debian/rules: Split override_dh_installdocs into -arch and -indep
+    parts.  (Closes: #843393)
+
+ -- Anders Kaseorg <andersk@mit.edu>  Sun, 06 Nov 2016 08:09:06 -0500
+
 git (1:2.10.2-2) unstable; urgency=medium
 
   * Add missing upstream changelog entries from v2.10.2.

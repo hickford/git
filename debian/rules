@@ -122,10 +122,8 @@ override_dh_install-indep:
 	done
 	rm -f '$(GIT)'-man/usr/share/man/man3/Git::SVN*.3pm
 
-override_dh_installdocs:
-	install -d -m0755 '$(GIT)'-core/usr/share/doc
-	ln -s git '$(GIT)'-core/usr/share/doc/git-core
-	dh_installdocs -X.gitignore
+override_dh_installdocs-arch:
+	dh_installdocs --arch -X.gitignore
 	# These licenses are replaced with symlinks in git.links.
 	diff -q '$(GIT)'/usr/share/doc/git/contrib/persistent-https/LICENSE /usr/share/common-licenses/Apache-2.0
 	diff -bq '$(GIT)'/usr/share/doc/git/contrib/subtree/COPYING /usr/share/common-licenses/GPL-2
@@ -137,6 +135,11 @@ override_dh_installdocs:
 	rm -f '$(GIT)'/usr/share/doc/git/contrib/subtree/git-subtree.html
 	rm -f '$(GIT)'/usr/share/doc/git/contrib/subtree/git-subtree.xml
 	find '$(GIT)'/usr/share/doc/git/ -name .gitignore | xargs rm -f
+
+override_dh_installdocs-indep:
+	install -d -m0755 '$(GIT)'-core/usr/share/doc
+	ln -s git '$(GIT)'-core/usr/share/doc/git-core
+	dh_installdocs --indep -X.gitignore
 
 override_dh_installchangelogs:
 	dh_installchangelogs debian/changelog.upstream
