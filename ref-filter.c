@@ -1017,7 +1017,7 @@ static void populate_value(struct ref_array_item *ref)
 
 			head = resolve_ref_unsafe("HEAD", RESOLVE_REF_READING,
 						  sha1, NULL);
-			if (!strcmp(ref->refname, head))
+			if (head && !strcmp(ref->refname, head))
 				v->s = "*";
 			else
 				v->s = " ";
@@ -1573,7 +1573,7 @@ static int compare_refs(const void *a_, const void *b_)
 void ref_array_sort(struct ref_sorting *sorting, struct ref_array *array)
 {
 	ref_sorting = sorting;
-	qsort(array->items, array->nr, sizeof(struct ref_array_item *), compare_refs);
+	QSORT(array->items, array->nr, compare_refs);
 }
 
 static void append_literal(const char *cp, const char *ep, struct ref_formatting_state *state)

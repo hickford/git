@@ -13,7 +13,7 @@ test_expect_success 'split sample box' \
 	'git mailsplit -o. "$DATA/sample.mbox" >last &&
 	last=$(cat last) &&
 	echo total is $last &&
-	test $(cat last) = 17'
+	test $(cat last) = 18'
 
 check_mailinfo () {
 	mail=$1 opt=$2
@@ -157,5 +157,18 @@ test_expect_success 'mailinfo handles rfc2822 comment' '
 		>comment/info &&
 	test_cmp "$DATA/comment.expect" comment/info
 '
+
+test_expect_success 'mailinfo with mailinfo.scissors config' '
+	test_config mailinfo.scissors true &&
+	(
+		mkdir sub &&
+		cd sub &&
+		git mailinfo ../msg0014.sc ../patch0014.sc <../0014 >../info0014.sc
+	) &&
+	test_cmp "$DATA/msg0014--scissors" msg0014.sc &&
+	test_cmp "$DATA/patch0014--scissors" patch0014.sc &&
+	test_cmp "$DATA/info0014--scissors" info0014.sc
+'
+
 
 test_done

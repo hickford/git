@@ -135,7 +135,7 @@ struct git_istream *open_istream(const unsigned char *sha1,
 				 struct stream_filter *filter)
 {
 	struct git_istream *st;
-	struct object_info oi = {NULL};
+	struct object_info oi = OBJECT_INFO_INIT;
 	const unsigned char *real = lookup_replace_object(sha1);
 	enum input_source src = istream_source(real, type, &oi);
 
@@ -497,7 +497,7 @@ static open_method_decl(incore)
  * Users of streaming interface
  ****************************************************************/
 
-int stream_blob_to_fd(int fd, unsigned const char *sha1, struct stream_filter *filter,
+int stream_blob_to_fd(int fd, const struct object_id *oid, struct stream_filter *filter,
 		      int can_seek)
 {
 	struct git_istream *st;
@@ -506,7 +506,7 @@ int stream_blob_to_fd(int fd, unsigned const char *sha1, struct stream_filter *f
 	ssize_t kept = 0;
 	int result = -1;
 
-	st = open_istream(sha1, &type, &sz, filter);
+	st = open_istream(oid->hash, &type, &sz, filter);
 	if (!st) {
 		if (filter)
 			free_stream_filter(filter);

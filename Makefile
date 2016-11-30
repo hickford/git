@@ -467,6 +467,7 @@ SPATCH = spatch
 export TCL_PATH TCLTK_PATH
 
 SPARSE_FLAGS =
+SPATCH_FLAGS = --all-includes
 
 
 
@@ -698,6 +699,7 @@ LIB_OBJS += abspath.o
 LIB_OBJS += advice.o
 LIB_OBJS += alias.o
 LIB_OBJS += alloc.o
+LIB_OBJS += apply.o
 LIB_OBJS += archive.o
 LIB_OBJS += archive-tar.o
 LIB_OBJS += archive-zip.o
@@ -830,6 +832,7 @@ LIB_OBJS += submodule-config.o
 LIB_OBJS += symlinks.o
 LIB_OBJS += tag.o
 LIB_OBJS += tempfile.o
+LIB_OBJS += tmp-objdir.o
 LIB_OBJS += trace.o
 LIB_OBJS += trailer.o
 LIB_OBJS += transport.o
@@ -1044,6 +1047,7 @@ ifeq ($(uname_S),Darwin)
 		endif
 	endif
 	ifndef NO_APPLE_COMMON_CRYPTO
+		NO_OPENSSL = YesPlease
 		APPLE_COMMON_CRYPTO = YesPlease
 		COMPAT_CFLAGS += -DAPPLE_COMMON_CRYPTO
 	endif
@@ -2313,7 +2317,7 @@ C_SOURCES = $(patsubst %.o,%.c,$(C_OBJ))
 %.cocci.patch: %.cocci $(C_SOURCES)
 	@echo '    ' SPATCH $<; \
 	for f in $(C_SOURCES); do \
-		$(SPATCH) --sp-file $< $$f; \
+		$(SPATCH) --sp-file $< $$f $(SPATCH_FLAGS); \
 	done >$@ 2>$@.log; \
 	if test -s $@; \
 	then \

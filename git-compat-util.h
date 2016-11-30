@@ -441,6 +441,9 @@ static inline int const_error(void)
 
 extern void set_die_routine(NORETURN_PTR void (*routine)(const char *err, va_list params));
 extern void set_error_routine(void (*routine)(const char *err, va_list params));
+extern void (*get_error_routine(void))(const char *err, va_list params);
+extern void set_warn_routine(void (*routine)(const char *warn, va_list params));
+extern void (*get_warn_routine(void))(const char *warn, va_list params);
 extern void set_die_is_recursing_routine(int (*routine)(void));
 extern void set_error_handle(FILE *);
 
@@ -977,6 +980,14 @@ void git_qsort(void *base, size_t nmemb, size_t size,
 #define qsort git_qsort
 #endif
 
+#define QSORT(base, n, compar) sane_qsort((base), (n), sizeof(*(base)), compar)
+static inline void sane_qsort(void *base, size_t nmemb, size_t size,
+			      int(*compar)(const void *, const void *))
+{
+	if (nmemb > 1)
+		qsort(base, nmemb, size, compar);
+}
+
 #ifndef REG_STARTEND
 #error "Git requires REG_STARTEND support. Compile with NO_REGEX=NeedsStartEnd"
 #endif
@@ -1090,6 +1101,6 @@ struct tm *git_gmtime_r(const time_t *, struct tm *);
 #define getc_unlocked(fh) getc(fh)
 #endif
 
-#endif
-
 extern int cmd_main(int, const char **);
+
+#endif
