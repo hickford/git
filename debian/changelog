@@ -3,6 +3,10 @@ git (1:2.11.0-1) UNRELEASED; urgency=medium
   * New upstream release (see RelNotes/2.11.0.txt).
   * debian/patches/git-sh-setup-Restore-sourcability-from-outside-script.diff:
     remove; applied upstream.
+  * Replace
+    debian/patches/Documentation-omit-asciidoc-footer-on-generated-input.diff
+    with the more upstreamable
+    debian/patches/Normalize-generated-asciidoc-timestamps-with-SOURCE_D.diff.
 
  -- Anders Kaseorg <andersk@mit.edu>  Tue, 29 Nov 2016 23:27:19 -0500
 
