@@ -1,0 +1,66 @@
+From e8afea585132816b0024d74fc40a9294eb2afe1d Mon Sep 17 00:00:00 2001
+From: Anders Kaseorg <andersk@mit.edu>
+Date: Wed, 30 Nov 2016 23:10:53 -0500
+Subject: xdiff: Do not enable XDL_FAST_HASH by default
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Although XDL_FAST_HASH computes hashes slightly faster on some
+architectures, its collision characteristics are much worse, resulting
+in some pathological diffs running over 100x slower
+(http://public-inbox.org/git/20141222041944.GA441@peff.net/).
+
+Furthermore, it was being enabled when ‘uname -m’ returns x86_64, even
+if we are cross-compiling for a different architecture.  This mistake
+was also causing the Debian build reproducibility test to fail
+(https://tests.reproducible-builds.org/debian/index_variations.html).
+Future architecture-specific definitions should be based on compiler
+macros such as __x86_64__ rather than uname.
+
+Signed-off-by: Anders Kaseorg <andersk@mit.edu>
+---
+ Makefile         | 1 -
+ config.mak.uname | 5 -----
+ 2 files changed, 6 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index f53fcc90d..c237d4f91 100644
+--- a/Makefile
++++ b/Makefile
+@@ -341,7 +341,6 @@ all::
+ # Define XDL_FAST_HASH to use an alternative line-hashing method in
+ # the diff algorithm.  It gives a nice speedup if your processor has
+ # fast unaligned word loads.  Does NOT work on big-endian systems!
+-# Enabled by default on x86_64.
+ #
+ # Define GIT_USER_AGENT if you want to change how git identifies itself during
+ # network interactions.  The default is "git/$(GIT_VERSION)".
+diff --git a/config.mak.uname b/config.mak.uname
+index b232908f8..2831a68c3 100644
+--- a/config.mak.uname
++++ b/config.mak.uname
+@@ -1,10 +1,8 @@
+ # Platform specific Makefile tweaks based on uname detection
+ 
+ uname_S := $(shell sh -c 'uname -s 2>/dev/null || echo not')
+-uname_M := $(shell sh -c 'uname -m 2>/dev/null || echo not')
+ uname_O := $(shell sh -c 'uname -o 2>/dev/null || echo not')
+ uname_R := $(shell sh -c 'uname -r 2>/dev/null || echo not')
+-uname_P := $(shell sh -c 'uname -p 2>/dev/null || echo not')
+ uname_V := $(shell sh -c 'uname -v 2>/dev/null || echo not')
+ 
+ ifdef MSVC
+@@ -17,9 +15,6 @@ endif
+ # because maintaining the nesting to match is a pain.  If
+ # we had "elif" things would have been much nicer...
+ 
+-ifeq ($(uname_M),x86_64)
+-	XDL_FAST_HASH = YesPlease
+-endif
+ ifeq ($(uname_S),OSF1)
+ 	# Need this for u_short definitions et al
+ 	BASIC_CFLAGS += -D_OSF_SOURCE
+-- 
+2.11.0
+

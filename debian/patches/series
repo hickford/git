@@ -1,3 +1,4 @@
 0001-pre-rebase-hook-capture-documentation-in-a-here-docum.diff
 Normalize-generated-asciidoc-timestamps-with-SOURCE_D.diff
 git-gui-Sort-entries-in-optimized-tclIndex.diff
+xdiff-Do-not-enable-XDL_FAST_HASH-by-default.diff

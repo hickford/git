@@ -7,8 +7,9 @@ git (1:2.11.0-1) UNRELEASED; urgency=medium
     debian/patches/Documentation-omit-asciidoc-footer-on-generated-input.diff
     with the more upstreamable
     debian/patches/Normalize-generated-asciidoc-timestamps-with-SOURCE_D.diff.
-  * debian/patches/git-gui-Sort-entries-in-optimized-tclIndex.diff:
-    Further improvement to build reproducibility.
+  * debian/patches/git-gui-Sort-entries-in-optimized-tclIndex.diff,
+    debian/patches/xdiff-Do-not-enable-XDL_FAST_HASH-by-default.diff:
+    Further improvements to build reproducibility.
 
  -- Anders Kaseorg <andersk@mit.edu>  Tue, 29 Nov 2016 23:27:19 -0500
 
