@@ -1,4 +1,4 @@
-git (1:2.11.0-1) UNRELEASED; urgency=medium
+git (1:2.11.0-1) unstable; urgency=medium
 
   * New upstream release (see RelNotes/2.11.0.txt).
   * debian/patches/git-sh-setup-Restore-sourcability-from-outside-script.diff:
@@ -11,7 +11,7 @@ git (1:2.11.0-1) UNRELEASED; urgency=medium
     debian/patches/xdiff-Do-not-enable-XDL_FAST_HASH-by-default.diff:
     Further improvements to build reproducibility.
 
- -- Anders Kaseorg <andersk@mit.edu>  Tue, 29 Nov 2016 23:27:19 -0500
+ -- Anders Kaseorg <andersk@mit.edu>  Wed, 30 Nov 2016 23:34:59 -0500
 
 git (1:2.10.2-3) unstable; urgency=medium
 
