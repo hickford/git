@@ -8,6 +8,7 @@ Build-Depends: libz-dev, libpcre3-dev, gettext,
  subversion, libsvn-perl, libyaml-perl,
  tcl,
  libhttp-date-perl | libtime-modules-perl,
+ libcgi-pm-perl,
  python,
  cvs, cvsps, libdbd-sqlite3-perl,
  unzip, libio-pty-perl,
@@ -337,7 +338,7 @@ Package: gitweb
 Architecture: all
 Multi-Arch: foreign
 Depends: ${misc:Depends}, git (>> ${source:Upstream-Version}), git (<< ${source:Upstream-Version}-.),
- perl
+ perl, libcgi-pm-perl
 Pre-Depends: ${misc:Pre-Depends}
 Recommends: ${misc:Recommends}, libhttp-date-perl | libtime-modules-perl
 Breaks: apache2.2-common (<< 2.3~)

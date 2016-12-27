@@ -1,3 +1,10 @@
+git (1:2.11.0-2) unstable; urgency=medium
+
+  * gitweb: Depends: libcgi-pm-perl; Build-Depends: libcgi-pm-perl
+    (thx Mikko Rasa; closes: #847961).
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 27 Dec 2016 15:17:12 -0800
+
 git (1:2.11.0-1) unstable; urgency=medium
 
   * New upstream release (see RelNotes/2.11.0.txt).
