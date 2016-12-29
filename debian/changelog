@@ -5,6 +5,7 @@ git (1:2.13.1-0.1) unstable; urgency=low
     shell-disallow-repo-names-beginning-with-dash.patch: remove; applied
     upstream.
   * update debian/copyright
+  * debian/rules: run tests once and always produce verbose output.
 
  -- Jonathan Nieder <jrnieder@gmail.com>  Wed, 21 Jun 2017 14:49:14 -0700
 
