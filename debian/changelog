@@ -1,3 +1,10 @@
+git (1:2.11.0-3) unstable; urgency=high
+
+  * Do not allow git helpers run via git-shell to launch a pager
+    (CVE-2017-8386).
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 09 May 2017 16:23:17 -0700
+
 git (1:2.11.0-2) unstable; urgency=medium
 
   * gitweb: Depends: libcgi-pm-perl; Build-Depends: libcgi-pm-perl
