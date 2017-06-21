@@ -3,7 +3,7 @@ Upstream-Contact: git@vger.kernel.org
 Source: https://www.kernel.org/pub/software/scm/git/
 
 Files: *
-Copyright: © 2005-2016, Linus Torvalds and others.
+Copyright: © 2005-2017, Linus Torvalds and others.
 License: GPL-2
 
 Files: xdiff/*
@@ -21,12 +21,25 @@ Copyright: © 2013, GitHub Inc.
 	       David McIntosh, Rober Becho, Google Inc. and Veronika Zenz
 License: GPL-2+
 
+Files: sha1dc/*
+Copyright: © 2017,
+	Marc Stevens
+	Cryptology Group
+	Centrum Wiskunde & Informatica
+	P.O. Box 94079, 1090 GB Amsterdam, Netherlands
+	marc@marc-stevens.nl
+ .
+	Dan Shumow
+	Microsoft Research
+	danshu@microsoft.com
+License: Expat
+
 Files: gitk-git/*
-Copyright: © 2005-2015, Paul Mackerras, et al.
+Copyright: © 2005-2016, Paul Mackerras, et al.
 License: GPL-2+
 
 Files: gitk-git/po/bg.po
-Copyright: © 2014, 2015 Alexander Shopov <ash@kambanaria.org>
+Copyright: © 2014, 2015, 2016, 2017 Alexander Shopov <ash@kambanaria.org>
 License: GPL-2
 Comment: This file is distributed under the same license as the git package.
 
