@@ -1,4 +1,4 @@
-git (1:2.13.1-0.1) unstable; urgency=low
+git (1:2.13.1-1) unstable; urgency=low
 
   * new upstream release (see RelNotes/2.12.0.txt, RelNotes/2.13.0.txt).
   * debian/patches/xdiff-Do-not-enable-XDF_FAST_HASH-by-default.diff,
@@ -7,7 +7,7 @@ git (1:2.13.1-0.1) unstable; urgency=low
   * update debian/copyright
   * debian/rules: run tests once and always produce verbose output.
 
- -- Jonathan Nieder <jrnieder@gmail.com>  Wed, 21 Jun 2017 14:49:14 -0700
+ -- Jonathan Nieder <jrnieder@gmail.com>  Wed, 21 Jun 2017 15:42:17 -0700
 
 git (1:2.11.0-4) unstable; urgency=low
 
