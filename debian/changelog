@@ -7,6 +7,7 @@ git (1:2.13.2-0.1) unstable; urgency=low
   * debian/rules: skip HTML documentation generation when
     DEB_BUILD_OPTIONS=nodoc.
   * debian/copyright: use https form of Format URL.
+  * debian/control: Standards-Version: 4.0.0.0.
 
  -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 26 Jun 2017 11:07:45 -0700
 
