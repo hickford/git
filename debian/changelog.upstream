@@ -1,3 +1,127 @@
+Version v2.13.2; changes since v2.13.1:
+---------------------------------------
+
+Adam Dinwoodie (1):
+      docs: fix formatting and grammar
+
+Brandon Williams (12):
+      t5550: use write_script to generate post-update hook
+      t0061: run_command executes scripts without a #! line
+      run-command: prepare command before forking
+      run-command: use the async-signal-safe execv instead of execvp
+      string-list: add string_list_remove function
+      run-command: prepare child environment before forking
+      run-command: don't die in child when duping /dev/null
+      run-command: eliminate calls to error handling functions in child
+      run-command: handle dup2 and close errors in child
+      run-command: add note about forking and threading
+      run-command: expose is_executable function
+      run-command: restrict PATH search to executable files
+
+Dennis Kaarsemaker (1):
+      send-email: Net::SMTP::SSL is obsolete, use only when necessary
+
+Eric Wong (1):
+      run-command: block signals between fork and execve
+
+Jeff Hostetler (1):
+      read-cache: close index.lock in do_write_index
+
+Jeff King (23):
+      usage.c: add BUG() function
+      setup_git_env: convert die("BUG") to BUG()
+      config: complain about --local outside of a git repo
+      usage.c: drop set_error_handle()
+      handle_revision_arg: reset "dotdot" consistently
+      handle_revision_arg: simplify commit reference lookups
+      handle_revision_arg: stop using "dotdot" as a generic pointer
+      handle_revision_arg: hoist ".." check out of range parsing
+      handle_revision_arg: add handle_dotdot() helper
+      sha1_name: consistently refer to object_context as "oc"
+      get_sha1_with_context: always initialize oc->symlink_path
+      get_sha1_with_context: dynamically allocate oc->path
+      t4063: add tests of direct blob diffs
+      handle_revision_arg: record modes for "a..b" endpoints
+      handle_revision_arg: record paths for pending objects
+      diff: pass whole pending entry in blobinfo
+      diff: use the word "path" instead of "name" for blobs
+      diff: use pending "path" if it is available
+      diff: use blob path for blob/file diffs
+      connect.c: fix leak in parse_one_symref_info()
+      remote: drop free_refspecs() function
+      t5313: make extended-table test more deterministic
+      sha1dc: ignore indent-with-non-tab whitespace violations
+
+Jonathan Nieder (1):
+      send-email: Net::SMTP::starttls was introduced in v2.34
+
+Junio C Hamano (6):
+      name-rev: refactor logic to see if a new candidate is a better name
+      name-rev: favor describing with tags and use committer date to tiebreak
+      test: allow skipping the remainder
+      diff-tree: update stale in-code comments
+      Prepare for 2.13.2
+      Git 2.13.2
+
+Kyle J. McKay (1):
+      t5100: add some more mailinfo tests
+
+Lars Schneider (1):
+      Configure Git contribution guidelines for github.com
+
+Patrick Steinhardt (1):
+      git-stash: fix pushing stash with pathspec from subdir
+
+Ramsay Jones (1):
+      usage: add NORETURN to BUG() function definitions
+
+René Scharfe (5):
+      p0004: simplify calls of test-lazy-init-name-hash
+      p0004: avoid using pipes
+      p0004: use test_perf
+      p0004: don't abort if multi-threaded is too slow
+      p0004: don't error out if test repo is too small
+
+Rikard Falkeborn (1):
+      completion: add completions for git config commit
+
+SZEDER Gábor (6):
+      revision.h: turn rev_info.early_output back into an unsigned int
+      revision.c: stricter parsing of '--no-{min,max}-parents'
+      revision.c: stricter parsing of '--early-output'
+      revision.c: use skip_prefix() in handle_revision_opt()
+      revision.c: use skip_prefix() in handle_revision_pseudo_opt()
+      docs/pretty-formats: stress that %- removes all preceding line-feeds
+
+Sahil Dua (1):
+      t3200: add test for single parameter passed to -m option
+
+Samuel Lijin (6):
+      t7300: clean -d should skip dirs with ignored files
+      t7061: status --ignored should search untracked dirs
+      dir: recurse into untracked dirs for ignored files
+      dir: hide untracked contents of untracked dirs
+      dir: expose cmp_name() and check_contains()
+      clean: teach clean -d to preserve ignored paths
+
+Stefan Beller (5):
+      submodule_move_head: reuse child_process structure for futher commands
+      submodule: avoid auto-discovery in new working tree manipulator code
+      submodule: properly recurse for read-tree and checkout
+      t5545: enhance test coverage when no http server is installed
+      Documentation/git-rm: correct submodule description
+
+Tyler Brazier (1):
+      pull: ff --rebase --autostash works in dirty repo
+
+Ævar Arnfjörð Bjarmason (2):
+      wildmatch test: remove redundant duplicate test
+      sha1dc: update from upstream
+
+Štěpán Němec (1):
+      doc: git-reset: fix a trivial typo
+
+
 Version v2.13.1; changes since v2.13.0:
 ---------------------------------------
 
