@@ -4,6 +4,8 @@ git (1:2.13.2-0.1) unstable; urgency=low
   * git-email: Depends: perl-modules (>> 5.21.5) | libnet-smtp-ssl-perl
     for starttls support instead of unconditionally requiring
     Net::SMTP::SSL (thx Dennis Kaarsemaker).
+  * debian/rules: skip HTML documentation generation when
+    DEB_BUILD_OPTIONS=nodoc.
 
  -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 26 Jun 2017 11:07:45 -0700
 

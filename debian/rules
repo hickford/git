@@ -15,6 +15,7 @@ OPTS =NO_OPENSSL=1 prefix=/usr gitexecdir=/usr/lib/git-core \
   DEFAULT_PAGER=pager DEFAULT_EDITOR=editor \
   V=1 \
   CC='$(CC)' CFLAGS='$(CFLAGS)' LDFLAGS='$(LDFLAGS)'
+DOCS =html
 DOC_OPTS =prefix=/usr htmldir=/usr/share/doc/git/html \
   V=1 \
   ASCIIDOC8=1 ASCIIDOC_NO_ROFF=1
@@ -24,6 +25,9 @@ DOC_OPTS += ASCIIDOC='TZ=UTC asciidoc'
 
 ifneq (,$(findstring nocheck,$(DEB_BUILD_OPTIONS)))
   TEST =
+endif
+ifneq (,$(findstring nodoc,$(DEB_BUILD_OPTIONS)))
+  DOCS =
 endif
 ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
   NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
@@ -59,7 +63,7 @@ override_dh_auto_test-arch:
 
 override_dh_auto_build-indep: build-stamp
 	# git-man, git-doc
-	$(MAKE) -CDocumentation man html $(DOC_OPTS)
+	$(MAKE) -CDocumentation man $(DOCS) $(DOC_OPTS)
 	# git-mediawiki
 	$(MAKE) -Ccontrib/mw-to-git all $(OPTS)
 
@@ -99,9 +103,11 @@ override_dh_auto_install-indep:
 	DESTDIR='$(TMP)' $(MAKE) install install-doc $(OPTS)
 	DESTDIR='$(TMP)' $(MAKE) -Ccontrib/mw-to-git install $(OPTS) \
 	  INSTLIBDIR=/usr/share/perl5
-	$(MAKE) -CDocumentation install-webdoc WEBDOC_DEST='$(TMP)'/html \
+	test -z '$(DOCS)' || \
+	  $(MAKE) -CDocumentation install-webdoc WEBDOC_DEST='$(TMP)'/html \
 	  2>/dev/null
-	DESTDIR='$(TMP)' $(MAKE) -Ccontrib/subtree install-doc $(OPTS)
+	test -z '$(DOCS)' || \
+	  DESTDIR='$(TMP)' $(MAKE) -Ccontrib/subtree install-doc $(OPTS)
 	install -m 0644 contrib/subtree/git-subtree.txt '$(TMP)'/html
 	# RelNotes are shipped in git
 	rm -rf '$(TMP)'/html/RelNotes
