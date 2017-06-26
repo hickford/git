@@ -2,6 +2,8 @@ git (1:2.13.2-1.1) unstable; urgency=low
 
   * git-email: use perl in dependency instead of perl-modules (thx
     Damyan Ivanov for suggesting it through lintian).
+  * debian/rules: do not allow flaky git-svn test t9128.3 to cause
+    the build to fail (closes: #865789).
 
  -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 26 Jun 2017 15:06:43 -0700
 
