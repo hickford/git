@@ -1,4 +1,4 @@
-git (1:2.13.2-0.1) unstable; urgency=low
+git (1:2.13.2-1) unstable; urgency=low
 
   * new upstream point release (see RelNotes/2.13.2.txt).
   * git-email: Depends: perl-modules (>> 5.21.5) | libnet-smtp-ssl-perl
@@ -9,7 +9,7 @@ git (1:2.13.2-0.1) unstable; urgency=low
   * debian/copyright: use https form of Format URL.
   * debian/control: Standards-Version: 4.0.0.0.
 
- -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 26 Jun 2017 11:07:45 -0700
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 26 Jun 2017 11:47:14 -0700
 
 git (1:2.13.1-1) unstable; urgency=low
 
