@@ -399,7 +399,7 @@ cat > expect <<\EOF
 | |
 | |     Merge branch 'side'
 | |
-| * commit side
+| * commit tags/side-2
 | | Author: A U Thor <author@example.com>
 | |
 | |     side-2
@@ -1389,6 +1389,15 @@ test_expect_success 'log --source paints tag names' '
 	1ac6c77	source-tag one
 	EOF
 	git log --oneline --source source-tag source-a >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success 'log --source paints symmetric ranges' '
+	cat >expect <<-\EOF &&
+	09e12a9	source-b three
+	8e393e1	source-a two
+	EOF
+	git log --oneline --source source-a...source-b >actual &&
 	test_cmp expect actual
 '
 
