@@ -1,3 +1,10 @@
+git (1:2.13.2-1.1) unstable; urgency=low
+
+  * git-email: use perl in dependency instead of perl-modules (thx
+    Damyan Ivanov for suggesting it through lintian).
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 26 Jun 2017 15:06:43 -0700
+
 git (1:2.13.2-1) unstable; urgency=low
 
   * new upstream point release (see RelNotes/2.13.2.txt).

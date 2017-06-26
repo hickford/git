@@ -203,7 +203,7 @@ Architecture: all
 Multi-Arch: foreign
 Depends: ${misc:Depends}, git (>> ${source:Upstream-Version}), git (<< ${source:Upstream-Version}-.)
 Recommends: libemail-valid-perl,
- perl-modules (>> 5.21.5) | libnet-smtp-ssl-perl,
+ perl (>> 5.21.5) | libnet-smtp-ssl-perl,
  libauthen-sasl-perl,
  libio-socket-ssl-perl (>= 1.951)
 Suggests: git-doc
