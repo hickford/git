@@ -31,7 +31,7 @@ Pre-Depends: ${misc:Pre-Depends}
 Recommends: patch, less, ssh-client
 Suggests: gettext-base, git-daemon-run | git-daemon-sysvinit,
  git-doc, git-el, git-email, git-gui, gitk, gitweb,
- git-arch, git-cvs, git-mediawiki, git-svn
+ git-cvs, git-mediawiki, git-svn
 Replaces: gitweb (<< 1:1.7.4~rc1),
  git-core (<< 1:1.7.0.4-1.)
 Breaks: bash-completion (<< 1:1.90-1), gitweb (<< 1:1.7.4~rc1),
@@ -101,7 +101,7 @@ Section: doc
 Architecture: all
 Multi-Arch: foreign
 Depends: ${misc:Depends}
-Suggests: git, git-arch, git-cvs, git-svn, git-email, gitk, gitweb
+Suggests: git, git-cvs, git-svn, git-email, gitk, gitweb
 Description: fast, scalable, distributed revision control system (documentation)
  Git is popular version control system designed to handle very large
  projects with speed and efficiency; it is used for many high profile
@@ -113,24 +113,6 @@ Description: fast, scalable, distributed revision control system (documentation)
  central server.
  .
  This package provides the documentation.
-
-Package: git-arch
-Architecture: all
-Multi-Arch: foreign
-Depends: ${misc:Depends}, git (>> ${source:Upstream-Version}), git (<< ${source:Upstream-Version}-.), tla, rsync
-Suggests: git-doc
-Description: fast, scalable, distributed revision control system (arch interoperability)
- Git is popular version control system designed to handle very large
- projects with speed and efficiency; it is used for many high profile
- open source projects, most notably the Linux kernel.
- .
- Git falls in the category of distributed source code management tools.
- Every Git working directory is a full-fledged repository with full
- revision tracking capabilities, not dependent on network access or a
- central server.
- .
- This package provides tools for importing development history from arch
- repositories.
 
 Package: git-cvs
 Architecture: all
@@ -368,7 +350,7 @@ Package: git-all
 Architecture: all
 Multi-Arch: foreign
 Depends: ${misc:Depends}, git (>> ${source:Upstream-Version}), git (<< ${source:Upstream-Version}-.),
- git-doc, git-el, git-arch, git-cvs, git-mediawiki, git-svn,
+ git-doc, git-el, git-cvs, git-mediawiki, git-svn,
  git-email, git-gui, gitk, gitweb
 Recommends: git-daemon-run | git-daemon-sysvinit
 Description: fast, scalable, distributed revision control system (all subpackages)

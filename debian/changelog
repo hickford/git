@@ -1,3 +1,11 @@
+git (1:2.13.2-2.1) unstable; urgency=low
+
+  * remove git-arch package.  It depended on GNU Arch, which has not
+    been maintained upstream for more than 10 years (thx Adrian
+    Bunk; closes: #866059).
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 27 Jun 2017 11:34:10 -0700
+
 git (1:2.13.2-2) unstable; urgency=low
 
   * git-email: use perl in dependency instead of perl-modules (thx
