@@ -1,10 +1,12 @@
-git (1:2.13.2-2.1) unstable; urgency=low
+git (1:2.13.2-3) unstable; urgency=low
 
   * remove git-arch package.  It depended on GNU Arch, which has not
     been maintained upstream for more than 10 years (thx Adrian
     Bunk; closes: #866059).
+  * debian/rules: do not allow flaky git-svn tests t9128.4 or t9167.3
+    to cause the build to fail, either (closes: #865789).
 
- -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 27 Jun 2017 11:34:10 -0700
+ -- Jonathan Nieder <jrnieder@gmail.com>  Fri, 30 Jun 2017 16:11:06 -0700
 
 git (1:2.13.2-2) unstable; urgency=low
 

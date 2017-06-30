@@ -57,11 +57,14 @@ override_dh_auto_build-arch: build-stamp
 
 override_dh_auto_test-arch:
 	test -z '$(TEST)' || \
-	  GIT_SKIP_TESTS=t9128.3 \
+	  GIT_SKIP_TESTS="t9128 t9167" \
 	  GIT_TEST_OPTS=--verbose $(MAKE) $(TEST) $(OPTS)
 	test -z '$(TEST)' || \
 	  GIT_TEST_OPTS=--verbose \
-	  $(MAKE) -C t t9128-git-svn-cmd-branch.sh $(OPTS) || :
+	  $(MAKE) -C t \
+	  t9128-git-svn-cmd-branch.sh \
+	  t9167-git-svn-cmd-branch-subproject.sh \
+	  $(OPTS) || :
 	test -z '$(TEST)' || \
 	  GIT_TEST_OPTS=--verbose $(MAKE) -C contrib/subtree $(TEST) $(OPTS)
 
