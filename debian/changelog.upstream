@@ -1,3 +1,85 @@
+Version v2.13.3; changes since v2.13.2:
+---------------------------------------
+
+A. Wilcox (1):
+      subtree: honour USE_ASCIIDOCTOR when set
+
+Alejandro R. Sedeño (1):
+      ref-filter.c: drop return from void function
+
+Andreas Heiduk (2):
+      doc: do not use `rm .git/index` when normalizing line endings
+      doc: clarify syntax for %C(auto,...) in pretty formats
+
+Christian Couder (3):
+      read-cache: use shared perms when writing shared index
+      t1301: move modebits() to test-lib-functions.sh
+      t1700: make sure split-index respects core.sharedrepository
+
+David Aguilar (1):
+      mergetools/meld: improve compatibiilty with Meld on macOS X
+
+James Clarke (1):
+      pack-bitmap: don't perform unaligned memory access
+
+Jeff King (10):
+      diff-highlight: split code into module
+      add--interactive: handle EOF in prompt_yesno
+      add--interactive: quote commentChar regex
+      reflog-walk: skip over double-null oid due to HEAD rename
+      reflog-walk: duplicate strings in complete_reflogs list
+      reflog-walk: don't free reflogs added to cache
+      reflog-walk: include all fields when freeing complete_reflogs
+      branch: only perform HEAD check for local branches
+      branch: use BRANCH_COLOR_LOCAL in ref-filter format
+      branch: set remote color in ref-filter branch immediately
+
+Johannes Schindelin (8):
+      discover_git_directory(): avoid setting invalid git_dir
+      config: report correct line number upon error
+      help: use early config when autocorrecting aliases
+      t1308: relax the test verifying that empty alias values are disallowed
+      t7006: demonstrate a problem with aliases in subdirectories
+      alias: use the early config machinery to expand aliases
+      sequencer: print autostash messages to stderr
+      t5534: fix misleading grep invocation
+
+Junio C Hamano (5):
+      t3420: fix under GETTEXT_POISON build
+      t1450: use egrep for regexp "alternation"
+      submodule--helper: do not call utf8_fprintf() unnecessarily
+      Prepare for 2.13.3
+      Git 2.13.3
+
+Kaartic Sivaraam (2):
+      t7508: fix a broken indentation
+      builtin/commit.c: fix a typo in the comment
+
+Marc Branchaud (1):
+      auto-correct: tweak phrasing
+
+Phillip Wood (3):
+      rebase -i: add test for reflog message
+      rebase: add regression tests for console output
+      rebase: add more regression tests for console output
+
+Ralf Thielow (1):
+      l10n: de.po: fix typo
+
+René Scharfe (4):
+      pretty: recalculate duplicate short hashes
+      apply: check git diffs for missing old filenames
+      apply: check git diffs for invalid file modes
+      apply: check git diffs for mutually exclusive header lines
+
+Stefan Beller (2):
+      t4005: modernize style and drop hard coded sha1
+      merge-recursive: use DIFF_XDL_SET macro
+
+Ævar Arnfjörð Bjarmason (1):
+      sha1dc: update from upstream
+
+
 Version v2.13.2; changes since v2.13.1:
 ---------------------------------------
 
