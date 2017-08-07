@@ -1,4 +1,5 @@
 #include "builtin.h"
+#include "config.h"
 #include "exec_cmd.h"
 #include "help.h"
 #include "run-command.h"
@@ -16,6 +17,8 @@ const char git_more_info_string[] =
 	   "to read about a specific subcommand or concept.");
 
 static int use_pager = -1;
+
+static void list_builtins(void);
 
 static void commit_pager_choice(void) {
 	switch (use_pager) {
@@ -188,6 +191,9 @@ static int handle_options(const char ***argv, int *argc, int *envchanged)
 			}
 			(*argv)++;
 			(*argc)--;
+		} else if (!strcmp(cmd, "--list-builtins")) {
+			list_builtins();
+			exit(0);
 		} else {
 			fprintf(stderr, "Unknown option: %s\n", cmd);
 			usage(git_usage_string);
@@ -394,7 +400,7 @@ static struct cmd_struct commands[] = {
 	{ "init-db", cmd_init_db },
 	{ "interpret-trailers", cmd_interpret_trailers, RUN_SETUP_GENTLY },
 	{ "log", cmd_log, RUN_SETUP },
-	{ "ls-files", cmd_ls_files, RUN_SETUP | SUPPORT_SUPER_PREFIX },
+	{ "ls-files", cmd_ls_files, RUN_SETUP },
 	{ "ls-remote", cmd_ls_remote, RUN_SETUP_GENTLY },
 	{ "ls-tree", cmd_ls_tree, RUN_SETUP },
 	{ "mailinfo", cmd_mailinfo, RUN_SETUP_GENTLY },
@@ -480,6 +486,13 @@ static struct cmd_struct *get_builtin(const char *s)
 int is_builtin(const char *s)
 {
 	return !!get_builtin(s);
+}
+
+static void list_builtins(void)
+{
+	int i;
+	for (i = 0; i < ARRAY_SIZE(commands); i++)
+		printf("%s\n", commands[i].cmd);
 }
 
 #ifdef STRIP_EXTENSION

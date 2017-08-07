@@ -11,6 +11,7 @@
  */
 
 #include "builtin.h"
+#include "config.h"
 #include "tempfile.h"
 #include "lockfile.h"
 #include "parse-options.h"
@@ -33,7 +34,7 @@ static int aggressive_window = 250;
 static int gc_auto_threshold = 6700;
 static int gc_auto_pack_limit = 50;
 static int detach_auto = 1;
-static unsigned long gc_log_expire_time;
+static timestamp_t gc_log_expire_time;
 static const char *gc_log_expire = "1.day.ago";
 static const char *prune_expire = "2.weeks.ago";
 static const char *prune_worktrees_expire = "3.months.ago";
@@ -148,7 +149,7 @@ static int too_many_loose_objects(void)
 	if (!dir)
 		return 0;
 
-	auto_threshold = (gc_auto_threshold + 255) / 256;
+	auto_threshold = DIV_ROUND_UP(gc_auto_threshold, 256);
 	while ((ent = readdir(dir)) != NULL) {
 		if (strspn(ent->d_name, "0123456789abcdef") != 38 ||
 		    ent->d_name[38] != '\0')
@@ -413,8 +414,12 @@ int cmd_gc(int argc, const char **argv, const char *prefix)
 			if (report_last_gc_error())
 				return -1;
 
+			if (lock_repo_for_gc(force, &pid))
+				return 0;
 			if (gc_before_repack())
 				return -1;
+			delete_tempfile(&pidfile);
+
 			/*
 			 * failure to daemonize is ok, we'll continue
 			 * in foreground

@@ -1,4 +1,5 @@
 #include "cache.h"
+#include "config.h"
 
 struct config_alias_data {
 	const char *alias;
@@ -10,7 +11,7 @@ static int config_alias_cb(const char *key, const char *value, void *d)
 	struct config_alias_data *data = d;
 	const char *p;
 
-	if (skip_prefix(key, "alias.", &p) && !strcmp(p, data->alias))
+	if (skip_prefix(key, "alias.", &p) && !strcasecmp(p, data->alias))
 		return git_config_string((const char **)&data->v, key, value);
 
 	return 0;
@@ -61,8 +62,7 @@ int split_cmdline(char *cmdline, const char ***argv)
 				src++;
 				c = cmdline[src];
 				if (!c) {
-					free(*argv);
-					*argv = NULL;
+					FREE_AND_NULL(*argv);
 					return -SPLIT_CMDLINE_BAD_ENDING;
 				}
 			}
@@ -74,8 +74,7 @@ int split_cmdline(char *cmdline, const char ***argv)
 	cmdline[dst] = 0;
 
 	if (quoted) {
-		free(*argv);
-		*argv = NULL;
+		FREE_AND_NULL(*argv);
 		return -SPLIT_CMDLINE_UNCLOSED_QUOTE;
 	}
 

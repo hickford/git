@@ -290,9 +290,9 @@ static void if_atom_parser(struct used_atom *atom, const char *arg)
 
 static void head_atom_parser(struct used_atom *atom, const char *arg)
 {
-	unsigned char unused[GIT_SHA1_RAWSZ];
+	struct object_id unused;
 
-	atom->u.head = resolve_refdup("HEAD", RESOLVE_REF_READING, unused, NULL);
+	atom->u.head = resolve_refdup("HEAD", RESOLVE_REF_READING, unused.hash, NULL);
 }
 
 static struct {
@@ -358,7 +358,7 @@ struct ref_formatting_state {
 struct atom_value {
 	const char *s;
 	void (*handler)(struct atom_value *atomv, struct ref_formatting_state *state);
-	unsigned long ul; /* used for sorting when not FIELD_STR */
+	uintmax_t value; /* used for sorting when not FIELD_STR */
 	struct used_atom *atom;
 };
 
@@ -684,13 +684,13 @@ int verify_ref_format(const char *format)
  * by the "struct object" representation, set *eaten as well---it is a
  * signal from parse_object_buffer to us not to free the buffer.
  */
-static void *get_obj(const unsigned char *sha1, struct object **obj, unsigned long *sz, int *eaten)
+static void *get_obj(const struct object_id *oid, struct object **obj, unsigned long *sz, int *eaten)
 {
 	enum object_type type;
-	void *buf = read_sha1_file(sha1, &type, sz);
+	void *buf = read_sha1_file(oid->hash, &type, sz);
 
 	if (buf)
-		*obj = parse_object_buffer(sha1, type, *sz, buf, eaten);
+		*obj = parse_object_buffer(oid, type, *sz, buf, eaten);
 	else
 		*obj = NULL;
 	return buf;
@@ -730,7 +730,7 @@ static void grab_common_values(struct atom_value *val, int deref, struct object 
 		if (!strcmp(name, "objecttype"))
 			v->s = typename(obj->type);
 		else if (!strcmp(name, "objectsize")) {
-			v->ul = sz;
+			v->value = sz;
 			v->s = xstrfmt("%lu", sz);
 		}
 		else if (deref)
@@ -777,8 +777,8 @@ static void grab_commit_values(struct atom_value *val, int deref, struct object 
 			v->s = xstrdup(oid_to_hex(&commit->tree->object.oid));
 		}
 		else if (!strcmp(name, "numparent")) {
-			v->ul = commit_list_count(commit->parents);
-			v->s = xstrfmt("%lu", v->ul);
+			v->value = commit_list_count(commit->parents);
+			v->s = xstrfmt("%lu", (unsigned long)v->value);
 		}
 		else if (!strcmp(name, "parent")) {
 			struct commit_list *parents;
@@ -856,7 +856,7 @@ static void grab_date(const char *buf, struct atom_value *v, const char *atomnam
 {
 	const char *eoemail = strstr(buf, "> ");
 	char *zone;
-	unsigned long timestamp;
+	timestamp_t timestamp;
 	long tz;
 	struct date_mode date_mode = { DATE_NORMAL };
 	const char *formatp;
@@ -875,18 +875,18 @@ static void grab_date(const char *buf, struct atom_value *v, const char *atomnam
 
 	if (!eoemail)
 		goto bad;
-	timestamp = strtoul(eoemail + 2, &zone, 10);
-	if (timestamp == ULONG_MAX)
+	timestamp = parse_timestamp(eoemail + 2, &zone, 10);
+	if (timestamp == TIME_MAX)
 		goto bad;
 	tz = strtol(zone, NULL, 10);
 	if ((tz == LONG_MIN || tz == LONG_MAX) && errno == ERANGE)
 		goto bad;
 	v->s = xstrdup(show_date(timestamp, tz, &date_mode));
-	v->ul = timestamp;
+	v->value = timestamp;
 	return;
  bad:
 	v->s = "";
-	v->ul = 0;
+	v->value = 0;
 }
 
 /* See grab_values */
@@ -1304,7 +1304,7 @@ static void populate_value(struct ref_array_item *ref)
 	struct object *obj;
 	int eaten, i;
 	unsigned long size;
-	const unsigned char *tagged;
+	const struct object_id *tagged;
 
 	ref->value = xcalloc(used_atom_cnt, sizeof(struct atom_value));
 
@@ -1377,7 +1377,7 @@ static void populate_value(struct ref_array_item *ref)
 				v->s = xstrdup(buf + 1);
 			}
 			continue;
-		} else if (!deref && grab_objectname(name, ref->objectname, v, atom)) {
+		} else if (!deref && grab_objectname(name, ref->objectname.hash, v, atom)) {
 			continue;
 		} else if (!strcmp(name, "HEAD")) {
 			if (atom->u.head && !strcmp(ref->refname, atom->u.head))
@@ -1421,13 +1421,13 @@ static void populate_value(struct ref_array_item *ref)
 	return;
 
  need_obj:
-	buf = get_obj(ref->objectname, &obj, &size, &eaten);
+	buf = get_obj(&ref->objectname, &obj, &size, &eaten);
 	if (!buf)
 		die(_("missing object %s for %s"),
-		    sha1_to_hex(ref->objectname), ref->refname);
+		    oid_to_hex(&ref->objectname), ref->refname);
 	if (!obj)
 		die(_("parse_object_buffer failed on %s for %s"),
-		    sha1_to_hex(ref->objectname), ref->refname);
+		    oid_to_hex(&ref->objectname), ref->refname);
 
 	grab_values(ref->value, 0, obj, buf, size);
 	if (!eaten)
@@ -1444,7 +1444,7 @@ static void populate_value(struct ref_array_item *ref)
 	 * If it is a tag object, see if we use a value that derefs
 	 * the object, and if we do grab the object it refers to.
 	 */
-	tagged = ((struct tag *)obj)->tagged->oid.hash;
+	tagged = &((struct tag *)obj)->tagged->oid;
 
 	/*
 	 * NEEDSWORK: This derefs tag only once, which
@@ -1455,10 +1455,10 @@ static void populate_value(struct ref_array_item *ref)
 	buf = get_obj(tagged, &obj, &size, &eaten);
 	if (!buf)
 		die(_("missing object %s for %s"),
-		    sha1_to_hex(tagged), ref->refname);
+		    oid_to_hex(tagged), ref->refname);
 	if (!obj)
 		die(_("parse_object_buffer failed on %s for %s"),
-		    sha1_to_hex(tagged), ref->refname);
+		    oid_to_hex(tagged), ref->refname);
 	grab_values(ref->value, 1, obj, buf, size);
 	if (!eaten)
 		free(buf);
@@ -1624,7 +1624,7 @@ static int match_pattern(const struct ref_filter *filter, const char *refname)
 	       skip_prefix(refname, "refs/", &refname));
 
 	for (; *patterns; patterns++) {
-		if (!wildmatch(*patterns, refname, flags, NULL))
+		if (!wildmatch(*patterns, refname, flags))
 			return 1;
 	}
 	return 0;
@@ -1655,7 +1655,7 @@ static int match_name_as_path(const struct ref_filter *filter, const char *refna
 		     refname[plen] == '/' ||
 		     p[plen-1] == '/'))
 			return 1;
-		if (!wildmatch(p, refname, WM_PATHNAME, NULL))
+		if (!wildmatch(p, refname, WM_PATHNAME))
 			return 1;
 	}
 	return 0;
@@ -1669,6 +1669,68 @@ static int filter_pattern_match(struct ref_filter *filter, const char *refname)
 	if (filter->match_as_path)
 		return match_name_as_path(filter, refname);
 	return match_pattern(filter, refname);
+}
+
+/*
+ * Find the longest prefix of pattern we can pass to
+ * `for_each_fullref_in()`, namely the part of pattern preceding the
+ * first glob character. (Note that `for_each_fullref_in()` is
+ * perfectly happy working with a prefix that doesn't end at a
+ * pathname component boundary.)
+ */
+static void find_longest_prefix(struct strbuf *out, const char *pattern)
+{
+	const char *p;
+
+	for (p = pattern; *p && !is_glob_special(*p); p++)
+		;
+
+	strbuf_add(out, pattern, p - pattern);
+}
+
+/*
+ * This is the same as for_each_fullref_in(), but it tries to iterate
+ * only over the patterns we'll care about. Note that it _doesn't_ do a full
+ * pattern match, so the callback still has to match each ref individually.
+ */
+static int for_each_fullref_in_pattern(struct ref_filter *filter,
+				       each_ref_fn cb,
+				       void *cb_data,
+				       int broken)
+{
+	struct strbuf prefix = STRBUF_INIT;
+	int ret;
+
+	if (!filter->match_as_path) {
+		/*
+		 * in this case, the patterns are applied after
+		 * prefixes like "refs/heads/" etc. are stripped off,
+		 * so we have to look at everything:
+		 */
+		return for_each_fullref_in("", cb, cb_data, broken);
+	}
+
+	if (!filter->name_patterns[0]) {
+		/* no patterns; we have to look at everything */
+		return for_each_fullref_in("", cb, cb_data, broken);
+	}
+
+	if (filter->name_patterns[1]) {
+		/*
+		 * multiple patterns; in theory this could still work as long
+		 * as the patterns are disjoint. We'd just make multiple calls
+		 * to for_each_ref(). But if they're not disjoint, we'd end up
+		 * reporting the same ref multiple times. So let's punt on that
+		 * for now.
+		 */
+		return for_each_fullref_in("", cb, cb_data, broken);
+	}
+
+	find_longest_prefix(&prefix, filter->name_patterns[0]);
+
+	ret = for_each_fullref_in(prefix.buf, cb, cb_data, broken);
+	strbuf_release(&prefix);
+	return ret;
 }
 
 /*
@@ -1693,7 +1755,7 @@ static const struct object_id *match_points_at(struct oid_array *points_at,
 
 	if (oid_array_lookup(points_at, oid) >= 0)
 		return oid;
-	obj = parse_object(oid->hash);
+	obj = parse_object(oid);
 	if (!obj)
 		die(_("malformed object at '%s'"), refname);
 	if (obj->type == OBJ_TAG)
@@ -1710,7 +1772,7 @@ static struct ref_array_item *new_ref_array_item(const char *refname,
 {
 	struct ref_array_item *ref;
 	FLEX_ALLOC_STR(ref, refname, refname);
-	hashcpy(ref->objectname, objectname);
+	hashcpy(ref->objectname.hash, objectname);
 	ref->flag = flag;
 
 	return ref;
@@ -1788,7 +1850,7 @@ static int ref_filter_handler(const char *refname, const struct object_id *oid, 
 	 * non-commits early. The actual filtering is done later.
 	 */
 	if (filter->merge_commit || filter->with_commit || filter->no_commit || filter->verbose) {
-		commit = lookup_commit_reference_gently(oid->hash, 1);
+		commit = lookup_commit_reference_gently(oid, 1);
 		if (!commit)
 			return 0;
 		/* We perform the filtering for the '--contains' option... */
@@ -1829,8 +1891,7 @@ void ref_array_clear(struct ref_array *array)
 
 	for (i = 0; i < array->nr; i++)
 		free_array_item(array->items[i]);
-	free(array->items);
-	array->items = NULL;
+	FREE_AND_NULL(array->items);
 	array->nr = array->alloc = 0;
 }
 
@@ -1917,7 +1978,7 @@ int filter_refs(struct ref_array *array, struct ref_filter *filter, unsigned int
 		else if (filter->kind == FILTER_REFS_TAGS)
 			ret = for_each_fullref_in("refs/tags/", ref_filter_handler, &ref_cbdata, broken);
 		else if (filter->kind & FILTER_REFS_ALL)
-			ret = for_each_fullref_in("", ref_filter_handler, &ref_cbdata, broken);
+			ret = for_each_fullref_in_pattern(filter, ref_filter_handler, &ref_cbdata, broken);
 		if (!ret && (filter->kind & FILTER_REFS_DETACHED_HEAD))
 			head_ref(ref_filter_handler, &ref_cbdata);
 	}
@@ -1947,9 +2008,9 @@ static int cmp_ref_sorting(struct ref_sorting *s, struct ref_array_item *a, stru
 	else if (cmp_type == FIELD_STR)
 		cmp = cmp_fn(va->s, vb->s);
 	else {
-		if (va->ul < vb->ul)
+		if (va->value < vb->value)
 			cmp = -1;
-		else if (va->ul == vb->ul)
+		else if (va->value == vb->value)
 			cmp = cmp_fn(a->refname, b->refname);
 		else
 			cmp = 1;
@@ -2096,7 +2157,7 @@ int parse_opt_ref_sorting(const struct option *opt, const char *arg, int unset)
 int parse_opt_merge_filter(const struct option *opt, const char *arg, int unset)
 {
 	struct ref_filter *rf = opt->value;
-	unsigned char sha1[20];
+	struct object_id oid;
 	int no_merged = starts_with(opt->long_name, "no");
 
 	if (rf->merge) {
@@ -2111,10 +2172,10 @@ int parse_opt_merge_filter(const struct option *opt, const char *arg, int unset)
 		? REF_FILTER_MERGED_OMIT
 		: REF_FILTER_MERGED_INCLUDE;
 
-	if (get_sha1(arg, sha1))
+	if (get_oid(arg, &oid))
 		die(_("malformed object name %s"), arg);
 
-	rf->merge_commit = lookup_commit_reference_gently(sha1, 0);
+	rf->merge_commit = lookup_commit_reference_gently(&oid, 0);
 	if (!rf->merge_commit)
 		return opterror(opt, "must point to a commit", 0);
 
