@@ -3,6 +3,9 @@ git (1:2.14.0-0.1) unstable; urgency=low
   * new upstream release (see RelNotes/2.14.0.txt).
   * debian/patches/0001-pre-rebase-hook-capture-documentation-...diff:
     remove; applied upstream.
+  * build against PCRE v2 if available at build time (thx to Ævar
+    Arnfjörð Bjarmason for the suggestion).  Build-Depends:
+    libpcre2-dev | libpcre3-dev.
 
  -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 07 Aug 2017 11:19:16 -0700
 

@@ -9,7 +9,6 @@ OPTS =NO_OPENSSL=1 prefix=/usr gitexecdir=/usr/lib/git-core \
   libexecdir=/usr/lib/git-core \
   mandir=/usr/share/man htmldir=/usr/share/doc/git/html \
   INSTALLDIRS=vendor \
-  USE_LIBPCRE=1 \
   SANE_TOOL_PATH= INSTALL=install TAR=tar \
   NO_CROSS_DIRECTORY_HARDLINKS=1 NO_INSTALL_HARDLINKS=1 \
   DEFAULT_PAGER=pager DEFAULT_EDITOR=editor \
@@ -36,6 +35,11 @@ ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
   # affecting the top-level make, which would break realtime build
   # output (unless dh is run as +dh, which causes other problems).
   %: MAKEFLAGS += -O
+endif
+ifneq (,$(shell dpkg-query -f '$${Version}' -W libpcre2-dev))
+  OPTS += USE_LIBPCRE2=1
+else
+  OPTS += USE_LIBPCRE1=1
 endif
 
 TMP = $(CURDIR)/debian/tmp
