@@ -1,3 +1,656 @@
+Version v2.14.0; changes since v2.14.0-rc1:
+-------------------------------------------
+
+Alexander Shopov (1):
+      l10n: bg.po: Updated Bulgarian translation (3213t)
+
+Andreas Heiduk (1):
+      doc: remove unsupported parameter from patch-id
+
+Anthony Sottile (1):
+      diff-options doc: grammar fix
+
+Changwoo Ryu (1):
+      l10n: ko.po: Update Korean translation
+
+Dimitriy Ryazantcev (1):
+      l10n: ru.po: update Russian translation
+
+Hartmut Henkel (1):
+      l10n: de.po: various fixes in German translation
+
+Hugues Peccatte (1):
+      l10n: fr.po Fix some translations
+
+Jean-Noel Avila (1):
+      l10n: fr.po v2.14.0 rnd 2
+
+Jiang Xin (2):
+      l10n: zh_CN: for git v2.14.0 l10n round 2
+      l10n: zh_CN: review for git v2.14.0 l10n
+
+Jordi Mas (1):
+      l10n: Update Catalan translation
+
+Junio C Hamano (3):
+      Preparation for 2.13.4 continues
+      Git 2.13.4
+      Git 2.14
+
+Louis (1):
+      l10n: fr.po Fix typo
+
+Ralf Thielow (1):
+      l10n: de.po: update German translation
+
+SZEDER Gábor (1):
+      blame: fix memory corruption scrambling revision name in error message
+
+Sylvestre Ledru (1):
+      l10n: fr.po Fix some french typos
+
+Trần Ngọc Quân (1):
+      l10n: vi.po (3213t): Updated 9 new strings
+
+
+Version v2.14.0-rc1; changes since v2.14.0-rc0:
+-----------------------------------------------
+
+Alexander Shopov (1):
+      l10n: bg.po: Updated Bulgarian translation (3206t)
+
+Changwoo Ryu (1):
+      l10n: ko.po: Update Korean translation
+
+Dimitriy Ryazantcev (1):
+      l10n: ru.po: update Russian translation
+
+Eric Wong (1):
+      set FD_CLOEXEC properly when O_CLOEXEC is not supported
+
+Jeff King (2):
+      gc: run pre-detach operations under lock
+      t: handle EOF in test_copy_bytes()
+
+Jiang Xin (2):
+      l10n: git.pot: v2.14.0 round 1 (34 new, 23 removed)
+      l10n: git.pot: v2.14.0 round 2 (9 new, 2 removed)
+
+Johannes Schindelin (2):
+      t1300: demonstrate that CamelCased aliases regressed
+      alias: compare alias name *case-insensitively*
+
+Jonathan Nieder (1):
+      pre-rebase hook: capture documentation in a <<here document
+
+Jordi Mas (2):
+      l10n: Fixes to Catalan translation
+      l10n: Update Catalan translation
+
+Junio C Hamano (6):
+      A few more topics before 2.14-rc1
+      Makefile: help gettext tools to cope with our custom PRItime format
+      A few more topics while waiting for the po/PRItime resolution
+      Hopefully the final last-minute fix before -rc1
+      fixes from 'master' for 2.13.4
+      Git 2.14-rc1
+
+Kaartic Sivaraam (2):
+      doc: camelCase the i18n config variables to improve readability
+      doc: reformat the paragraph containing the 'cut-line'
+
+Miguel Torroja (3):
+      git-p4: git-p4 tests with p4 triggers
+      git-p4: parse marshal output "p4 -G" in p4 changes
+      git-p4: filter for {'code':'info'} in p4CmdList
+
+Peter Krefting (1):
+      l10n: sv.po: Update Swedish translation (3206t0f0u)
+
+Ramsay Jones (1):
+      config.mak.uname: set FREAD_READS_DIRECTORIES for cygwin
+
+René Scharfe (2):
+      progress: show overall rate in last update
+      Makefile: allow combining UBSan with other sanitizers
+
+Torsten Bögershausen (1):
+      cygwin: allow pushing to UNC paths
+
+Trần Ngọc Quân (1):
+      l10n: vi.po(3206t): Update Vietnamese translation
+
+Ævar Arnfjörð Bjarmason (3):
+      RelNotes: mention "log: add -P as a synonym for --perl-regexp"
+      RelNotes: mention "log: make --regexp-ignore-case work with --perl-regexp"
+      RelNotes: mention "sha1dc: optionally use sha1collisiondetection as a submodule"
+
+
+Version v2.14.0-rc0; changes since v2.13.3:
+-------------------------------------------
+
+Andreas Heiduk (4):
+      doc: describe git svn init --ignore-refs
+      filter-branch: add `--setup` step
+      filter-branch: add [--] to usage
+      git-svn: document special options for commit-diff
+
+Beat Bolli (1):
+      unicode: update the width tables to Unicode 10
+
+Ben Peart (10):
+      convert: remove erroneous tests for errno == EPIPE
+      pkt-line: fix packet_read_line() to handle len < 0 errors
+      pkt-line: add packet_read_line_gently()
+      convert: move packet_write_line() into pkt-line as packet_writel()
+      convert: split start_multi_file_filter() into two separate functions
+      convert: separate generic structures and variables from the filter specific ones
+      convert: update generic functions to only use generic data structures
+      convert: rename reusable sub-process functions
+      sub-process: move sub-process functions into separate files
+      convert: update subprocess_read_status() to not die on EOF
+
+Brandon Williams (95):
+      submodule: rename add_sha1_to_array()
+      submodule: rename free_submodules_sha1s()
+      submodule: remove add_oid_to_argv()
+      submodule: change string_list changed_submodule_paths
+      submodule: improve submodule_has_commits()
+      submodule: refactor logic to determine changed submodules
+      dir: stop using the index compatibility macros
+      dir: convert read_skip_worktree_file_from_index to take an index
+      dir: convert directory_exists_in_index to take index
+      dir: convert get_dtype to take index
+      dir: convert dir_add* to take an index
+      dir: convert last_exclude_matching_from_list to take an index
+      dir: convert is_excluded_from_list to take an index
+      dir: convert add_excludes to take an index
+      dir: convert prep_exclude to take an index
+      dir: convert is_excluded to take an index
+      dir: convert open_cached_dir to take an index
+      dir: convert read_directory_recursive to take an index
+      dir: convert read_directory to take an index
+      dir: convert fill_directory to take an index
+      pathspec: provide a more descriptive die message
+      submodule: add die_in_unpopulated_submodule function
+      pathspec: remove PATHSPEC_STRIP_SUBMODULE_SLASH_EXPENSIVE flag
+      ls-files: prevent prune_cache from overeagerly pruning submodules
+      pathspec: remove PATHSPEC_STRIP_SUBMODULE_SLASH_CHEAP
+      pathspec: convert find_pathspecs_matching_against_index to take an index
+      grep: convert to struct object_id
+      diff: convert get_stat_data to struct object_id
+      diff: convert diff_index_show_file to struct object_id
+      diff: convert diff_addremove to struct object_id
+      diff: convert run_diff_files to struct object_id
+      diff: convert diff_change to struct object_id
+      diff: convert fill_filespec to struct object_id
+      diff: convert reuse_worktree_file to struct object_id
+      diff: finish conversion for prepare_temp_file to struct object_id
+      patch-ids: convert to struct object_id
+      diff: convert diff_flush_patch_id to struct object_id
+      combine-diff: convert diff_tree_combined to struct object_id
+      combine-diff: convert find_paths_* to struct object_id
+      tree-diff: convert diff_root_tree_sha1 to struct object_id
+      notes-merge: convert notes_merge* to struct object_id
+      notes-merge: convert merge_from_diffs to struct object_id
+      notes-merge: convert find_notes_merge_pair_ps to struct object_id
+      notes-merge: convert verify_notes_filepair to struct object_id
+      notes-merge: convert write_note_to_worktree to struct object_id
+      diff-tree: convert diff_tree_sha1 to struct object_id
+      builtin/diff-tree: cleanup references to sha1
+      tree-diff: convert try_to_follow_renames to struct object_id
+      tree-diff: convert diff_tree_paths to struct object_id
+      tree-diff: convert path_appendnew to object_id
+      diffcore-rename: use is_empty_blob_oid
+      diff: rename diff_fill_sha1_info to diff_fill_oid_info
+      convert: convert get_cached_convert_stats_ascii to take an index
+      convert: convert crlf_to_git to take an index
+      convert: convert convert_to_git_filter_fd to take an index
+      convert: convert convert_to_git to take an index
+      convert: convert renormalize_buffer to take an index
+      tree: convert read_tree to take an index parameter
+      ls-files: convert overlay_tree_on_cache to take an index
+      ls-files: convert write_eolinfo to take an index
+      ls-files: convert show_killed_files to take an index
+      ls-files: convert show_other_files to take an index
+      ls-files: convert show_ru_info to take an index
+      ls-files: convert ce_excluded to take an index
+      ls-files: convert prune_cache to take an index
+      ls-files: convert show_ce_entry to take an index
+      ls-files: convert show_files to take an index
+      ls-files: factor out debug info into a function
+      ls-files: factor out tag calculation
+      config: create config.h
+      config: remove git_config_iter
+      config: don't include config.h by default
+      setup: teach discover_git_directory to respect the commondir
+      config: respect commondir
+      config: don't implicitly use gitdir or commondir
+      setup: don't perform lazy initialization of repository state
+      setup: add comment indicating a hack
+      environment: remove namespace_len variable
+      repository: introduce the repository object
+      environment: place key repository state in the_repository
+      environment: store worktree in the_repository
+      path: create path.h
+      path: always pass in commondir to update_common_dir
+      path: convert strbuf_git_common_path to take a 'struct repository'
+      path: convert do_git_path to take a 'struct repository'
+      path: worktree_git_path() should not use file relocation
+      path: add repo_git_path and strbuf_repo_git_path
+      path: add repo_worktree_path and strbuf_repo_worktree_path
+      config: read config from a repository object
+      repository: add index_state to struct repo
+      submodule-config: store the_submodule_cache in the_repository
+      submodule: add repo_read_gitmodules
+      submodule: convert is_submodule_initialized to work on a repository
+      repository: enable initialization of submodules
+      ls-files: use repository object
+
+Christian Couder (2):
+      p3400: add perf tests for rebasing many changes
+      sub-process: correct path to API docs in a comment
+
+David Turner (2):
+      Increase core.packedGitLimit
+      unpack-trees: preserve index extensions
+
+Jeff King (29):
+      cache-tree: reject entries with null sha1
+      status: fix missing newline when comment chars are disabled
+      add--interactive: drop diff.indentHeuristic handling
+      pkt-line: annotate packet_writel with LAST_ARG_MUST_BE_NULL
+      ref-filter: limit traversal to prefix
+      t4208: add check for ":/" without matching file
+      check_filename(): refactor ":/" handling
+      check_filename(): use skip_prefix
+      check_filename(): handle ":^" path magic
+      verify_filename(): treat ":(magic)" as a pathspec
+      verify_filename(): flip order of checks
+      credential: handle invalid arguments earlier
+      upload-archive: handle "-h" option early
+      remote-{ext,fd}: print usage message on invalid arguments
+      submodule--helper: show usage for "-h"
+      version: convert to parse-options
+      git: add hidden --list-builtins option
+      t0012: test "-h" with builtins
+      add: warn when adding an embedded repository
+      t: move "git add submodule" into test blocks
+      configure.ac: loosen FREAD_READS_DIRECTORIES test program
+      t0006: check --date=format zone offsets
+      date: use localtime() for "-local" time formats
+      docs: update 64-bit core.packedGitLimit default
+      test-lib: set ASAN_OPTIONS variable before we run git
+      test-lib: turn on ASan abort_on_error by default
+      Makefile: add helper for compiling with -fsanitize
+      Makefile: turn off -fomit-frame-pointer with sanitizers
+      Makefile: disable unaligned loads with UBSan
+
+Jeff Smith (29):
+      blame: remove unneeded dependency on blob.h
+      blame: move textconv_object with related functions
+      blame: remove unused parameters
+      blame: rename origin structure to blame_origin
+      blame: rename scoreboard structure to blame_scoreboard
+      blame: rename origin-related functions
+      blame: rename coalesce function
+      blame: rename ent_score function
+      blame: rename nth_line function
+      blame: move stat counters to scoreboard
+      blame: move copy/move thresholds to scoreboard
+      blame: move contents_from to scoreboard
+      blame: move reverse flag to scoreboard
+      blame: move show_root flag to scoreboard
+      blame: move xdl_opts flags to scoreboard
+      blame: move no_whole_file_rename flag to scoreboard
+      blame: make sanity_check use a callback in scoreboard
+      blame: move progress updates to a scoreboard callback
+      blame: wrap blame_sort and compare_blame_final
+      blame: rework methods that determine 'final' commit
+      blame: create scoreboard init function
+      blame: create scoreboard setup function
+      blame: create entry prepend function
+      blame: move core structures to header
+      blame: move origin-related methods to libgit
+      blame: move fake-commit-related methods to libgit
+      blame: move scoreboard-related methods to libgit
+      blame: move scoreboard setup to libgit
+      blame: move entry prepend to libgit
+
+Johannes Schindelin (9):
+      ref-filter: avoid using `unsigned long` for catch-all data type
+      t0006 & t5000: prepare for 64-bit timestamps
+      t0006 & t5000: skip "far in the future" test when time_t is too limited
+      parse_timestamp(): specify explicitly where we parse timestamps
+      PRItime: introduce a new "printf format" for timestamps
+      timestamp_t: a new data type for timestamps
+      date.c: abort if the system time cannot handle one of our timestamps
+      use uintmax_t for timestamps
+      mingw: verify that paths are not mistaken for remote nicknames
+
+Johannes Sixt (1):
+      mingw_fopen: report ENOENT for invalid file names
+
+Jonathan Tan (11):
+      fetch-pack: always allow fetching of literal SHA1s
+      send-email: support validate hook
+      send-email: check for repo before invoking hook
+      sha1_file: teach packed_object_info about typename
+      sha1_file: rename LOOKUP_UNKNOWN_OBJECT
+      sha1_file: rename LOOKUP_REPLACE_OBJECT
+      sha1_file: move delta base cache code up
+      sha1_file: refactor read_object
+      sha1_file: teach sha1_object_info_extended more flags
+      sha1_file: do not access pack if unneeded
+      sha1_file: refactor has_sha1_file_with_flags
+
+Junio C Hamano (28):
+      test-lib.sh: do not barf under --debug at the end of the test
+      test-lib: retire $remove_trash variable
+      repack: accept --threads=<n> and pass it down to pack-objects
+      Start post 2.13 cycle
+      name-rev: change a "long" variable to timestamp_t
+      Second batch for 2.14
+      config.mak.uname: set FREAD_READS_DIRECTORIES for Darwin, too
+      Third batch for 2.14
+      compat-util: is_missing_file_error()
+      treewide: use is_missing_file_error() where ENOENT and ENOTDIR are checked
+      Fourth batch for 2.14
+      Fifth batch for 2.14
+      Sixth batch for 2.14
+      Seventh batch for 2.14
+      diff- and log- family: handle "git cmd -h" early
+      Eighth batch for 2.14
+      Ninth batch for 2.14
+      Tenth batch for 2.14
+      Revert "split-index: add and use unshare_split_index()"
+      Eleventh batch for 2.14
+      Twelfth batch for 2.14
+      Thirteenth batch for 2.14
+      sha1collisiondetection: automatically enable when submodule is populated
+      Fourteenth batch for 2.14
+      Fifteenth batch for 2.14
+      Sixteenth batch for 2.14
+      Hopefully the last batch before -rc0
+      Git 2.14-rc0
+
+Kaartic Sivaraam (5):
+      status: contextually notify user about an initial commit
+      Documentation/git-submodule: cleanup "add" section
+      commit-template: remove outdated notice about explicit paths
+      commit-template: distinguish status information unconditionally
+      doc: correct a mistake in an illustration
+
+Lars Schneider (2):
+      travis-ci: handle Git for Windows CI status "failed" explicitly
+      travis-ci: retry if Git for Windows CI returns HTTP error 502 or 503
+
+Liam Beguin (3):
+      stash: update documentation to use 'stash entry'
+      status: add optional stash count information
+      glossary: define 'stash entry'
+
+Marc Branchaud (2):
+      diff: make the indent heuristic part of diff's basic configuration
+      diff: have the diff-* builtins configure diff before initializing revisions
+
+Michael Haggerty (26):
+      t3600: clean up permissions test properly
+      refs.h: clarify docstring for the ref_transaction_update()-related fns
+      ref_iterator_begin_fn(): fix docstring
+      files-backend: use `die("BUG: ...")`, not `die("internal error: ...")`
+      prefix_ref_iterator: don't trim too much
+      refs_ref_iterator_begin(): don't check prefixes redundantly
+      refs: use `size_t` indexes when iterating over ref transaction updates
+      ref_store: take a `msg` parameter when deleting references
+      lockfile: add a new method, is_lock_file_locked()
+      files-backend: move `lock` member to `files_ref_store`
+      files_ref_store: put the packed files lock directly in this struct
+      files_transaction_cleanup(): new helper function
+      ref_transaction_commit(): check for valid `transaction->state`
+      ref_transaction_prepare(): new optional step for reference updates
+      ref_update_reject_duplicates(): expose function to whole refs module
+      ref_update_reject_duplicates(): use `size_t` rather than `int`
+      ref_update_reject_duplicates(): add a sanity check
+      should_pack_ref(): new function, extracted from `files_pack_refs()`
+      get_packed_ref_cache(): assume "packed-refs" won't change while locked
+      read_packed_refs(): do more of the work of reading packed refs
+      read_packed_refs(): report unexpected fopen() failures
+      refs_ref_iterator_begin(): handle `GIT_REF_PARANOIA`
+      create_ref_entry(): remove `check_name` option
+      cache_ref_iterator_begin(): avoid priming unneeded directories
+      lock_packed_refs(): fix cache validity check
+      for_each_bisect_ref(): don't trim refnames
+
+Mike Hommey (1):
+      fast-import: increase the default pack depth to 50
+
+Nguyễn Thái Ngọc Duy (16):
+      environment.c: fix potential segfault by get_git_common_dir()
+      refs.c: make submodule ref store hashmap generic
+      refs: add REFS_STORE_ALL_CAPS
+      refs: introduce get_worktree_ref_store()
+      worktree.c: kill parse_ref() in favor of refs_resolve_ref_unsafe()
+      refs: kill set_worktree_head_symref()
+      split-index: add and use unshare_split_index()
+      use xfopen() in more places
+      clone: use xfopen() instead of fopen()
+      config.mak.uname: set FREAD_READS_DIRECTORIES for Linux and FreeBSD
+      wrapper.c: add and use warn_on_fopen_errors()
+      wrapper.c: add and use fopen_or_warn()
+      wrapper.c: make warn_on_inaccessible() static
+      print errno when reporting a system call error
+      rerere.c: move error_errno() closer to the source system call
+      log: fix memory leak in open_next_file()
+
+Phillip Wood (4):
+      add -i: move unquote_path() to Git.pm
+      Git::unquote_path(): handle '\a'
+      Git::unquote_path(): throw an exception on bad path
+      t9700: add tests for Git::unquote_path()
+
+Prathamesh Chavan (1):
+      dir: create function count_slashes()
+
+Ramsay Jones (2):
+      archive-tar: fix a sparse 'constant too large' warning
+      git_fopen: fix a sparse 'not declared' warning
+
+René Scharfe (19):
+      archive-zip: add tests for big ZIP archives
+      archive-zip: use strbuf for ZIP directory
+      archive-zip: write ZIP dir entry directly to strbuf
+      archive-zip: support archives bigger than 4GB
+      archive-zip: support files bigger than 4GB
+      archive-zip: set version field for big files correctly
+      t5004: require 64-bit support for big ZIP tests
+      mingw: simplify PATH handling
+      strbuf: let strbuf_addftime handle %z and %Z itself
+      sha1_name: cache readdir(3) results in find_short_object_filename()
+      p4205: add perf test script for pretty log formats
+      sha1_file: let for_each_file_in_obj_subdir() handle subdir names
+      sha1_file: guard against invalid loose subdirectory numbers
+      coccinelle: polish FREE_AND_NULL rules
+      apply: use starts_with() in gitdiff_verify_name()
+      apply: use strcmp(3) for comparing strings in gitdiff_verify_name()
+      urlmatch: use hex2chr() in append_normalized_escapes()
+      wt-status: use separate variable for result of shorten_unambiguous_ref
+      use DIV_ROUND_UP
+
+Rikard Falkeborn (6):
+      completion: add git config gc completions
+      completion: add git config core completions
+      completion: add git config am.threeWay completion
+      completion: add git config advice completions
+      completion: add git config credential completions
+      completion: add git config credentialCache.ignoreSIGHUP
+
+SZEDER Gábor (1):
+      test-lib: abort when can't remove trash directory
+
+Stefan Beller (22):
+      entry.c: submodule recursing: respect force flag correctly
+      submodule.c: uninitialized submodules are ignored in recursive commands
+      submodule.c: submodule_move_head works with broken submodules
+      builtin/reset: add --recurse-submodules switch
+      diff: recurse into nested submodules for inline diff
+      diff: enable indent heuristic by default
+      submodule recursing: do not write a config variable twice
+      submodule test invocation: only pass additional arguments
+      reset/checkout/read-tree: unify config callback for submodule recursion
+      submodule loading: separate code path for .gitmodules and config overlay
+      Introduce 'submodule.recurse' option for worktree manipulators
+      builtin/grep.c: respect 'submodule.recurse' option
+      builtin/push.c: respect 'submodule.recurse' option
+      builtin/fetch.c: respect 'submodule.recurse' option
+      submodules: overhaul documentation
+      builtin/fetch: factor submodule recurse parsing out to submodule config
+      builtin/fetch: parse recurse-submodules-default at default options parsing
+      pull: optionally rebase submodules (remote submodule changes only)
+      builtin/fetch cleanup: always set default value for submodule recursing
+      hashmap.h: compare function has access to a data field
+      patch-ids.c: use hashmap correctly
+      hashmap: migrate documentation from Documentation/technical into header
+
+Stephen Kent (1):
+      status: add color config slots for branch info in "--short --branch"
+
+Ville Skyttä (1):
+      Spelling fixes
+
+brian m. carlson (60):
+      fetch-pack: convert to struct object_id
+      Clean up outstanding object_id transforms.
+      Convert struct cache_tree to use struct object_id
+      builtin/name-rev: convert to struct object_id
+      builtin/prune: convert to struct object_id
+      bundle: convert to struct object_id
+      branch: convert to struct object_id
+      builtin/blame: convert static function to struct object_id
+      builtin/rev-parse: convert to struct object_id
+      fast-import: convert internal structs to struct object_id
+      fast-import: convert to struct object_id
+      submodule: convert merge_submodule to use struct object_id
+      notes-cache: convert to struct object_id
+      parse-options-cb: convert to struct object_id
+      reflog_expire: convert to struct object_id
+      builtin/verify-commit: convert to struct object_id
+      tag: convert parse_tag_buffer to struct object_id
+      http-push: convert some static functions to struct object_id
+      notes-utils: convert internals to struct object_id
+      revision: convert prepare_show_merge to struct object_id
+      shallow: convert shallow registration functions to object_id
+      sequencer: convert some functions to struct object_id
+      builtin/tag: convert to struct object_id
+      Convert remaining callers of lookup_commit_reference* to object_id
+      Convert lookup_commit* to struct object_id
+      pack: convert struct pack_idx_entry to struct object_id
+      builtin/unpack-objects: convert to struct object_id
+      Convert remaining callers of lookup_blob to object_id
+      Convert lookup_blob to struct object_id
+      tree: convert read_tree_1 to use struct object_id internally
+      builtin/reflog: convert tree_is_complete to take struct object_id
+      Convert lookup_tree to struct object_id
+      log-tree: convert to struct object_id
+      Convert lookup_tag to struct object_id
+      Convert the verify_pack callback to struct object_id
+      Convert struct ref_array_item to struct object_id
+      ref-filter: convert some static functions to struct object_id
+      refs: convert struct ref_update to use struct object_id
+      refs/files-backend: convert many internals to struct object_id
+      http-push: convert process_ls_object and descendants to object_id
+      revision: rename add_pending_sha1 to add_pending_oid
+      revision: convert remaining parse_object callers to object_id
+      upload-pack: convert remaining parse_object callers to object_id
+      sha1_name: convert internals of peel_onion to object_id
+      builtin/read-tree: convert to struct object_id
+      builtin/ls-files: convert overlay_tree_on_cache to object_id
+      sequencer: convert fast_forward_to to struct object_id
+      merge: convert checkout_fast_forward to struct object_id
+      builtin/ls-tree: convert to struct object_id
+      diff-lib: convert do_diff_cache to struct object_id
+      sequencer: convert do_recursive_merge to struct object_id
+      tree: convert parse_tree_indirect to struct object_id
+      object: convert parse_object* to take struct object_id
+      notes: convert internal structures to struct object_id
+      notes: convert internal parts to struct object_id
+      notes: convert for_each_note to struct object_id
+      notes: make get_note return pointer to struct object_id
+      notes: convert format_display_notes to struct object_id
+      builtin/notes: convert to struct object_id
+      notes: convert some accessor functions to struct object_id
+
+xiaoqiang zhao (1):
+      send-email: --batch-size to work around some SMTP server limit
+
+Ævar Arnfjörð Bjarmason (65):
+      tests: change "cd ... && git fetch" to "cd &&\n\tgit fetch"
+      clone: add a --no-tags option to clone without tags
+      tests: rename a test having to do with shallow submodules
+      perf: add function to setup a fresh test repo
+      perf: add test showing exponential growth in path globbing
+      config: match both symlink & realpath versions in IncludeIf.gitdir:*
+      Makefile & configure: reword inaccurate comment about PCRE
+      grep & rev-list doc: stop promising libpcre for --perl-regexp
+      test-lib: rename the LIBPCRE prerequisite to PCRE
+      log: add exhaustive tests for pattern style options & config
+      log: make --regexp-ignore-case work with --perl-regexp
+      grep: add a test asserting that --perl-regexp dies when !PCRE
+      grep: add a test for backreferences in PCRE patterns
+      grep: change non-ASCII -i test to stop using --debug
+      grep: add tests for --threads=N and grep.threads
+      grep: amend submodule recursion test for regex engine testing
+      grep: add tests for grep pattern types being passed to submodules
+      grep: add a test helper function for less verbose -f \0 tests
+      grep: prepare for testing binary regexes containing rx metacharacters
+      grep: add tests to fix blind spots with \0 patterns
+      perf: add a GIT_PERF_MAKE_COMMAND for when *_MAKE_OPTS won't do
+      perf: emit progress output when unpacking & building
+      perf: add a comparison test of grep regex engines
+      perf: add a comparison test of grep regex engines with -F
+      perf: add a comparison test of log --grep regex engines
+      perf: add a comparison test of log --grep regex engines with -F
+      grep: catch a missing enum in switch statement
+      grep: remove redundant regflags assignments
+      grep: factor test for \0 in grep patterns into a function
+      grep: change the internal PCRE macro names to be PCRE1
+      grep: change internal *pcre* variable & function names to be *pcre1*
+      grep: move is_fixed() earlier to avoid forward declaration
+      test-lib: add a PTHREADS prerequisite
+      pack-objects & index-pack: add test for --threads warning
+      pack-objects: fix buggy warning about threads
+      grep: given --threads with NO_PTHREADS=YesPlease, warn
+      grep: assert that threading is enabled when calling grep_{lock,unlock}
+      grep: don't redundantly compile throwaway patterns under threading
+      grep: skip pthreads overhead when using one thread
+      log: add -P as a synonym for --perl-regexp
+      grep: add support for the PCRE v1 JIT API
+      grep: un-break building with PCRE < 8.32
+      grep: un-break building with PCRE < 8.20
+      grep: un-break building with PCRE >= 8.32 without --enable-jit
+      grep: add support for PCRE v2
+      perf: work around the tested repo having an index.lock
+      git-compat-util: add a FREE_AND_NULL() wrapper around free(ptr); ptr = NULL
+      wildmatch test: cover a blind spot in "/" matching
+      coccinelle: add a rule to make "type" code use FREE_AND_NULL()
+      coccinelle: make use of the "type" FREE_AND_NULL() rule
+      coccinelle: add a rule to make "expression" code use FREE_AND_NULL()
+      coccinelle: make use of the "expression" FREE_AND_NULL() rule
+      *.[ch] refactoring: make use of the FREE_AND_NULL() macro
+      grep: fix erroneously copy/pasted variable in check/assert pattern
+      die(): stop hiding errors due to overzealous recursion guard
+      wildmatch: remove unused wildopts parameter
+      strbuf.h comment: discuss strbuf_addftime() arguments in order
+      grep: remove redundant double assignment to 0
+      grep: adjust a redundant grep pattern type assignment
+      grep: remove redundant "fixed" field re-assignment to 0
+      grep: remove redundant and verbose re-assignments to 0
+      grep: remove regflags from the public grep_opt API
+      grep: remove redundant REG_NEWLINE when compiling fixed regex
+      strbuf: change an always NULL/"" strbuf_addftime() param to bool
+      sha1dc: optionally use sha1collisiondetection as a submodule
+
+
 Version v2.13.3; changes since v2.13.2:
 ---------------------------------------
 
