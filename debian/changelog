@@ -1,4 +1,4 @@
-git (1:2.14.0-0.1) unstable; urgency=low
+git (1:2.14.0-1) unstable; urgency=low
 
   * new upstream release (see RelNotes/2.14.0.txt).
   * debian/patches/0001-pre-rebase-hook-capture-documentation-...diff:
@@ -7,7 +7,7 @@ git (1:2.14.0-0.1) unstable; urgency=low
     Arnfjörð Bjarmason for the suggestion).  Build-Depends:
     libpcre2-dev | libpcre3-dev.
 
- -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 07 Aug 2017 11:19:16 -0700
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 07 Aug 2017 11:31:25 -0700
 
 git (1:2.13.3-1) unstable; urgency=low
 
