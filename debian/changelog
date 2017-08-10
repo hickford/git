@@ -1,3 +1,10 @@
+git (1:2.14.1-1) unstable; urgency=high
+
+  * new upstream point release to fix CVE-2017-1000117, arbitrary
+    code execution issues via URLs (see RelNotes/2.14.1.txt).
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Thu, 10 Aug 2017 09:16:20 -0700
+
 git (1:2.14.0-1) unstable; urgency=low
 
   * new upstream release (see RelNotes/2.14.0.txt).
