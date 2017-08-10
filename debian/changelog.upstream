@@ -1,3 +1,25 @@
+Version v2.14.1; changes since v2.14.0:
+---------------------------------------
+
+Jeff King (5):
+      t/lib-proto-disable: restore protocol.allow after config tests
+      t5813: add test for hostname starting with dash
+      connect: factor out "looks like command line option" check
+      connect: reject dashed arguments for proxy commands
+      connect: reject paths that look like command line options
+
+Junio C Hamano (9):
+      connect: reject ssh hostname that begins with a dash
+      Git 2.7.6
+      Git 2.8.6
+      Git 2.9.5
+      Git 2.10.4
+      Git 2.11.3
+      Git 2.12.4
+      Git 2.13.5
+      Git 2.14.1
+
+
 Version v2.14.0; changes since v2.14.0-rc1:
 -------------------------------------------
 
@@ -126,7 +148,7 @@ Trần Ngọc Quân (1):
       RelNotes: mention "sha1dc: optionally use sha1collisiondetection as a submodule"
 
 
-Version v2.14.0-rc0; changes since v2.13.3:
+Version v2.14.0-rc0; changes since v2.13.5:
 -------------------------------------------
 
 Andreas Heiduk (4):
@@ -134,9 +156,6 @@ Andreas Heiduk (4):
       filter-branch: add `--setup` step
       filter-branch: add [--] to usage
       git-svn: document special options for commit-diff
-
-Beat Bolli (1):
-      unicode: update the width tables to Unicode 10
 
 Ben Peart (10):
       convert: remove erroneous tests for errno == EPIPE
@@ -374,12 +393,11 @@ Junio C Hamano (28):
       Hopefully the last batch before -rc0
       Git 2.14-rc0
 
-Kaartic Sivaraam (5):
+Kaartic Sivaraam (4):
       status: contextually notify user about an initial commit
       Documentation/git-submodule: cleanup "add" section
       commit-template: remove outdated notice about explicit paths
       commit-template: distinguish status information unconditionally
-      doc: correct a mistake in an illustration
 
 Lars Schneider (2):
       travis-ci: handle Git for Windows CI status "failed" explicitly
@@ -443,12 +461,6 @@ Nguyễn Thái Ngọc Duy (16):
       rerere.c: move error_errno() closer to the source system call
       log: fix memory leak in open_next_file()
 
-Phillip Wood (4):
-      add -i: move unquote_path() to Git.pm
-      Git::unquote_path(): handle '\a'
-      Git::unquote_path(): throw an exception on bad path
-      t9700: add tests for Git::unquote_path()
-
 Prathamesh Chavan (1):
       dir: create function count_slashes()
 
@@ -456,7 +468,7 @@ Ramsay Jones (2):
       archive-tar: fix a sparse 'constant too large' warning
       git_fopen: fix a sparse 'not declared' warning
 
-René Scharfe (19):
+René Scharfe (17):
       archive-zip: add tests for big ZIP archives
       archive-zip: use strbuf for ZIP directory
       archive-zip: write ZIP dir entry directly to strbuf
@@ -471,8 +483,6 @@ René Scharfe (19):
       sha1_file: let for_each_file_in_obj_subdir() handle subdir names
       sha1_file: guard against invalid loose subdirectory numbers
       coccinelle: polish FREE_AND_NULL rules
-      apply: use starts_with() in gitdiff_verify_name()
-      apply: use strcmp(3) for comparing strings in gitdiff_verify_name()
       urlmatch: use hex2chr() in append_normalized_escapes()
       wt-status: use separate variable for result of shorten_unambiguous_ref
       use DIV_ROUND_UP
@@ -649,6 +659,74 @@ xiaoqiang zhao (1):
       grep: remove redundant REG_NEWLINE when compiling fixed regex
       strbuf: change an always NULL/"" strbuf_addftime() param to bool
       sha1dc: optionally use sha1collisiondetection as a submodule
+
+
+Version v2.13.5; changes since v2.13.4:
+---------------------------------------
+
+Jeff King (2):
+      gc: run pre-detach operations under lock
+      t: handle EOF in test_copy_bytes()
+
+Jonathan Nieder (1):
+      pre-rebase hook: capture documentation in a <<here document
+
+Junio C Hamano (3):
+      Preparation for 2.13.4 continues
+      Git 2.13.4
+      Git 2.13.5
+
+Kaartic Sivaraam (2):
+      doc: camelCase the i18n config variables to improve readability
+      doc: reformat the paragraph containing the 'cut-line'
+
+Phillip Wood (4):
+      add -i: move unquote_path() to Git.pm
+      Git::unquote_path(): handle '\a'
+      Git::unquote_path(): throw an exception on bad path
+      t9700: add tests for Git::unquote_path()
+
+René Scharfe (3):
+      apply: use starts_with() in gitdiff_verify_name()
+      apply: use strcmp(3) for comparing strings in gitdiff_verify_name()
+      progress: show overall rate in last update
+
+Torsten Bögershausen (1):
+      cygwin: allow pushing to UNC paths
+
+
+Version v2.13.4; changes since v2.13.3:
+---------------------------------------
+
+Beat Bolli (1):
+      unicode: update the width tables to Unicode 10
+
+Eric Wong (1):
+      set FD_CLOEXEC properly when O_CLOEXEC is not supported
+
+Jeff King (5):
+      t/lib-proto-disable: restore protocol.allow after config tests
+      t5813: add test for hostname starting with dash
+      connect: factor out "looks like command line option" check
+      connect: reject dashed arguments for proxy commands
+      connect: reject paths that look like command line options
+
+Johannes Schindelin (2):
+      t1300: demonstrate that CamelCased aliases regressed
+      alias: compare alias name *case-insensitively*
+
+Junio C Hamano (8):
+      fixes from 'master' for 2.13.4
+      connect: reject ssh hostname that begins with a dash
+      Git 2.7.6
+      Git 2.8.6
+      Git 2.9.5
+      Git 2.10.4
+      Git 2.11.3
+      Git 2.12.4
+
+Kaartic Sivaraam (1):
+      doc: correct a mistake in an illustration
 
 
 Version v2.13.3; changes since v2.13.2:
@@ -1219,7 +1297,7 @@ Torsten Bögershausen (1):
       completion: expand "push --delete <remote> <ref>" for refs on that <remote>
 
 
-Version v2.13.0-rc0; changes since v2.12.3:
+Version v2.13.0-rc0; changes since v2.12.4:
 -------------------------------------------
 
 Alex Henrie (1):
@@ -1784,6 +1862,26 @@ brian m. carlson (41):
       grep: plug a trivial memory leak
 
 
+Version v2.12.4; changes since v2.12.3:
+---------------------------------------
+
+Jeff King (5):
+      t/lib-proto-disable: restore protocol.allow after config tests
+      t5813: add test for hostname starting with dash
+      connect: factor out "looks like command line option" check
+      connect: reject dashed arguments for proxy commands
+      connect: reject paths that look like command line options
+
+Junio C Hamano (7):
+      connect: reject ssh hostname that begins with a dash
+      Git 2.7.6
+      Git 2.8.6
+      Git 2.9.5
+      Git 2.10.4
+      Git 2.11.3
+      Git 2.12.4
+
+
 Version v2.12.3; changes since v2.12.2:
 ---------------------------------------
 
@@ -2164,7 +2262,7 @@ René Scharfe (2):
       dir: avoid allocation in fill_directory()
 
 
-Version v2.12.0-rc0; changes since v2.11.2:
+Version v2.12.0-rc0; changes since v2.11.3:
 -------------------------------------------
 
 Alex Henrie (3):
@@ -2562,6 +2660,24 @@ brian m. carlson (8):
       asciidoctor: fix user-manual to be built by `asciidoctor`
 
 
+Version v2.11.3; changes since v2.11.2:
+---------------------------------------
+
+Jeff King (4):
+      t5813: add test for hostname starting with dash
+      connect: factor out "looks like command line option" check
+      connect: reject dashed arguments for proxy commands
+      connect: reject paths that look like command line options
+
+Junio C Hamano (6):
+      connect: reject ssh hostname that begins with a dash
+      Git 2.7.6
+      Git 2.8.6
+      Git 2.9.5
+      Git 2.10.4
+      Git 2.11.3
+
+
 Version v2.11.2; changes since v2.11.1:
 ---------------------------------------
 
@@ -2920,7 +3036,7 @@ René Scharfe (2):
       cocci: avoid self-references in object_id transformations
 
 
-Version v2.11.0-rc0; changes since v2.10.3:
+Version v2.11.0-rc0; changes since v2.10.4:
 -------------------------------------------
 
 Aaron M Watson (1):
@@ -3458,6 +3574,23 @@ yaras (1):
       gitweb: link to "git describe"'d commits in log messages
 
 
+Version v2.10.4; changes since v2.10.3:
+---------------------------------------
+
+Jeff King (4):
+      t5813: add test for hostname starting with dash
+      connect: factor out "looks like command line option" check
+      connect: reject dashed arguments for proxy commands
+      connect: reject paths that look like command line options
+
+Junio C Hamano (5):
+      connect: reject ssh hostname that begins with a dash
+      Git 2.7.6
+      Git 2.8.6
+      Git 2.9.5
+      Git 2.10.4
+
+
 Version v2.10.3; changes since v2.10.2:
 ---------------------------------------
 
@@ -3900,7 +4033,7 @@ Vasco Almeida (3):
       t7411: become resilient to GETTEXT_POISON
 
 
-Version v2.10.0-rc0; changes since v2.9.4:
+Version v2.10.0-rc0; changes since v2.9.5:
 ------------------------------------------
 
 Alexander Hirsch (1):
@@ -4352,6 +4485,22 @@ brian m. carlson (11):
       merge-recursive: convert leaf functions to use struct object_id
       merge-recursive: convert merge_recursive_generic() to object_id
       diff: convert prep_temp_blob() to struct object_id
+
+
+Version v2.9.5; changes since v2.9.4:
+-------------------------------------
+
+Jeff King (4):
+      t5813: add test for hostname starting with dash
+      connect: factor out "looks like command line option" check
+      connect: reject dashed arguments for proxy commands
+      connect: reject paths that look like command line options
+
+Junio C Hamano (4):
+      connect: reject ssh hostname that begins with a dash
+      Git 2.7.6
+      Git 2.8.6
+      Git 2.9.5
 
 
 Version v2.9.4; changes since v2.9.3:
@@ -4875,7 +5024,7 @@ Ramsay Jones (1):
       log: document the --decorate=auto option
 
 
-Version v2.9.0-rc0; changes since v2.8.5:
+Version v2.9.0-rc0; changes since v2.8.6:
 -----------------------------------------
 
 Ben Woosley (1):
@@ -5185,6 +5334,21 @@ brian m. carlson (6):
       githooks.txt: amend dangerous advice about 'update' hook ACL
       githooks.txt: minor improvements to the grammar & phrasing
       hooks: allow customizing where the hook directory is
+
+
+Version v2.8.6; changes since v2.8.5:
+-------------------------------------
+
+Jeff King (4):
+      t5813: add test for hostname starting with dash
+      connect: factor out "looks like command line option" check
+      connect: reject dashed arguments for proxy commands
+      connect: reject paths that look like command line options
+
+Junio C Hamano (3):
+      connect: reject ssh hostname that begins with a dash
+      Git 2.7.6
+      Git 2.8.6
 
 
 Version v2.8.5; changes since v2.8.4:
@@ -5745,7 +5909,7 @@ Torsten Bögershausen (1):
       config.mak.uname: use clang for Mac OS X 10.6
 
 
-Version v2.8.0-rc0; changes since v2.7.5:
+Version v2.8.0-rc0; changes since v2.7.6:
 -----------------------------------------
 
 Alexander Kuleshov (1):
@@ -6133,6 +6297,20 @@ brian m. carlson (1):
 
 마누엘 (1):
       mingw: try to delete target directory before renaming
+
+
+Version v2.7.6; changes since v2.7.5:
+-------------------------------------
+
+Jeff King (4):
+      t5813: add test for hostname starting with dash
+      connect: factor out "looks like command line option" check
+      connect: reject dashed arguments for proxy commands
+      connect: reject paths that look like command line options
+
+Junio C Hamano (2):
+      connect: reject ssh hostname that begins with a dash
+      Git 2.7.6
 
 
 Version v2.7.5; changes since v2.7.4:
