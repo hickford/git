@@ -18,7 +18,7 @@ Build-Depends: libz-dev, gettext,
  dh-apache2,
  dpkg-dev (>= 1.16.2~)
 Build-Depends-Indep: asciidoc, xmlto, docbook-xsl
-Standards-Version: 4.0.0.0
+Standards-Version: 4.0.1.0
 Homepage: https://git-scm.com/
 Vcs-Git: https://repo.or.cz/r/git/debian.git/
 Vcs-Browser: http://repo.or.cz/w/git/debian.git/
@@ -221,10 +221,11 @@ Description: fast, scalable, distributed revision control system (git-daemon ser
  git-daemon, as provided by the git package, is a simple server for git
  repositories, ideally suited for read-only updates, i.e. pulling from git
  repositories through the network.  This package provides a runit service
- for running git-daemon permanently.
+ for running git-daemon permanently.  This configuration is simpler and
+ more reliable than git-daemon-sysvinit, at a cost of being less
+ familiar for administrators accustomed to sysvinit.
 
 Package: git-daemon-sysvinit
-Priority: extra
 Architecture: all
 Multi-Arch: foreign
 Depends: ${misc:Depends}, git (>> ${source:Upstream-Version}), git (<< ${source:Upstream-Version}-.), adduser, lsb-base (>= 3.0-6)
@@ -242,7 +243,9 @@ Description: fast, scalable, distributed revision control system (git-daemon ser
  git-daemon, as provided by the git package, is a simple server for git
  repositories, ideally suited for read-only updates, i.e. pulling from git
  repositories through the network.  This package provides a sysvinit service
- for running git-daemon permanently.
+ for running git-daemon permanently.  Unlike git-daemon-run, this
+ package provides the usual sysvinit service management commands
+ ("service git-daemon start/stop") for git-daemon.
 
 Package: git-gui
 Architecture: all

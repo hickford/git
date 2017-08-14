@@ -1,8 +1,11 @@
-git (1:2.14.1-1.1) unstable; urgency=low
+git (1:2.14.1-2) unstable; urgency=low
 
-  * update upstream changelog.
+  * debian/control: git-daemon-sysvinit: Priority: optional.
+  * debian/control: clarify how to decide between git-daemon-run and
+    git-daemon-sysvinit in package descriptions.
+  * debian/control: Standards-Version: 4.0.1.0.
 
- -- Jonathan Nieder <jrnieder@gmail.com>  Thu, 10 Aug 2017 13:33:47 -0700
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 14 Aug 2017 12:14:32 -0700
 
 git (1:2.14.1-1) unstable; urgency=high
 
