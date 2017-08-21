@@ -1,3 +1,10 @@
+git (1:2.14.1-2.1) unstable; urgency=low
+
+  * git.README.Debian: remove obsolete instructions about setting up a
+    server to handle rsync:// protocol.
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 21 Aug 2017 09:46:43 -0700
+
 git (1:2.14.1-2) unstable; urgency=low
 
   * debian/control: git-daemon-sysvinit: Priority: optional.

@@ -31,17 +31,7 @@ to the corresponding subdirectories in the repositories are just fine, e.g.:
 
 Now git-clone git://git.example.org/git/repo will work.
 
-2. Install rsync.  This allows people to use rsync:// URLs to access your
-repositories.  You then need to add a stanza to /etc/rsyncd.conf that looks
-like this:
-
-[git]
-    path = /var/lib/git
-    readonly = yes
-
-Now git-clone rsync://git.example.org/git/repo will work.
-
-3. Configure a web server for git.  This allows people to use a http:// URL
+2. Configure a web server for git.  This allows people to use a http:// URL
 to access your repositories.
 
 Here's an example for an apache virtual server.  Add a stanza to your apache
@@ -59,7 +49,7 @@ configuration that looks like this:
     Alias /static /usr/share/gitweb/static
     Alias /git /var/lib/git
     ScriptAlias / /usr/share/gitweb/gitweb.cgi
-    RedirectMatch permanent "^/~(.*)$" "http://example.org/~$1" 
+    RedirectMatch permanent "^/~(.*)$" "http://example.org/~$1"
 </VirtualHost>
 
 Now git clone http://git.example.org/git/repo will work.  And if you
