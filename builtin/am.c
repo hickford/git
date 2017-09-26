@@ -431,6 +431,14 @@ static void am_load(struct am_state *state)
 	read_state_file(&sb, state, "utf8", 1);
 	state->utf8 = !strcmp(sb.buf, "t");
 
+	if (file_exists(am_path(state, "rerere-autoupdate"))) {
+		read_state_file(&sb, state, "rerere-autoupdate", 1);
+		state->allow_rerere_autoupdate = strcmp(sb.buf, "t") ?
+			RERERE_NOAUTOUPDATE : RERERE_AUTOUPDATE;
+	} else {
+		state->allow_rerere_autoupdate = 0;
+	}
+
 	read_state_file(&sb, state, "keep", 1);
 	if (!strcmp(sb.buf, "t"))
 		state->keep = KEEP_TRUE;
@@ -1003,6 +1011,10 @@ static void am_setup(struct am_state *state, enum patch_format patch_format,
 	write_state_bool(state, "sign", state->signoff);
 	write_state_bool(state, "utf8", state->utf8);
 
+	if (state->allow_rerere_autoupdate)
+		write_state_bool(state, "rerere-autoupdate",
+			 state->allow_rerere_autoupdate == RERERE_AUTOUPDATE);
+
 	switch (state->keep) {
 	case KEEP_FALSE:
 		str = "f";
@@ -1181,34 +1193,10 @@ static void NORETURN die_user_resolve(const struct am_state *state)
  */
 static void am_append_signoff(struct am_state *state)
 {
-	char *cp;
-	struct strbuf mine = STRBUF_INIT;
 	struct strbuf sb = STRBUF_INIT;
 
 	strbuf_attach(&sb, state->msg, state->msg_len, state->msg_len);
-
-	/* our sign-off */
-	strbuf_addf(&mine, "\n%s%s\n",
-		    sign_off_header,
-		    fmt_name(getenv("GIT_COMMITTER_NAME"),
-			     getenv("GIT_COMMITTER_EMAIL")));
-
-	/* Does sb end with it already? */
-	if (mine.len < sb.len &&
-	    !strcmp(mine.buf, sb.buf + sb.len - mine.len))
-		goto exit; /* no need to duplicate */
-
-	/* Does it have any Signed-off-by: in the text */
-	for (cp = sb.buf;
-	     cp && *cp && (cp = strstr(cp, sign_off_header)) != NULL;
-	     cp = strchr(cp, '\n')) {
-		if (sb.buf == cp || cp[-1] == '\n')
-			break;
-	}
-
-	strbuf_addstr(&sb, mine.buf + !!cp);
-exit:
-	strbuf_release(&mine);
+	append_signoff(&sb, 0, 0);
 	state->msg = strbuf_detach(&sb, &state->msg_len);
 }
 

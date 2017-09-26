@@ -347,6 +347,7 @@ static int alt_odb_usable(struct strbuf *path, const char *normalized_objdir)
  * SHA1, an extra slash for the first level indirection, and the
  * terminating NUL.
  */
+static void read_info_alternates(const char * relative_base, int depth);
 static int link_alt_odb_entry(const char *entry, const char *relative_base,
 	int depth, const char *normalized_objdir)
 {
@@ -448,7 +449,7 @@ static void link_alt_odb_entries(const char *alt, int len, int sep,
 	strbuf_release(&objdirbuf);
 }
 
-void read_info_alternates(const char * relative_base, int depth)
+static void read_info_alternates(const char * relative_base, int depth)
 {
 	char *map;
 	size_t mapsz;
@@ -2542,8 +2543,8 @@ void *unpack_entry(struct packed_git *p, off_t obj_offset,
 				error("bad packed object CRC for %s",
 				      sha1_to_hex(sha1));
 				mark_bad_packed_object(p, sha1);
-				unuse_pack(&w_curs);
-				return NULL;
+				data = NULL;
+				goto out;
 			}
 		}
 
@@ -2681,6 +2682,7 @@ void *unpack_entry(struct packed_git *p, off_t obj_offset,
 	if (final_size)
 		*final_size = size;
 
+out:
 	unuse_pack(&w_curs);
 
 	if (delta_stack != small_delta_stack)
@@ -2799,7 +2801,7 @@ off_t find_pack_entry_one(const unsigned char *sha1,
 		return nth_packed_object_offset(p, pos);
 	}
 
-	do {
+	while (lo < hi) {
 		unsigned mi = (lo + hi) / 2;
 		int cmp = hashcmp(index + mi * stride, sha1);
 
@@ -2812,7 +2814,7 @@ off_t find_pack_entry_one(const unsigned char *sha1,
 			hi = mi;
 		else
 			lo = mi+1;
-	} while (lo < hi);
+	}
 	return 0;
 }
 

@@ -939,14 +939,7 @@ extern const struct object_id null_oid;
 
 static inline int hashcmp(const unsigned char *sha1, const unsigned char *sha2)
 {
-	int i;
-
-	for (i = 0; i < GIT_SHA1_RAWSZ; i++, sha1++, sha2++) {
-		if (*sha1 != *sha2)
-			return *sha1 - *sha2;
-	}
-
-	return 0;
+	return memcmp(sha1, sha2, GIT_SHA1_RAWSZ);
 }
 
 static inline int oidcmp(const struct object_id *oid1, const struct object_id *oid2)
@@ -1500,6 +1493,7 @@ struct checkout {
 	struct index_state *istate;
 	const char *base_dir;
 	int base_dir_len;
+	struct delayed_checkout *delayed_checkout;
 	unsigned force:1,
 		 quiet:1,
 		 not_new:1,
@@ -1509,6 +1503,8 @@ struct checkout {
 
 #define TEMPORARY_FILENAME_LENGTH 25
 extern int checkout_entry(struct cache_entry *ce, const struct checkout *state, char *topath);
+extern void enable_delayed_checkout(struct checkout *state);
+extern int finish_delayed_checkout(struct checkout *state);
 
 struct cache_def {
 	struct strbuf path;
@@ -1549,7 +1545,6 @@ extern struct alternate_object_database {
 	char path[FLEX_ARRAY];
 } *alt_odb_list;
 extern void prepare_alt_odb(void);
-extern void read_info_alternates(const char * relative_base, int depth);
 extern char *compute_alternate_path(const char *path, struct strbuf *err);
 typedef int alt_odb_fn(struct alternate_object_database *, void *);
 extern int foreach_alt_odb(alt_odb_fn, void*);
