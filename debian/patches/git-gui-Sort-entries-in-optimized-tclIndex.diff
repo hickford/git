@@ -1,4 +1,4 @@
-From c526d5010f32b5dd18fd176de1b7def49a5d6d65 Mon Sep 17 00:00:00 2001
+From a41e3597a3f5877aa86bb1b0296088bf4b31f6c0 Mon Sep 17 00:00:00 2001
 From: Anders Kaseorg <andersk@mit.edu>
 Date: Wed, 16 Nov 2016 16:37:17 -0500
 Subject: git-gui: Sort entries in optimized tclIndex
@@ -19,10 +19,10 @@ Signed-off-by: Anders Kaseorg <andersk@mit.edu>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/git-gui/Makefile b/git-gui/Makefile
-index fe30be38d..f94b3e13d 100644
+index 918a8de369..f10caedaa7 100644
 --- a/git-gui/Makefile
 +++ b/git-gui/Makefile
-@@ -252,7 +252,7 @@ $(ALL_MSGFILES): %.msg : %.po
+@@ -254,7 +254,7 @@ $(ALL_MSGFILES): %.msg : %.po
  lib/tclIndex: $(ALL_LIBFILES) GIT-GUI-VARS
  	$(QUIET_INDEX)if echo \
  	  $(foreach p,$(PRELOAD_FILES),source $p\;) \
@@ -32,5 +32,5 @@ index fe30be38d..f94b3e13d 100644
  	else \
  	 echo >&2 "    * $(TCL_PATH) failed; using unoptimized loading"; \
 -- 
-2.11.0.rc2
+2.14.1.992.g2c7b836f3a
 

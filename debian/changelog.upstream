@@ -1,3 +1,201 @@
+Version v2.14.2; changes since v2.14.1:
+---------------------------------------
+
+Andreas Heiduk (2):
+      doc: add missing values "none" and "default" for diff.wsErrorHighlight
+      doc: clarify "config --bool" behaviour with empty string
+
+Anthony Sottile (1):
+      git-grep: correct exit code with --quiet and -L
+
+Brandon Williams (2):
+      submodule--helper: teach push-check to handle HEAD
+      clone: teach recursive clones to respect -q
+
+Christian Couder (2):
+      refs: use skip_prefix() in ref_is_hidden()
+      sub-process: print the cmd when a capability is unsupported
+
+Dimitrios Christidis (1):
+      fmt-merge-msg: fix coding style
+
+Heiko Voigt (1):
+      t5526: fix some broken && chains
+
+Hielke Christian Braun (1):
+      gitweb: skip unreadable subdirectories
+
+Jeff King (32):
+      t1414: document some reflog-walk oddities
+      revision: disallow reflog walking with revs->limited
+      log: clarify comment about reflog cycles
+      log: do not free parents when walking reflog
+      get_revision_1(): replace do-while with an early return
+      rev-list: check reflog_info before showing usage
+      reflog-walk: stop using fake parents
+      reflog-walk: apply --since/--until to reflog dates
+      check return value of verify_ref_format()
+      docs/for-each-ref: update pointer to color syntax
+      t: use test_decode_color rather than literal ANSI codes
+      ref-filter: simplify automatic color reset
+      ref-filter: abstract ref format into its own struct
+      ref-filter: move need_color_reset_at_eol into ref_format
+      ref-filter: provide a function for parsing sort options
+      ref-filter: make parse_ref_filter_atom a private function
+      ref-filter: factor out the parsing of sorting atoms
+      ref-filter: pass ref_format struct to atom parsers
+      color: check color.ui in git_default_config()
+      for-each-ref: load config earlier
+      rev-list: pass diffopt->use_colors through to pretty-print
+      pretty: respect color settings for %C placeholders
+      ref-filter: consult want_color() before emitting colors
+      t6018: flesh out empty input/output rev-list tests
+      revision: add rev_input_given flag
+      rev-list: don't show usage when we see empty ref patterns
+      revision: do not fallback to default when rev_input_given is set
+      hashcmp: use memcmp instead of open-coded loop
+      doc: fix typo in sendemail.identity
+      shell: drop git-cvsserver support by default
+      archimport: use safe_pipe_capture for user input
+      cvsimport: shell-quote variable used in backticks
+
+Johannes Schindelin (2):
+      run_processes_parallel: change confusing task_cb convention
+      git-gui (MinGW): make use of MSys2's msgfmt
+
+Jonathan Nieder (4):
+      vcs-svn: remove more unused prototypes and declarations
+      vcs-svn: remove custom mode constants
+      vcs-svn: remove repo_delete wrapper function
+      vcs-svn: move remaining repo_tree functions to fast_export.h
+
+Jonathan Tan (7):
+      fsck: remove redundant parse_tree() invocation
+      object: remove "used" field from struct object
+      fsck: cleanup unused variable
+      Documentation: migrate sub-process docs to header
+      sub-process: refactor handshake to common function
+      tests: ensure fsck fails on corrupt packfiles
+      Doc: clarify that pack-objects makes packs, plural
+
+Junio C Hamano (11):
+      http.c: http.sslcert and http.sslkey are both pathnames
+      perl/Git.pm: typofix in a comment
+      Prepare for 2.14.2
+      RelNotes: further fixes for 2.14.2 from the master front
+      cvsserver: move safe_pipe_capture() to the main package
+      cvsserver: use safe_pipe_capture for `constant commands` as well
+      Git 2.10.5
+      Git 2.11.4
+      Git 2.12.5
+      Git 2.13.6
+      Git 2.14.2
+
+Kaartic Sivaraam (1):
+      commit: check for empty message before the check for untouched template
+
+Kevin Daudt (1):
+      stash: prevent warning about null bytes in input
+
+Lars Schneider (7):
+      t0021: keep filter log files on comparison
+      t0021: make debug log file name configurable
+      t0021: write "OUT <size>" only on success
+      convert: put the flags field before the flag itself for consistent style
+      convert: move multiple file filter error handling to separate function
+      convert: refactor capabilities negotiation
+      convert: add "status=delayed" to filter process protocol
+
+Martin Ågren (7):
+      builtin.h: take over documentation from api-builtin.txt
+      git.c: let builtins opt for handling `pager.foo` themselves
+      git.c: provide setup_auto_pager()
+      t7006: add tests for how git tag paginates
+      tag: respect `pager.tag` in list-mode only
+      tag: change default of `pager.tag` to "on"
+      git.c: ignore pager.* when launching builtin as dashed external
+
+Michael Forney (1):
+      scripts: use "git foo" not "git-foo"
+
+Michael J Gruber (6):
+      Documentation: use proper wording for ref format strings
+      Documentation/git-for-each-ref: clarify peeling of tags for --format
+      Documentation/git-merge: explain --continue
+      merge: clarify call chain
+      merge: split write_merge_state in two
+      merge: save merge state earlier
+
+Philip Oakley (4):
+      git-gui: remove duplicate entries from .gitconfig's gui.recentrepo
+      git gui: cope with duplicates in _get_recentrepo
+      git gui: de-dup selected repo from recentrepo history
+      git gui: allow for a long recentrepo list
+
+Phillip Wood (7):
+      am: remember --rerere-autoupdate setting
+      rebase: honor --rerere-autoupdate
+      rebase -i: honor --rerere-autoupdate
+      t3504: use test_commit
+      cherry-pick/revert: remember --rerere-autoupdate
+      cherry-pick/revert: reject --rerere-autoupdate when continuing
+      am: fix signoff when other trailers are present
+
+Ramsay Jones (2):
+      credential-cache: interpret an ECONNRESET as an EOF
+      builtin/add: add detail to a 'cannot chmod' error message
+
+René Scharfe (23):
+      bswap: convert to unsigned before shifting in get_be32
+      bswap: convert get_be16, get_be32 and put_be32 to inline functions
+      add MOVE_ARRAY
+      use MOVE_ARRAY
+      apply: use COPY_ARRAY and MOVE_ARRAY in update_image()
+      ls-files: don't try to prune an empty index
+      dir: support platforms that require aligned reads
+      pack-objects: remove unnecessary NULL check
+      t0001: skip test with restrictive permissions if getpwd(3) respects them
+      test-path-utils: handle const parameter of basename and dirname
+      t3700: fix broken test under !POSIXPERM
+      t4062: use less than 256 repetitions in regex
+      sha1_file: avoid comparison if no packed hash matches the first byte
+      apply: remove prefix_length member from apply_state
+      merge: use skip_prefix()
+      win32: plug memory leak on realloc() failure in syslog()
+      fsck: free buffers on error in fsck_obj()
+      sha1_file: release delta_stack on error in unpack_entry()
+      t1002: stop using sum(1)
+      t5001: add tests for export-ignore attributes and exclude pathspecs
+      archive: factor out helper functions for handling attributes
+      archive: don't queue excluded directories
+      commit: remove unused inline function single_parent()
+
+Santiago Torres (1):
+      t: lib-gpg: flush gpg agent on startup
+
+Stefan Beller (3):
+      t8008: rely on rev-parse'd HEAD instead of sha1 value
+      sha1_file: make read_info_alternates static
+      submodule.sh: remove unused variable
+
+Torsten Bögershausen (2):
+      convert: add SAFE_CRLF_KEEP_CRLF
+      apply: file commited with CRLF should roundtrip diff and apply
+
+Urs Thuermann (1):
+      git svn fetch: Create correct commit timestamp when using --localtime
+
+brian m. carlson (2):
+      vcs-svn: remove unused prototypes
+      vcs-svn: rename repo functions to "svn_repo"
+
+joernchen (1):
+      cvsserver: use safe_pipe_capture instead of backticks
+
+Ævar Arnfjörð Bjarmason (1):
+      tests: don't give unportable ">" to "test" built-in, use -gt
+
+
 Version v2.14.1; changes since v2.14.0:
 ---------------------------------------
 
@@ -148,7 +346,7 @@ Trần Ngọc Quân (1):
       RelNotes: mention "sha1dc: optionally use sha1collisiondetection as a submodule"
 
 
-Version v2.14.0-rc0; changes since v2.13.5:
+Version v2.14.0-rc0; changes since v2.13.6:
 -------------------------------------------
 
 Andreas Heiduk (4):
@@ -661,22 +859,74 @@ xiaoqiang zhao (1):
       sha1dc: optionally use sha1collisiondetection as a submodule
 
 
+Version v2.13.6; changes since v2.13.5:
+---------------------------------------
+
+Jeff King (3):
+      shell: drop git-cvsserver support by default
+      archimport: use safe_pipe_capture for user input
+      cvsimport: shell-quote variable used in backticks
+
+Junio C Hamano (6):
+      cvsserver: move safe_pipe_capture() to the main package
+      cvsserver: use safe_pipe_capture for `constant commands` as well
+      Git 2.10.5
+      Git 2.11.4
+      Git 2.12.5
+      Git 2.13.6
+
+joernchen (1):
+      cvsserver: use safe_pipe_capture instead of backticks
+
+
 Version v2.13.5; changes since v2.13.4:
 ---------------------------------------
+
+Jeff King (5):
+      t/lib-proto-disable: restore protocol.allow after config tests
+      t5813: add test for hostname starting with dash
+      connect: factor out "looks like command line option" check
+      connect: reject dashed arguments for proxy commands
+      connect: reject paths that look like command line options
+
+Junio C Hamano (8):
+      connect: reject ssh hostname that begins with a dash
+      Git 2.7.6
+      Git 2.8.6
+      Git 2.9.5
+      Git 2.10.4
+      Git 2.11.3
+      Git 2.12.4
+      Git 2.13.5
+
+
+Version v2.13.4; changes since v2.13.3:
+---------------------------------------
+
+Beat Bolli (1):
+      unicode: update the width tables to Unicode 10
+
+Eric Wong (1):
+      set FD_CLOEXEC properly when O_CLOEXEC is not supported
 
 Jeff King (2):
       gc: run pre-detach operations under lock
       t: handle EOF in test_copy_bytes()
 
+Johannes Schindelin (2):
+      t1300: demonstrate that CamelCased aliases regressed
+      alias: compare alias name *case-insensitively*
+
 Jonathan Nieder (1):
       pre-rebase hook: capture documentation in a <<here document
 
 Junio C Hamano (3):
+      fixes from 'master' for 2.13.4
       Preparation for 2.13.4 continues
       Git 2.13.4
-      Git 2.13.5
 
-Kaartic Sivaraam (2):
+Kaartic Sivaraam (3):
+      doc: correct a mistake in an illustration
       doc: camelCase the i18n config variables to improve readability
       doc: reformat the paragraph containing the 'cut-line'
 
@@ -693,40 +943,6 @@ René Scharfe (3):
 
 Torsten Bögershausen (1):
       cygwin: allow pushing to UNC paths
-
-
-Version v2.13.4; changes since v2.13.3:
----------------------------------------
-
-Beat Bolli (1):
-      unicode: update the width tables to Unicode 10
-
-Eric Wong (1):
-      set FD_CLOEXEC properly when O_CLOEXEC is not supported
-
-Jeff King (5):
-      t/lib-proto-disable: restore protocol.allow after config tests
-      t5813: add test for hostname starting with dash
-      connect: factor out "looks like command line option" check
-      connect: reject dashed arguments for proxy commands
-      connect: reject paths that look like command line options
-
-Johannes Schindelin (2):
-      t1300: demonstrate that CamelCased aliases regressed
-      alias: compare alias name *case-insensitively*
-
-Junio C Hamano (8):
-      fixes from 'master' for 2.13.4
-      connect: reject ssh hostname that begins with a dash
-      Git 2.7.6
-      Git 2.8.6
-      Git 2.9.5
-      Git 2.10.4
-      Git 2.11.3
-      Git 2.12.4
-
-Kaartic Sivaraam (1):
-      doc: correct a mistake in an illustration
 
 
 Version v2.13.3; changes since v2.13.2:
@@ -1297,7 +1513,7 @@ Torsten Bögershausen (1):
       completion: expand "push --delete <remote> <ref>" for refs on that <remote>
 
 
-Version v2.13.0-rc0; changes since v2.12.4:
+Version v2.13.0-rc0; changes since v2.12.5:
 -------------------------------------------
 
 Alex Henrie (1):
@@ -1862,6 +2078,25 @@ brian m. carlson (41):
       grep: plug a trivial memory leak
 
 
+Version v2.12.5; changes since v2.12.4:
+---------------------------------------
+
+Jeff King (3):
+      shell: drop git-cvsserver support by default
+      archimport: use safe_pipe_capture for user input
+      cvsimport: shell-quote variable used in backticks
+
+Junio C Hamano (5):
+      cvsserver: move safe_pipe_capture() to the main package
+      cvsserver: use safe_pipe_capture for `constant commands` as well
+      Git 2.10.5
+      Git 2.11.4
+      Git 2.12.5
+
+joernchen (1):
+      cvsserver: use safe_pipe_capture instead of backticks
+
+
 Version v2.12.4; changes since v2.12.3:
 ---------------------------------------
 
@@ -2262,7 +2497,7 @@ René Scharfe (2):
       dir: avoid allocation in fill_directory()
 
 
-Version v2.12.0-rc0; changes since v2.11.3:
+Version v2.12.0-rc0; changes since v2.11.4:
 -------------------------------------------
 
 Alex Henrie (3):
@@ -2660,6 +2895,24 @@ brian m. carlson (8):
       asciidoctor: fix user-manual to be built by `asciidoctor`
 
 
+Version v2.11.4; changes since v2.11.3:
+---------------------------------------
+
+Jeff King (3):
+      shell: drop git-cvsserver support by default
+      archimport: use safe_pipe_capture for user input
+      cvsimport: shell-quote variable used in backticks
+
+Junio C Hamano (4):
+      cvsserver: move safe_pipe_capture() to the main package
+      cvsserver: use safe_pipe_capture for `constant commands` as well
+      Git 2.10.5
+      Git 2.11.4
+
+joernchen (1):
+      cvsserver: use safe_pipe_capture instead of backticks
+
+
 Version v2.11.3; changes since v2.11.2:
 ---------------------------------------
 
@@ -3036,7 +3289,7 @@ René Scharfe (2):
       cocci: avoid self-references in object_id transformations
 
 
-Version v2.11.0-rc0; changes since v2.10.4:
+Version v2.11.0-rc0; changes since v2.10.5:
 -------------------------------------------
 
 Aaron M Watson (1):
@@ -3572,6 +3825,23 @@ yaras (1):
       gitweb: fix a typo in a comment
       gitweb: link to 7-char+ SHA-1s, not only 8-char+
       gitweb: link to "git describe"'d commits in log messages
+
+
+Version v2.10.5; changes since v2.10.4:
+---------------------------------------
+
+Jeff King (3):
+      shell: drop git-cvsserver support by default
+      archimport: use safe_pipe_capture for user input
+      cvsimport: shell-quote variable used in backticks
+
+Junio C Hamano (3):
+      cvsserver: move safe_pipe_capture() to the main package
+      cvsserver: use safe_pipe_capture for `constant commands` as well
+      Git 2.10.5
+
+joernchen (1):
+      cvsserver: use safe_pipe_capture instead of backticks
 
 
 Version v2.10.4; changes since v2.10.3:

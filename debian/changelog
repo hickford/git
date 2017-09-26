@@ -1,3 +1,17 @@
+git (1:2.14.2-1) unstable; urgency=high
+
+  * new upstream point release (see RelNotes/2.14.1.txt).  Among other
+    changes, this fixes a remote shell command execution vulnerability
+    via CVS protocol:
+    - git-shell: drop cvsserver support by default
+    - git-cvsserver: harden backtick captures against user input
+
+  Thanks to joernchen of Phenoelit for discovering, reporting, and
+  fixing this vulnerability, and to Junio C Hamano and Jeff King for
+  the fixes to related issues.
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 25 Sep 2017 18:23:18 -0700
+
 git (1:2.14.1-3) unstable; urgency=low
 
   * git.README.Debian: remove obsolete instructions about setting up a
