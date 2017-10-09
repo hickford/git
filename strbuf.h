@@ -68,7 +68,7 @@ struct strbuf {
 };
 
 extern char strbuf_slopbuf[];
-#define STRBUF_INIT  { 0, 0, strbuf_slopbuf }
+#define STRBUF_INIT  { .alloc = 0, .len = 0, .buf = strbuf_slopbuf }
 
 /**
  * Life Cycle Functions
@@ -147,7 +147,10 @@ static inline void strbuf_setlen(struct strbuf *sb, size_t len)
 	if (len > (sb->alloc ? sb->alloc - 1 : 0))
 		die("BUG: strbuf_setlen() beyond buffer");
 	sb->len = len;
-	sb->buf[len] = '\0';
+	if (sb->buf != strbuf_slopbuf)
+		sb->buf[len] = '\0';
+	else
+		assert(!strbuf_slopbuf[0]);
 }
 
 /**

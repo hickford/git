@@ -25,6 +25,7 @@
 #include "sha1-array.h"
 #include "argv-array.h"
 #include "mru.h"
+#include "packfile.h"
 
 static const char *pack_usage[] = {
 	N_("git pack-objects --stdout [<options>...] [< <ref-list> | < <object-list>]"),
@@ -1011,7 +1012,7 @@ static int want_object_in_pack(const unsigned char *sha1,
 			return want;
 	}
 
-	for (entry = packed_git_mru->head; entry; entry = entry->next) {
+	for (entry = packed_git_mru.head; entry; entry = entry->next) {
 		struct packed_git *p = entry->item;
 		off_t offset;
 
@@ -1029,7 +1030,7 @@ static int want_object_in_pack(const unsigned char *sha1,
 			}
 			want = want_found_object(exclude, p);
 			if (!exclude && want > 0)
-				mru_mark(packed_git_mru, entry);
+				mru_mark(&packed_git_mru, entry);
 			if (want != -1)
 				return want;
 		}
@@ -2170,7 +2171,10 @@ static void *threaded_find_deltas(void *arg)
 {
 	struct thread_params *me = arg;
 
+	progress_lock();
 	while (me->remaining) {
+		progress_unlock();
+
 		find_deltas(me->list, &me->remaining,
 			    me->window, me->depth, me->processed);
 
@@ -2192,7 +2196,10 @@ static void *threaded_find_deltas(void *arg)
 			pthread_cond_wait(&me->cond, &me->mutex);
 		me->data_ready = 0;
 		pthread_mutex_unlock(&me->mutex);
+
+		progress_lock();
 	}
+	progress_unlock();
 	/* leave ->working 1 so that this doesn't get more work assigned */
 	return NULL;
 }
@@ -2556,8 +2563,8 @@ struct in_pack_object {
 };
 
 struct in_pack {
-	int alloc;
-	int nr;
+	unsigned int alloc;
+	unsigned int nr;
 	struct in_pack_object *array;
 };
 

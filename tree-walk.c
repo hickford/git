@@ -78,15 +78,16 @@ int init_tree_desc_gently(struct tree_desc *desc, const void *buffer, unsigned l
 	return result;
 }
 
-void *fill_tree_descriptor(struct tree_desc *desc, const unsigned char *sha1)
+void *fill_tree_descriptor(struct tree_desc *desc, const struct object_id *oid)
 {
 	unsigned long size = 0;
 	void *buf = NULL;
 
-	if (sha1) {
-		buf = read_object_with_reference(sha1, tree_type, &size, NULL);
+	if (oid) {
+		buf = read_object_with_reference(oid->hash, tree_type, &size,
+						 NULL);
 		if (!buf)
-			die("unable to read tree %s", sha1_to_hex(sha1));
+			die("unable to read tree %s", oid_to_hex(oid));
 	}
 	init_tree_desc(desc, buf, size);
 	return buf;
@@ -581,12 +582,11 @@ enum follow_symlinks_result get_tree_entry_follow_symlinks(unsigned char *tree_s
 	int retval = MISSING_OBJECT;
 	struct dir_state *parents = NULL;
 	size_t parents_alloc = 0;
-	ssize_t parents_nr = 0;
+	size_t i, parents_nr = 0;
 	unsigned char current_tree_sha1[20];
 	struct strbuf namebuf = STRBUF_INIT;
 	struct tree_desc t;
 	int follows_remaining = GET_TREE_ENTRY_FOLLOW_SYMLINKS_MAX_LINKS;
-	int i;
 
 	init_tree_desc(&t, NULL, 0UL);
 	strbuf_addstr(&namebuf, name);

@@ -38,7 +38,7 @@ IPATTERN("fortran",
 	 "|//|\\*\\*|::|[/<>=]="),
 IPATTERN("fountain", "^((\\.[^.]|(int|ext|est|int\\.?/ext|i/e)[. ]).*)$",
 	 "[^ \t-]+"),
-PATTERNS("html", "^[ \t]*(<[Hh][1-6][ \t].*>.*)$",
+PATTERNS("html", "^[ \t]*(<[Hh][1-6]([ \t].*)?>.*)$",
 	 "[^<>= \t]+"),
 PATTERNS("java",
 	 "!^[ \t]*(catch|do|for|if|instanceof|new|return|switch|throw|while)\n"
@@ -293,6 +293,7 @@ struct userdiff_driver *userdiff_get_textconv(struct userdiff_driver *driver)
 		strbuf_addf(&name, "textconv/%s", driver->name);
 		notes_cache_init(c, name.buf, driver->textconv);
 		driver->textconv_cache = c;
+		strbuf_release(&name);
 	}
 
 	return driver;

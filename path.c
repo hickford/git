@@ -9,6 +9,7 @@
 #include "worktree.h"
 #include "submodule-config.h"
 #include "path.h"
+#include "packfile.h"
 
 static int get_st_mode_bits(const char *path, int *mode)
 {
@@ -636,8 +637,9 @@ void strbuf_git_common_path(struct strbuf *sb,
 int validate_headref(const char *path)
 {
 	struct stat st;
-	char *buf, buffer[256];
-	unsigned char sha1[20];
+	char buffer[256];
+	const char *refname;
+	struct object_id oid;
 	int fd;
 	ssize_t len;
 
@@ -661,24 +663,24 @@ int validate_headref(const char *path)
 	len = read_in_full(fd, buffer, sizeof(buffer)-1);
 	close(fd);
 
+	if (len < 0)
+		return -1;
+	buffer[len] = '\0';
+
 	/*
 	 * Is it a symbolic ref?
 	 */
-	if (len < 4)
-		return -1;
-	if (!memcmp("ref:", buffer, 4)) {
-		buf = buffer + 4;
-		len -= 4;
-		while (len && isspace(*buf))
-			buf++, len--;
-		if (len >= 5 && !memcmp("refs/", buf, 5))
+	if (skip_prefix(buffer, "ref:", &refname)) {
+		while (isspace(*refname))
+			refname++;
+		if (starts_with(refname, "refs/"))
 			return 0;
 	}
 
 	/*
 	 * Is this a detached HEAD?
 	 */
-	if (!get_sha1_hex(buffer, sha1))
+	if (!get_oid_hex(buffer, &oid))
 		return 0;
 
 	return -1;
@@ -716,7 +718,7 @@ char *expand_user_path(const char *path, int real_home)
 			if (!home)
 				goto return_null;
 			if (real_home)
-				strbuf_addstr(&user_path, real_path(home));
+				strbuf_add_real_path(&user_path, home);
 			else
 				strbuf_addstr(&user_path, home);
 #ifdef GIT_WINDOWS_NATIVE
