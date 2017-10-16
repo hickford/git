@@ -1,3 +1,90 @@
+Version v2.15.0-rc1; changes since v2.15.0-rc0:
+-----------------------------------------------
+
+Derrick Stolee (1):
+      cleanup: fix possible overflow errors in binary search
+
+Jean-Noel Avila (1):
+      i18n: add a missing space in message
+
+Jeff King (19):
+      test-terminal: set TERM=vt100
+      t4015: prefer --color to -c color.diff=always
+      t3701: use test-terminal to collect color output
+      t7508: use test_terminal for color output
+      t7502: use diff.noprefix for --verbose test
+      t6006: drop "always" color config tests
+      t3203: drop "always" color test
+      t3205: use --color instead of color.branch=always
+      provide --color option for all ref-filter users
+      color: make "always" the same as "auto" in config
+      t4015: use --color with --color-moved
+      t7301: use test_terminal to check color
+      path.c: fix uninitialized memory access
+      sha1_loose_object_info: handle errors from unpack_sha1_rest
+      t3308: create a real ref directory/file conflict
+      refs_resolve_ref_unsafe: handle d/f conflicts for writes
+      write_entry: fix leak when retrying delayed filter
+      write_entry: avoid reading blobs in CE_RETRY case
+      write_entry: untangle symlink and regular-file cases
+
+Johannes Sixt (1):
+      sub-process: use child_process.args instead of child_process.argv
+
+Jonathan Nieder (2):
+      technical doc: add a design doc for hash function transition
+      strbuf doc: reuse after strbuf_release is fine
+
+Jonathan Tan (1):
+      oidmap: map with OID as key
+
+Junio C Hamano (2):
+      Prepare for -rc1
+      Git 2.15-rc1
+
+Kaartic Sivaraam (2):
+      branch: change the error messages to be more meaningful
+      setup: update error message to be more meaningful
+
+Lars Schneider (2):
+      entry.c: update cache entry only for existing files
+      entry.c: check if file exists after checkout
+
+Martin Ågren (1):
+      builtin/: add UNLEAKs
+
+Randall S. Becker (1):
+      poll.c: always set revents, even if to zero
+
+René Scharfe (3):
+      test-stringlist: avoid buffer underrun when sorting nothing
+      fsck: handle NULL return of lookup_blob() and lookup_tree()
+      .mailmap: normalize name for René Scharfe
+
+Stefan Beller (2):
+      branch: reset instead of release a strbuf
+      tests: fix diff order arguments in test_cmp
+
+Taylor Blau (8):
+      pretty.c: delimit "%(trailers)" arguments with ","
+      t4205: unfold across multiple lines
+      doc: 'trailers' is the preferred way to format trailers
+      doc: use "`<literal>`"-style quoting for literal strings
+      t6300: refactor %(trailers) tests
+      ref-filter.c: use trailer_opts to format trailers
+      ref-filter.c: parse trailers arguments with %(contents) atom
+      ref-filter.c: pass empty-string as NULL to atom parsers
+
+Thomas Braun (1):
+      completion: add --broken and --dirty to describe
+
+Thomas Gummerer (1):
+      http-push: fix construction of hex value from path
+
+Todd Zullinger (1):
+      api-argv-array.txt: remove broken link to string-list API
+
+
 Version v2.15.0-rc0; changes since v2.14.2:
 -------------------------------------------
 
@@ -475,7 +562,14 @@ Ramsay Jones (7):
       cache.h: hex2chr() - avoid -Wsign-compare warnings
       ALLOC_GROW: avoid -Wsign-compare warnings
 
-Rene Scharfe (34):
+René Scharfe (55):
+      tree-diff: don't access hash of NULL object_id pointer
+      notes: don't access hash of NULL object_id pointer
+      receive-pack: don't access hash of NULL object_id pointer
+      strbuf: clear errno before calling getdelim(3)
+      tree-walk: convert fill_tree_descriptor() to object_id
+      apply: check date of potential epoch timestamps first
+      apply: remove epoch date from regex
       am: release strbufs after use in detect_patch_format()
       am: release strbuf on error return in hg_patch_to_mail()
       am: release strbuf after use in safe_to_abort()
@@ -510,15 +604,6 @@ Rene Scharfe (34):
       vcs-svn: release strbuf after use in end_revision()
       wt-status: release strbuf after use in read_rebase_todolist()
       wt-status: release strbuf after use in wt_longstatus_print_tracking()
-
-René Scharfe (21):
-      tree-diff: don't access hash of NULL object_id pointer
-      notes: don't access hash of NULL object_id pointer
-      receive-pack: don't access hash of NULL object_id pointer
-      strbuf: clear errno before calling getdelim(3)
-      tree-walk: convert fill_tree_descriptor() to object_id
-      apply: check date of potential epoch timestamps first
-      apply: remove epoch date from regex
       archive: don't add empty directories to archives
       refs: make sha1 output parameter of refs_resolve_ref_unsafe() optional
       refs: pass NULL to refs_resolve_ref_unsafe() if hash is not needed

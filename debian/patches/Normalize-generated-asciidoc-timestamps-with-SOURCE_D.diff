@@ -1,4 +1,4 @@
-From 72b30d862f0ecdbfe899a984227dadac6428c5a8 Mon Sep 17 00:00:00 2001
+From f66c008e0d20887afd3a735bc686ab7b5b40123d Mon Sep 17 00:00:00 2001
 From: Anders Kaseorg <andersk@mit.edu>
 Date: Wed, 30 Nov 2016 22:21:15 -0500
 Subject: Normalize generated asciidoc timestamps with SOURCE_DATE_EPOCH
@@ -13,10 +13,10 @@ Signed-off-by: Anders Kaseorg <andersk@mit.edu>
  2 files changed, 9 insertions(+), 2 deletions(-)
 
 diff --git a/Documentation/Makefile b/Documentation/Makefile
-index 2415e0d657..89e07aa68d 100644
+index 471bb29725..a7fac2161e 100644
 --- a/Documentation/Makefile
 +++ b/Documentation/Makefile
-@@ -403,6 +403,7 @@ $(patsubst %.txt,%.texi,$(MAN_TXT)): %.texi : %.xml
+@@ -404,6 +404,7 @@ $(patsubst %.txt,%.texi,$(MAN_TXT)): %.texi : %.xml
  howto-index.txt: howto-index.sh $(wildcard howto/*.txt)
  	$(QUIET_GEN)$(RM) $@+ $@ && \
  	'$(SHELL_PATH_SQ)' ./howto-index.sh $(sort $(wildcard howto/*.txt)) >$@+ && \
@@ -24,7 +24,7 @@ index 2415e0d657..89e07aa68d 100644
  	mv $@+ $@
  
  $(patsubst %,%.html,$(ARTICLES)) : %.html : %.txt
-@@ -413,8 +414,10 @@ WEBDOC_DEST = /pub/software/scm/git/docs
+@@ -414,8 +415,10 @@ WEBDOC_DEST = /pub/software/scm/git/docs
  howto/%.html: ASCIIDOC_EXTRA += -a git-relative-html-prefix=../
  $(patsubst %.txt,%.html,$(wildcard howto/*.txt)): %.html : %.txt
  	$(QUIET_ASCIIDOC)$(RM) $@+ $@ && \
@@ -53,5 +53,5 @@ index 9c3f4131b8..87c9a9d223 100755
  then
  	rm -f api-index.txt+
 -- 
-2.14.0.rc1.383.gd1ce394fe2
+2.15.0.rc0.271.g36b669edcc
 

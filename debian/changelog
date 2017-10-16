@@ -1,9 +1,10 @@
-git (1:2.15.0~rc0-1.1) unstable; urgency=low
+git (1:2.15.0~rc1-1) unstable; urgency=low
 
+  * new upstream release candidate.
   * remove transitional git-core package (thx Holger Levsen;
     closes: #878189).
 
- -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 10 Oct 2017 13:35:38 -0700
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 16 Oct 2017 09:29:08 -0700
 
 git (1:2.15.0~rc0-1) unstable; urgency=low
 
