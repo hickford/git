@@ -1,3 +1,33 @@
+Version v2.15.0-rc2; changes since v2.15.0-rc1:
+-----------------------------------------------
+
+David Glasser (1):
+      doc: list filter-branch subdirectory-filter first
+
+Jeff King (5):
+      diff: fix infinite loop with --color-moved --ignore-space-change
+      Revert "color: make "always" the same as "auto" in config"
+      Revert "t6006: drop "always" color config tests"
+      Revert "color: check color.ui in git_default_config()"
+      tag: respect color.ui config
+
+Junio C Hamano (7):
+      checkout doc: clarify command line args for "checkout paths" mode
+      Crawling towards -rc2
+      fetch doc: src side of refspec could be full SHA-1
+      Preparing for rc2 continues
+      branch doc: sprinkle a few commas for readability
+      Prepare for 2.14.3
+      Git 2.15-rc2
+
+Ralf Thielow (2):
+      sequencer.c: fix and unify error messages in rearrange_squash()
+      sequencer.c: unify an error message
+
+W. Trevor King (1):
+      Documentation/merge-options.txt: describe -S/--gpg-sign for 'pull'
+
+
 Version v2.15.0-rc1; changes since v2.15.0-rc0:
 -----------------------------------------------
 
