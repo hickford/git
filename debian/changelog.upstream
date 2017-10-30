@@ -1,3 +1,79 @@
+Version v2.15.0; changes since v2.15.0-rc2:
+-------------------------------------------
+
+Alexander Shopov (1):
+      l10n: bg.po: Updated Bulgarian translation (3245t)
+
+Andre Hinrichs (1):
+      l10n: de.po: fix typos
+
+Andrey Okoshkin (1):
+      path.c: use xmalloc() in add_to_trie()
+
+Changwoo Ryu (1):
+      l10n: ko.po: Update Korean translation
+
+Christopher Díaz (3):
+      l10n: es.po: initial Spanish version git 2.14.0
+      l10n: es.po: spanish added to TEAMS
+      l10n: es.po: Update translation v2.15.0 round 1
+
+Christopher Díaz Riveros (1):
+      l10n: es.po: v2.15.0 round 2
+
+Dimitriy Ryazantcev (2):
+      l10n: ru.po: update Russian translation
+      l10n: ru.po: update Russian translation
+
+Jean-Noel Avila (2):
+      l10n: fr.po fix some mistakes
+      l10n: fr.po: v2.15.0 round 2
+
+Jiang Xin (3):
+      l10n: git.pot: v2.15.0 round 1 (68 new, 36 removed)
+      l10n: git.pot: v2.15.0 round 2 (2 new, 2 removed)
+      l10n: zh_CN: for git v2.15.0 l10n round 2
+
+Jordi Mas (2):
+      l10n: Update Catalan translation
+      l10n: Update Catalan translation
+
+Junio C Hamano (3):
+      Git 2.14.3
+      Hopefully final batch before 2.15
+      Git 2.15
+
+Michael Haggerty (2):
+      t1404: add a bunch of tests of D/F conflicts
+      files_transaction_prepare(): fix handling of ref lock failure
+
+Nathan Payre (1):
+      config doc: clarify "git config --path" example
+
+Nicolas Cornu (1):
+      l10n: fr.po change translation of "First, rewinding"
+
+Peter Krefting (2):
+      l10n: sv.po: Update Swedish translation (3245t0f0u)
+      l10n: sv.po: Update Swedish translation (3245t0f0u)
+
+Ralf Thielow (1):
+      l10n: de.po: translate 70 new messages
+
+Ray Chen (1):
+      l10n: zh_CN: review for git v2.15.0 l10n round 2
+
+SZEDER Gábor (1):
+      rev-list-options.txt: use correct directional reference
+
+Sebastian Schuberth (1):
+      docs: fix formatting of rev-parse's --show-superproject-working-tree
+
+Trần Ngọc Quân (2):
+      l10n: vi.po(3245t): Updated Vietnamese translation for v2.15.0
+      l10n: vi.po(3245t): Updated Vietnamese translation for v2.15.0 round 2
+
+
 Version v2.15.0-rc2; changes since v2.15.0-rc1:
 -----------------------------------------------
 
@@ -115,17 +191,8 @@ Todd Zullinger (1):
       api-argv-array.txt: remove broken link to string-list API
 
 
-Version v2.15.0-rc0; changes since v2.14.2:
+Version v2.15.0-rc0; changes since v2.14.3:
 -------------------------------------------
-
-Adam Dinwoodie (1):
-      doc: correct command formatting
-
-Ann T Ropea (1):
-      request-pull: capitalise "Git" to make it a proper noun
-
-Ben Boeckel (1):
-      Documentation: mention that `eol` can change the dirty status of paths
 
 Brandon Casey (7):
       t1502: demonstrate rev-parse --parseopt option mis-parsing
@@ -165,23 +232,10 @@ Brandon Williams (27):
       clang-format: outline the git project's coding style
       Makefile: add style build rule
 
-Christian Couder (1):
-      sha1-lookup: remove sha1_entry_pos() from header file
-
-Daniel Watkins (1):
-      diff-highlight: add clean target to Makefile
-
 Eric Blake (1):
       git-contacts: also recognise "Reported-by:"
 
-Eric Rannaud (1):
-      fast-import: checkpoint: dump branches/tags/marks even if object_count==0
-
-Evan Zacks (1):
-      doc: fix minor typos (extra/duplicated words)
-
-Han-Wen Nienhuys (5):
-      submodule.h: typofix
+Han-Wen Nienhuys (4):
       submodule.c: describe submodule_to_gitdir() in a new comment
       real_path: clarify return value ownership
       read_gitfile_gently: clarify return value ownership.
@@ -196,18 +250,14 @@ Ian Campbell (4):
       filter-branch: stash away ref map in a branch
       filter-branch: use hash-object instead of mktag
 
-Ilya Kantor (1):
-      userdiff: fix HTML hunk header regexp
-
 Jameson Miller (1):
       Improve performance of git status --ignored
 
 Jeff Hostetler (1):
       hashmap: add API to disable item counting when threaded
 
-Jeff King (73):
+Jeff King (53):
       strbuf: use designated initializers in STRBUF_INIT
-      sha1_file: drop experimental GIT_USE_LOOKUP search
       trailer: put process_trailers() options into a struct
       interpret-trailers: add an option to show only the trailers
       interpret-trailers: add an option to show only existing trailers
@@ -216,7 +266,6 @@ Jeff King (73):
       pretty: move trailer formatting to trailer.c
       t4205: refactor %(trailers) tests
       pretty: support normalization options for %(trailers)
-      config: use a static lock_file struct
       write_index_as_tree: cleanup tempfile on error
       setup_temporary_shallow: avoid using inactive tempfile
       setup_temporary_shallow: move tempfile struct into function
@@ -246,28 +295,13 @@ Jeff King (73):
       reset: free allocated tree buffers
       repository: free fields before overwriting them
       set_git_dir: handle feeding gitdir to itself
-      rev-parse: don't trim bisect refnames
-      system_path: move RUNTIME_PREFIX to a sub-function
-      git_extract_argv0_path: do nothing without RUNTIME_PREFIX
       add UNLEAK annotation for reducing leak false positives
       shortlog: skip format/parse roundtrip for internal traversal
-      config: avoid "write_in_full(fd, buf, len) < len" pattern
-      get-tar-commit-id: check write_in_full() return against 0
-      avoid "write_in_full(fd, buf, len) != len" pattern
-      convert less-trivial versions of "write_in_full() != len"
-      pkt-line: check write_in_full() errors against "< 0"
-      notes-merge: use ssize_t for write_in_full() return value
-      config: flip return value of store_write_*()
-      read_pack_header: handle signed/unsigned comparison in read result
       prefix_ref_iterator: break when we leave the prefix
-      read_info_alternates: read contents into strbuf
-      read_info_alternates: warn on non-trivial errors
       revision: replace "struct cmdline_pathspec" with argv_array
-      cat-file: handle NULL object_context.path
       test-line-buffer: simplify command parsing
       curl_trace(): eliminate switch fallthrough
       consistently use "fallthrough" comments in switches
-      doc: put literal block delimiter around table
       files-backend: prefer "0" for write_in_full() error check
       notes-merge: drop dead zero-write code
       prefer "!=" when checking read_in_full() result
@@ -275,9 +309,6 @@ Jeff King (73):
       distinguish error versus short read from read_in_full()
       worktree: use xsize_t to access file size
       worktree: check the result of read_in_full()
-      validate_headref: NUL-terminate HEAD buffer
-      validate_headref: use skip_prefix for symref parsing
-      validate_headref: use get_oid_hex for detached HEADs
       git: add --no-optional-locks option
 
 Job Snijders (1):
@@ -306,7 +337,7 @@ Jonathan Nieder (2):
       pack: make packed_git_mru global a value instead of a pointer
       pathspec doc: parse_pathspec does not maintain references to args
 
-Jonathan Tan (32):
+Jonathan Tan (31):
       sha1_file: set whence in storage-specific info fn
       sha1_file: remove read_packed_sha1()
       diff: avoid redundantly clearing a flag
@@ -338,9 +369,8 @@ Jonathan Tan (32):
       Remove inadvertently added outgoing/packfile.h
       Add t/helper/test-write-cache to .gitignore
       git-compat-util: make UNLEAK less error-prone
-      fast-export: do not copy from modified file
 
-Junio C Hamano (29):
+Junio C Hamano (25):
       t1408: add a test of stale packed refs covered by loose refs
       clean.c: use designated initializer
       Start post 2.14 cycle
@@ -359,19 +389,15 @@ Junio C Hamano (29):
       The fifth batch post 2.14
       The sixth batch post 2.14
       The seventh batch post 2.14
-      travis: dedent a few scripts that are indented overly deeply
-      subprocess: loudly die when subprocess asks for an unsupported capability
-      gc: call fscanf() with %<len>s, not %<len>c, when reading hostname
       The eighth batch for 2.15
       branch: fix "copy" to never touch HEAD
-      merge-strategies: avoid implying that "-s theirs" exists
       The ninth batch for 2.15
       The tenth batch for 2.15
       The eleventh batch for 2.15
       The twelfth batch for 2.15
       Git 2.15-rc0
 
-Kaartic Sivaraam (12):
+Kaartic Sivaraam (10):
       hook: cleanup script
       hook: name the positional variables
       hook: add sign-off using "interpret-trailers"
@@ -382,12 +408,6 @@ Kaartic Sivaraam (12):
       branch: quote branch/ref names to improve readability
       help: change a message to be more precise
       commit-template: change a message to be more intuitive
-      t/README: fix typo and grammatically improve a sentence
-      doc: camelCase the config variables to improve readability
-
-Kevin Daudt (2):
-      doc/for-each-ref: consistently use '=' to between argument names and values
-      doc/for-each-ref: explicitly specify option names
 
 Kevin Willford (9):
       format-patch: have progress option while generating patches
@@ -400,20 +420,14 @@ Kevin Willford (9):
       merge-recursive: remove return value from get_files_dirs
       merge-recursive: change current file dir string_lists to hashmap
 
-Lars Schneider (4):
+Lars Schneider (1):
       convert: display progress for filtered objects that have been delayed
-      travis-ci: move Travis CI code into dedicated scripts
-      travis-ci: skip a branch build if equal tag is present
-      travis-ci: fix "skip_branch_tip_with_tag()" string comparison
-
-Manav Rathi (1):
-      docs: improve discoverability of exclude pathspec
 
 Martin Koegler (2):
       diff-delta: fix encoding size that would not fit in "unsigned int"
       diff-delta: do not allow delta offset truncation
 
-Martin Ågren (25):
+Martin Ågren (20):
       Doc/git-{push,send-pack}: correct --sign= to --signed=
       t5334: document that git push --signed=1 does not work
       config: introduce git_parse_maybe_bool_text
@@ -421,13 +435,8 @@ Martin Ågren (25):
       treewide: deprecate git_config_maybe_bool, use git_parse_maybe_bool
       parse_decoration_style: drop unused argument `var`
       doc/interpret-trailers: fix "the this" typo
-      convert: always initialize attr_action in convert_attrs
-      pack-objects: take lock before accessing `remaining`
-      strbuf_setlen: don't write to strbuf_slopbuf
-      ThreadSanitizer: add suppressions
       Documentation/user-manual: update outdated example output
       treewide: correct several "up-to-date" to "up to date"
-      pkt-line: re-'static'-ify buffer in packet_write_fmt_1()
       config: remove git_config_maybe_bool
       refs/files-backend: add longer-scoped copy of string to list
       refs/files-backend: fix memory leak in lock_ref_for_update
@@ -440,15 +449,10 @@ Martin Ågren (25):
       object_array: add and use `object_array_pop()`
       pack-bitmap[-write]: use `object_array_clear()`, don't leak
 
-Matthieu Moy (2):
-      send-email: fix garbage removal after address
-      send-email: don't use Mail::Address, even if available
-
-Max Kirillov (2):
-      describe: fix matching to actually match all patterns
+Max Kirillov (1):
       describe: teach --match to handle branches and remotes
 
-Michael Haggerty (77):
+Michael Haggerty (76):
       add_packed_ref(): teach function to overwrite existing refs
       packed_ref_store: new struct
       packed_ref_store: move `packed_refs_path` here
@@ -511,7 +515,6 @@ Michael Haggerty (77):
       read_packed_refs(): use mmap to read the `packed-refs` file
       read_packed_refs(): only check for a header at the top of the file
       read_packed_refs(): make parsing of the header line more robust
-      for_each_string_list_item: avoid undefined behavior for empty list
       read_packed_refs(): read references with minimal copying
       packed_ref_cache: remember the file-wide peeling state
       mmapped_ref_iterator: add iterator over a packed-refs file
@@ -527,15 +530,13 @@ Michael Haggerty (77):
       mmapped_ref_iterator: inline into `packed_ref_iterator`
       packed-backend.c: rename a bunch of things and update comments
 
-Michael J Gruber (5):
-      name-rev: change ULONG_MAX to TIME_MAX
+Michael J Gruber (4):
       t7004: move limited stack prereq to test-lib
       t6120: test name-rev --all and --stdin
       t6120: clean up state after breaking repo
       t6120: test describe and name-rev with deep repos
 
-Nguyễn Thái Ngọc Duy (17):
-      branch: fix branch renaming not updating HEADs correctly
+Nguyễn Thái Ngọc Duy (16):
       revision.h: new flag in struct rev_info wrt. worktree-related refs
       refs.c: use is_dir_sep() in resolve_gitlink_ref()
       revision.c: refactor add_index_objects_to_pending()
@@ -583,20 +584,15 @@ Patryk Obara (10):
 Raman Gupta (1):
       contrib/rerere-train: optionally overwrite existing resolutions
 
-Ramsay Jones (7):
+Ramsay Jones (3):
       test-lib: don't use ulimit in test prerequisites on cygwin
       test-lib: use more compact expression in PIPE prerequisite
       t9010-*.sh: skip all tests if the PIPE prereq is missing
-      git-compat-util.h: xsize_t() - avoid -Wsign-compare warnings
-      commit-slab.h: avoid -Wsign-compare warnings
-      cache.h: hex2chr() - avoid -Wsign-compare warnings
-      ALLOC_GROW: avoid -Wsign-compare warnings
 
-René Scharfe (55):
+René Scharfe (49):
       tree-diff: don't access hash of NULL object_id pointer
       notes: don't access hash of NULL object_id pointer
       receive-pack: don't access hash of NULL object_id pointer
-      strbuf: clear errno before calling getdelim(3)
       tree-walk: convert fill_tree_descriptor() to object_id
       apply: check date of potential epoch timestamps first
       apply: remove epoch date from regex
@@ -634,23 +630,15 @@ René Scharfe (55):
       vcs-svn: release strbuf after use in end_revision()
       wt-status: release strbuf after use in read_rebase_todolist()
       wt-status: release strbuf after use in wt_longstatus_print_tracking()
-      archive: don't add empty directories to archives
       refs: make sha1 output parameter of refs_resolve_ref_unsafe() optional
       refs: pass NULL to refs_resolve_ref_unsafe() if hash is not needed
       refs: pass NULL to resolve_ref_unsafe() if hash is not needed
-      mailinfo: don't decode invalid =XY quoted-printable sequences
       refs: pass NULL to refs_resolve_refdup() if hash is not needed
       refs: pass NULL to resolve_refdup() if hash is not needed
-      coccinelle: remove parentheses that become unnecessary
       path: use strbuf_add_real_path()
       use strbuf_addstr() for adding strings to strbufs
       graph: use strbuf_addchars() to add spaces
-      tag: avoid NULL pointer arithmetic
       repository: use FREE_AND_NULL
-      run-command: use ALLOC_ARRAY
-
-Ross Kabus (1):
-      commit-tree: do not complete line in -F input
 
 Sahil Dua (2):
       config: create a function to format section headers
@@ -711,16 +699,12 @@ Takashi Iwai (2):
       sha1dc: build git plumbing code more explicitly
       sha1dc: allow building with the external sha1dc library
 
-Thomas Gummerer (2):
+Thomas Gummerer (1):
       read-cache: fix index corruption with index v4
-      refs: strip out not allowed flags from ref_transaction_update
 
 Tom G. Christensen (2):
       http: fix handling of missing CURLPROTO_*
       http: use a feature check to enable GSSAPI delegation control
-
-Torsten Bögershausen (1):
-      test-lint: echo -e (or -E) is not portable
 
 William Duclot (1):
       rebase: make resolve message clearer for inexperienced users
@@ -747,6 +731,172 @@ brian m. carlson (12):
 
 Łukasz Gryglicki (1):
       merge: add a --signoff flag
+
+
+Version v2.14.3; changes since v2.14.2:
+---------------------------------------
+
+Adam Dinwoodie (1):
+      doc: correct command formatting
+
+Ann T Ropea (1):
+      request-pull: capitalise "Git" to make it a proper noun
+
+Ben Boeckel (1):
+      Documentation: mention that `eol` can change the dirty status of paths
+
+Christian Couder (1):
+      sha1-lookup: remove sha1_entry_pos() from header file
+
+Daniel Watkins (1):
+      diff-highlight: add clean target to Makefile
+
+Eric Rannaud (1):
+      fast-import: checkpoint: dump branches/tags/marks even if object_count==0
+
+Evan Zacks (1):
+      doc: fix minor typos (extra/duplicated words)
+
+Han-Wen Nienhuys (1):
+      submodule.h: typofix
+
+Ilya Kantor (1):
+      userdiff: fix HTML hunk header regexp
+
+Jeff King (36):
+      sha1_file: drop experimental GIT_USE_LOOKUP search
+      config: use a static lock_file struct
+      rev-parse: don't trim bisect refnames
+      system_path: move RUNTIME_PREFIX to a sub-function
+      git_extract_argv0_path: do nothing without RUNTIME_PREFIX
+      config: avoid "write_in_full(fd, buf, len) < len" pattern
+      get-tar-commit-id: check write_in_full() return against 0
+      avoid "write_in_full(fd, buf, len) != len" pattern
+      convert less-trivial versions of "write_in_full() != len"
+      pkt-line: check write_in_full() errors against "< 0"
+      notes-merge: use ssize_t for write_in_full() return value
+      config: flip return value of store_write_*()
+      read_pack_header: handle signed/unsigned comparison in read result
+      read_info_alternates: read contents into strbuf
+      read_info_alternates: warn on non-trivial errors
+      cat-file: handle NULL object_context.path
+      doc: put literal block delimiter around table
+      validate_headref: NUL-terminate HEAD buffer
+      validate_headref: use skip_prefix for symref parsing
+      validate_headref: use get_oid_hex for detached HEADs
+      test-terminal: set TERM=vt100
+      t4015: prefer --color to -c color.diff=always
+      t3701: use test-terminal to collect color output
+      t7508: use test_terminal for color output
+      t7502: use diff.noprefix for --verbose test
+      t6006: drop "always" color config tests
+      t3203: drop "always" color test
+      t3205: use --color instead of color.branch=always
+      provide --color option for all ref-filter users
+      color: make "always" the same as "auto" in config
+      path.c: fix uninitialized memory access
+      sha1_loose_object_info: handle errors from unpack_sha1_rest
+      Revert "color: make "always" the same as "auto" in config"
+      Revert "t6006: drop "always" color config tests"
+      Revert "color: check color.ui in git_default_config()"
+      tag: respect color.ui config
+
+Johannes Sixt (1):
+      sub-process: use child_process.args instead of child_process.argv
+
+Jonathan Nieder (1):
+      strbuf doc: reuse after strbuf_release is fine
+
+Jonathan Tan (1):
+      fast-export: do not copy from modified file
+
+Junio C Hamano (8):
+      travis: dedent a few scripts that are indented overly deeply
+      subprocess: loudly die when subprocess asks for an unsupported capability
+      gc: call fscanf() with %<len>s, not %<len>c, when reading hostname
+      merge-strategies: avoid implying that "-s theirs" exists
+      checkout doc: clarify command line args for "checkout paths" mode
+      fetch doc: src side of refspec could be full SHA-1
+      Prepare for 2.14.3
+      Git 2.14.3
+
+Kaartic Sivaraam (2):
+      t/README: fix typo and grammatically improve a sentence
+      doc: camelCase the config variables to improve readability
+
+Kevin Daudt (2):
+      doc/for-each-ref: consistently use '=' to between argument names and values
+      doc/for-each-ref: explicitly specify option names
+
+Lars Schneider (3):
+      travis-ci: move Travis CI code into dedicated scripts
+      travis-ci: skip a branch build if equal tag is present
+      travis-ci: fix "skip_branch_tip_with_tag()" string comparison
+
+Manav Rathi (1):
+      docs: improve discoverability of exclude pathspec
+
+Martin Ågren (5):
+      convert: always initialize attr_action in convert_attrs
+      pack-objects: take lock before accessing `remaining`
+      strbuf_setlen: don't write to strbuf_slopbuf
+      ThreadSanitizer: add suppressions
+      pkt-line: re-'static'-ify buffer in packet_write_fmt_1()
+
+Matthieu Moy (2):
+      send-email: fix garbage removal after address
+      send-email: don't use Mail::Address, even if available
+
+Max Kirillov (1):
+      describe: fix matching to actually match all patterns
+
+Michael Haggerty (1):
+      for_each_string_list_item: avoid undefined behavior for empty list
+
+Michael J Gruber (1):
+      name-rev: change ULONG_MAX to TIME_MAX
+
+Nguyễn Thái Ngọc Duy (1):
+      branch: fix branch renaming not updating HEADs correctly
+
+Ramsay Jones (4):
+      git-compat-util.h: xsize_t() - avoid -Wsign-compare warnings
+      commit-slab.h: avoid -Wsign-compare warnings
+      cache.h: hex2chr() - avoid -Wsign-compare warnings
+      ALLOC_GROW: avoid -Wsign-compare warnings
+
+Randall S. Becker (1):
+      poll.c: always set revents, even if to zero
+
+René Scharfe (9):
+      strbuf: clear errno before calling getdelim(3)
+      archive: don't add empty directories to archives
+      mailinfo: don't decode invalid =XY quoted-printable sequences
+      coccinelle: remove parentheses that become unnecessary
+      tag: avoid NULL pointer arithmetic
+      run-command: use ALLOC_ARRAY
+      test-stringlist: avoid buffer underrun when sorting nothing
+      fsck: handle NULL return of lookup_blob() and lookup_tree()
+      .mailmap: normalize name for René Scharfe
+
+Ross Kabus (1):
+      commit-tree: do not complete line in -F input
+
+Stefan Beller (1):
+      branch: reset instead of release a strbuf
+
+Taylor Blau (1):
+      ref-filter.c: pass empty-string as NULL to atom parsers
+
+Thomas Braun (1):
+      completion: add --broken and --dirty to describe
+
+Thomas Gummerer (2):
+      refs: strip out not allowed flags from ref_transaction_update
+      http-push: fix construction of hex value from path
+
+Torsten Bögershausen (1):
+      test-lint: echo -e (or -E) is not portable
 
 
 Version v2.14.2; changes since v2.14.1:
