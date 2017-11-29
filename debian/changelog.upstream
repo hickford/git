@@ -1,3 +1,114 @@
+Version v2.15.1; changes since v2.15.0:
+---------------------------------------
+
+Adam Dinwoodie (3):
+      t5580: add Cygwin support
+      rebase -i: fix comment typo
+      doc/SubmittingPatches: correct subject guidance
+
+Andrey Okoshkin (2):
+      commit: check result of resolve_ref_unsafe
+      diff: fix lstat() error handling in diff_populate_filespec()
+
+Brandon Williams (1):
+      wt-status: actually ignore submodules when requested
+
+Carlos Martín Nieto (1):
+      diff: --indent-heuristic is no longer experimental
+
+Charles Bailey (2):
+      t4201: make use of abbreviation in the test more robust
+      grep: fix NO_LIBPCRE1_JIT to fully disable JIT
+
+Dennis Kaarsemaker (1):
+      credential-libsecret: unlock locked secrets
+
+Jacob Keller (1):
+      sequencer: pass absolute GIT_DIR to exec commands
+
+Jakub Bereżański (2):
+      t0302: check helper can handle empty credentials
+      wincred: handle empty username/password correctly
+
+Jean Carlo Machado (1):
+      fix typos in 2.15.0 release notes
+
+Jeff King (11):
+      t4015: refactor --color-moved whitespace test
+      t4015: check "negative" case for "-w --color-moved"
+      t4015: test the output of "diff --color-moved -b"
+      diff: fix whitespace-skipping with --color-moved
+      diff: handle NULs in get_string_hash()
+      test-ref-store: avoid passing NULL to printf
+      remote: handle broken symrefs
+      log: handle broken HEAD in decoration check
+      worktree: handle broken symrefs in find_shared_symref()
+      setup: avoid double slashes when looking for HEAD
+      link_alt_odb_entries: make empty input a noop
+
+Johannes Schindelin (5):
+      status: do not get confused by submodules in excluded directories
+      mingw: include the full version information in the resources
+      mingw: add experimental feature to redirect standard handles
+      mingw: optionally redirect stderr/stdout via the same handle
+      mingw: document the standard handle redirection
+
+Junio C Hamano (9):
+      t5601: rm the target file of cp that could still be executing
+      check-ref-format --branch: do not expand @{...} outside repository
+      check-ref-format --branch: strip refs/heads/ using skip_prefix
+      check-ref-format doc: --branch validates and expands <branch>
+      column: do not include pager.c
+      Start preparation for 2.15.1
+      Almost ready for 2.15.1
+      A bit more fixes for 2.15.1
+      Git 2.15.1
+
+Kaartic Sivaraam (1):
+      mailmap: use Kaartic Sivaraam's new address
+
+Kevin Daudt (1):
+      column: show auto columns when pager is active
+
+Martin Ågren (7):
+      grep: take the read-lock when adding a submodule
+      bisect: change calling-convention of `find_bisection()`
+      bisect: fix memory leak in `find_bisection()`
+      bisect: fix off-by-one error in `best_bisection_sorted()`
+      bisect: fix memory leak when returning best element
+      builtin/merge-base: free commit lists
+      reduce_heads: fix memory leaks
+
+René Scharfe (6):
+      sequencer: factor out rewrite_file()
+      sequencer: use O_TRUNC to truncate files
+      imap-send: handle NULL return of next_arg()
+      imap-send: handle missing response codes gracefully
+      apply: avoid out-of-bounds access in fuzzy_matchlines()
+      config: flip return value of write_section()
+
+SZEDER Gábor (2):
+      travis-ci: fix running P4 and Git LFS tests in Linux build jobs
+      travis-ci: don't build Git for the static analysis job
+
+Simon Ruderich (2):
+      sequencer.c: check return value of close() in rewrite_file()
+      wrapper.c: consistently quote filenames in error messages
+
+Stefan Beller (3):
+      xdiff-interface: export comparing and hashing strings
+      diff.c: get rid of duplicate implementation
+      config: document blame configuration
+
+Thomas Braun (1):
+      completion: add remaining flags to checkout
+
+Todd Zullinger (3):
+      Replace Free Software Foundation address in license notices
+      Replace Free Software Foundation address in license notices
+      RelNotes: minor typo fixes in 2.15.1 draft
+
+
 Version v2.15.0; changes since v2.15.0-rc2:
 -------------------------------------------
 

@@ -1,5 +1,6 @@
-git (1:2.15.0-1.1) unstable; urgency=low
+git (1:2.15.1-1) unstable; urgency=low
 
+  * new upstream point release (see RelNotes/2.15.1.txt).
   * debian/control: Build-Depends-Indep: asciidoc (>= 8.6.10).
   * debian/control: Standards-Version: 4.1.1.1.
   * debian/patches:
@@ -8,7 +9,7 @@ git (1:2.15.0-1.1) unstable; urgency=low
     * git-gui-Sort-entries-in-optimized-tclIndex.diff: update to
       upstream version.
 
- -- Jonathan Nieder <jrnieder@gmail.com>  Wed, 29 Nov 2017 13:24:55 -0800
+ -- Jonathan Nieder <jrnieder@gmail.com>  Wed, 29 Nov 2017 13:49:38 -0800
 
 git (1:2.15.0-1) unstable; urgency=low
 
