@@ -1862,12 +1862,15 @@ static int error_failed_squash(struct commit *commit,
 
 static int do_exec(const char *command_line)
 {
+	struct argv_array child_env = ARGV_ARRAY_INIT;
 	const char *child_argv[] = { NULL, NULL };
 	int dirty, status;
 
 	fprintf(stderr, "Executing: %s\n", command_line);
 	child_argv[0] = command_line;
-	status = run_command_v_opt(child_argv, RUN_USING_SHELL);
+	argv_array_pushf(&child_env, "GIT_DIR=%s", absolute_path(get_git_dir()));
+	status = run_command_v_opt_cd_env(child_argv, RUN_USING_SHELL, NULL,
+					  child_env.argv);
 
 	/* force re-reading of the cache */
 	if (discard_cache() < 0 || read_cache() < 0)
@@ -1896,6 +1899,8 @@ static int do_exec(const char *command_line)
 			  "\n"), command_line);
 		status = 1;
 	}
+
+	argv_array_clear(&child_env);
 
 	return status;
 }
@@ -2665,6 +2670,19 @@ leave_check:
 	return res;
 }
 
+static int rewrite_file(const char *path, const char *buf, size_t len)
+{
+	int rc = 0;
+	int fd = open(path, O_WRONLY | O_TRUNC);
+	if (fd < 0)
+		return error_errno(_("could not open '%s' for writing"), path);
+	if (write_in_full(fd, buf, len) < 0)
+		rc = error_errno(_("could not write to '%s'"), path);
+	if (close(fd) && !rc)
+		rc = error_errno(_("could not close '%s'"), path);
+	return rc;
+}
+
 /* skip picking commits whose parents are unchanged */
 int skip_unnecessary_picks(void)
 {
@@ -2737,29 +2755,11 @@ int skip_unnecessary_picks(void)
 		}
 		close(fd);
 
-		fd = open(rebase_path_todo(), O_WRONLY, 0666);
-		if (fd < 0) {
-			error_errno(_("could not open '%s' for writing"),
-				    rebase_path_todo());
+		if (rewrite_file(rebase_path_todo(), todo_list.buf.buf + offset,
+				 todo_list.buf.len - offset) < 0) {
 			todo_list_release(&todo_list);
 			return -1;
 		}
-		if (write_in_full(fd, todo_list.buf.buf + offset,
-				todo_list.buf.len - offset) < 0) {
-			error_errno(_("could not write to '%s'"),
-				    rebase_path_todo());
-			close(fd);
-			todo_list_release(&todo_list);
-			return -1;
-		}
-		if (ftruncate(fd, todo_list.buf.len - offset) < 0) {
-			error_errno(_("could not truncate '%s'"),
-				    rebase_path_todo());
-			todo_list_release(&todo_list);
-			close(fd);
-			return -1;
-		}
-		close(fd);
 
 		todo_list.current = i;
 		if (is_fixup(peek_command(&todo_list, 0)))
@@ -2944,15 +2944,7 @@ int rearrange_squash(void)
 			}
 		}
 
-		fd = open(todo_file, O_WRONLY);
-		if (fd < 0)
-			res = error_errno(_("could not open '%s'"), todo_file);
-		else if (write(fd, buf.buf, buf.len) < 0)
-			res = error_errno(_("could not write to '%s'"), todo_file);
-		else if (ftruncate(fd, buf.len) < 0)
-			res = error_errno(_("could not truncate '%s'"),
-					   todo_file);
-		close(fd);
+		res = rewrite_file(todo_file, buf.buf, buf.len);
 		strbuf_release(&buf);
 	}
 
