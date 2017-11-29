@@ -1,5 +1,8 @@
 git (1:2.15.0-1.1) unstable; urgency=low
 
+  * debian/control: Build-Depends-Indep: asciidoc (>= 8.6.10).
+  * debian/patches/Normalize-generated-asciidoc-timestamps-...diff:
+    remove; no longer needed (thx Anders Kaseorg; see #782294).
   * debian/control: Standards-Version: 4.1.1.1.
 
  -- Jonathan Nieder <jrnieder@gmail.com>  Wed, 29 Nov 2017 13:24:55 -0800
