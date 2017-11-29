@@ -1,19 +1,21 @@
-From a41e3597a3f5877aa86bb1b0296088bf4b31f6c0 Mon Sep 17 00:00:00 2001
+From a74fe226d8247a1fb78947fadccbff0a041fa8dc Mon Sep 17 00:00:00 2001
 From: Anders Kaseorg <andersk@mit.edu>
 Date: Wed, 16 Nov 2016 16:37:17 -0500
-Subject: git-gui: Sort entries in optimized tclIndex
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: git-gui: sort entries in optimized tclIndex
+
+commit 474642b4a47c74a1f277955d7387d1886546fa01 upstream.
 
 auto_mkindex expands wildcards in directory order, which depends on
 the underlying filesystem.  To improve build reproducibility, sort the
 list of *.tcl files in the Makefile.
 
-The unoptimized loading case was previously fixed in
-v2.11.0-rc0~31^2^2~14 “git-gui: sort entries in tclIndex”.
+The unoptimized loading case was previously fixed in gitgui-0.21.0~14
+(git-gui: sort entries in tclIndex, 2015-01-26).
 
 Signed-off-by: Anders Kaseorg <andersk@mit.edu>
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+Signed-off-by: Junio C Hamano <gitster@pobox.com>
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
 ---
  git-gui/Makefile | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
@@ -32,5 +34,5 @@ index 918a8de369..f10caedaa7 100644
  	else \
  	 echo >&2 "    * $(TCL_PATH) failed; using unoptimized loading"; \
 -- 
-2.14.1.992.g2c7b836f3a
+2.15.0.531.g2ccb3012c9
 
