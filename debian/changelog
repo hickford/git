@@ -1,3 +1,10 @@
+git (1:2.15.1-1.1) unstable; urgency=low
+
+  * gitweb: Recommends: 'apache2 (>= 2.4.6-4~) | lynx | httpd' instead
+    of ... | lynx-cur | ... (thx Łukasz Zemczak; see #490265).
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 18 Dec 2017 09:34:22 -0800
+
 git (1:2.15.1-1) unstable; urgency=low
 
   * new upstream point release (see RelNotes/2.15.1.txt).
