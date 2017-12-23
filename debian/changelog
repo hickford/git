@@ -1,3 +1,10 @@
+git (1:2.15.1-3) unstable; urgency=low
+
+  * debian/rules: remove remnants of git-core package that prevented
+    building twice in a row (thx Andreas Beckmann; closes: #884890).
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Fri, 22 Dec 2017 17:13:42 -0800
+
 git (1:2.15.1-2) unstable; urgency=low
 
   * gitweb: Recommends: 'apache2 (>= 2.4.6-4~) | lynx | httpd' instead

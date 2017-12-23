@@ -152,8 +152,6 @@ override_dh_installdocs-arch:
 	find '$(GIT)'/usr/share/doc/git/ -name .gitignore | xargs rm -f
 
 override_dh_installdocs-indep:
-	install -d -m0755 '$(GIT)'-core/usr/share/doc
-	ln -s git '$(GIT)'-core/usr/share/doc/git-core
 	dh_installdocs --indep -X.gitignore
 
 override_dh_installchangelogs:
