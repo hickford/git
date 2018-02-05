@@ -1,4 +1,4 @@
-git (1:2.16.1-0.1) unstable; urgency=low
+git (1:2.16.1-1) unstable; urgency=low
 
   * new upstream release (see RelNotes/2.16.txt, RelNotes/2.16.1.txt).
   * debian/control: Breaks: openssh-client (<< 1:6.8) since the latter
@@ -10,7 +10,7 @@ git (1:2.16.1-0.1) unstable; urgency=low
     /usr/share/doc (thx Paul Wise and Bastien Roucaries for suggesting
     it through lintian).
 
- -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 05 Feb 2018 11:40:40 -0800
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 05 Feb 2018 12:27:37 -0800
 
 git (1:2.15.1-3) unstable; urgency=low
 
