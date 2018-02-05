@@ -18,6 +18,7 @@
 #include "utf8.h"
 #include "varint.h"
 #include "ewah/ewok.h"
+#include "fsmonitor.h"
 
 /*
  * Tells read_directory_recursive how a file or directory should be treated.
@@ -217,6 +218,57 @@ int within_depth(const char *name, int namelen,
 		if (depth > max_depth)
 			return 0;
 	}
+	return 1;
+}
+
+/*
+ * Read the contents of the blob with the given OID into a buffer.
+ * Append a trailing LF to the end if the last line doesn't have one.
+ *
+ * Returns:
+ *    -1 when the OID is invalid or unknown or does not refer to a blob.
+ *     0 when the blob is empty.
+ *     1 along with { data, size } of the (possibly augmented) buffer
+ *       when successful.
+ *
+ * Optionally updates the given sha1_stat with the given OID (when valid).
+ */
+static int do_read_blob(const struct object_id *oid,
+			struct sha1_stat *sha1_stat,
+			size_t *size_out,
+			char **data_out)
+{
+	enum object_type type;
+	unsigned long sz;
+	char *data;
+
+	*size_out = 0;
+	*data_out = NULL;
+
+	data = read_sha1_file(oid->hash, &type, &sz);
+	if (!data || type != OBJ_BLOB) {
+		free(data);
+		return -1;
+	}
+
+	if (sha1_stat) {
+		memset(&sha1_stat->stat, 0, sizeof(sha1_stat->stat));
+		hashcpy(sha1_stat->sha1, oid->hash);
+	}
+
+	if (sz == 0) {
+		free(data);
+		return 0;
+	}
+
+	if (data[sz - 1] != '\n') {
+		data = xrealloc(data, st_add(sz, 1));
+		data[sz++] = '\n';
+	}
+
+	*size_out = xsize_t(sz);
+	*data_out = data;
+
 	return 1;
 }
 
@@ -600,32 +652,22 @@ void add_exclude(const char *string, const char *base,
 	x->el = el;
 }
 
-static void *read_skip_worktree_file_from_index(const struct index_state *istate,
-						const char *path, size_t *size,
-						struct sha1_stat *sha1_stat)
+static int read_skip_worktree_file_from_index(const struct index_state *istate,
+					      const char *path,
+					      size_t *size_out,
+					      char **data_out,
+					      struct sha1_stat *sha1_stat)
 {
 	int pos, len;
-	unsigned long sz;
-	enum object_type type;
-	void *data;
 
 	len = strlen(path);
 	pos = index_name_pos(istate, path, len);
 	if (pos < 0)
-		return NULL;
+		return -1;
 	if (!ce_skip_worktree(istate->cache[pos]))
-		return NULL;
-	data = read_sha1_file(istate->cache[pos]->oid.hash, &type, &sz);
-	if (!data || type != OBJ_BLOB) {
-		free(data);
-		return NULL;
-	}
-	*size = xsize_t(sz);
-	if (sha1_stat) {
-		memset(&sha1_stat->stat, 0, sizeof(sha1_stat->stat));
-		hashcpy(sha1_stat->sha1, istate->cache[pos]->oid.hash);
-	}
-	return data;
+		return -1;
+
+	return do_read_blob(&istate->cache[pos]->oid, sha1_stat, size_out, data_out);
 }
 
 /*
@@ -739,6 +781,10 @@ static void invalidate_directory(struct untracked_cache *uc,
 		dir->dirs[i]->recurse = 0;
 }
 
+static int add_excludes_from_buffer(char *buf, size_t size,
+				    const char *base, int baselen,
+				    struct exclude_list *el);
+
 /*
  * Given a file with name "fname", read it (either from disk, or from
  * an index if 'istate' is non-null), parse it and store the
@@ -754,9 +800,10 @@ static int add_excludes(const char *fname, const char *base, int baselen,
 			struct sha1_stat *sha1_stat)
 {
 	struct stat st;
-	int fd, i, lineno = 1;
+	int r;
+	int fd;
 	size_t size = 0;
-	char *buf, *entry;
+	char *buf;
 
 	fd = open(fname, O_RDONLY);
 	if (fd < 0 || fstat(fd, &st) < 0) {
@@ -764,17 +811,13 @@ static int add_excludes(const char *fname, const char *base, int baselen,
 			warn_on_fopen_errors(fname);
 		else
 			close(fd);
-		if (!istate ||
-		    (buf = read_skip_worktree_file_from_index(istate, fname, &size, sha1_stat)) == NULL)
+		if (!istate)
 			return -1;
-		if (size == 0) {
-			free(buf);
-			return 0;
-		}
-		if (buf[size-1] != '\n') {
-			buf = xrealloc(buf, st_add(size, 1));
-			buf[size++] = '\n';
-		}
+		r = read_skip_worktree_file_from_index(istate, fname,
+						       &size, &buf,
+						       sha1_stat);
+		if (r != 1)
+			return r;
 	} else {
 		size = xsize_t(st.st_size);
 		if (size == 0) {
@@ -813,6 +856,17 @@ static int add_excludes(const char *fname, const char *base, int baselen,
 		}
 	}
 
+	add_excludes_from_buffer(buf, size, base, baselen, el);
+	return 0;
+}
+
+static int add_excludes_from_buffer(char *buf, size_t size,
+				    const char *base, int baselen,
+				    struct exclude_list *el)
+{
+	int i, lineno = 1;
+	char *entry;
+
 	el->filebuf = buf;
 
 	if (skip_utf8_bom(&buf, size))
@@ -839,6 +893,23 @@ int add_excludes_from_file_to_list(const char *fname, const char *base,
 				   struct index_state *istate)
 {
 	return add_excludes(fname, base, baselen, el, istate, NULL);
+}
+
+int add_excludes_from_blob_to_list(
+	struct object_id *oid,
+	const char *base, int baselen,
+	struct exclude_list *el)
+{
+	char *buf;
+	size_t size;
+	int r;
+
+	r = do_read_blob(oid, NULL, &size, &buf);
+	if (r != 1)
+		return r;
+
+	add_excludes_from_buffer(buf, size, base, baselen, el);
+	return 0;
 }
 
 struct exclude_list *add_exclude_list(struct dir_struct *dir,
@@ -1389,9 +1460,33 @@ static enum path_treatment treat_directory(struct dir_struct *dir,
 	case index_nonexistent:
 		if (dir->flags & DIR_SHOW_OTHER_DIRECTORIES)
 			break;
+		if (exclude &&
+			(dir->flags & DIR_SHOW_IGNORED_TOO) &&
+			(dir->flags & DIR_SHOW_IGNORED_TOO_MODE_MATCHING)) {
+
+			/*
+			 * This is an excluded directory and we are
+			 * showing ignored paths that match an exclude
+			 * pattern.  (e.g. show directory as ignored
+			 * only if it matches an exclude pattern).
+			 * This path will either be 'path_excluded`
+			 * (if we are showing empty directories or if
+			 * the directory is not empty), or will be
+			 * 'path_none' (empty directory, and we are
+			 * not showing empty directories).
+			 */
+			if (!(dir->flags & DIR_HIDE_EMPTY_DIRECTORIES))
+				return path_excluded;
+
+			if (read_directory_recursive(dir, istate, dirname, len,
+						     untracked, 1, 1, pathspec) == path_excluded)
+				return path_excluded;
+
+			return path_none;
+		}
 		if (!(dir->flags & DIR_NO_GITLINKS)) {
-			unsigned char sha1[20];
-			if (resolve_gitlink_ref(dirname, "HEAD", sha1) == 0)
+			struct object_id oid;
+			if (resolve_gitlink_ref(dirname, "HEAD", &oid) == 0)
 				return exclude ? path_excluded : path_untracked;
 		}
 		return path_recurse;
@@ -1561,6 +1656,7 @@ static enum path_treatment treat_one_path(struct dir_struct *dir,
 {
 	int exclude;
 	int has_path_in_index = !!index_file_exists(istate, path->buf, path->len, ignore_case);
+	enum path_treatment path_treatment;
 
 	if (dtype == DT_UNKNOWN)
 		dtype = get_dtype(de, istate, path->buf, path->len);
@@ -1607,8 +1703,23 @@ static enum path_treatment treat_one_path(struct dir_struct *dir,
 		return path_none;
 	case DT_DIR:
 		strbuf_addch(path, '/');
-		return treat_directory(dir, istate, untracked, path->buf, path->len,
-				       baselen, exclude, pathspec);
+		path_treatment = treat_directory(dir, istate, untracked,
+						 path->buf, path->len,
+						 baselen, exclude, pathspec);
+		/*
+		 * If 1) we only want to return directories that
+		 * match an exclude pattern and 2) this directory does
+		 * not match an exclude pattern but all of its
+		 * contents are excluded, then indicate that we should
+		 * recurse into this directory (instead of marking the
+		 * directory itself as an ignored path).
+		 */
+		if (!exclude &&
+		    path_treatment == path_excluded &&
+		    (dir->flags & DIR_SHOW_IGNORED_TOO) &&
+		    (dir->flags & DIR_SHOW_IGNORED_TOO_MODE_MATCHING))
+			return path_recurse;
+		return path_treatment;
 	case DT_REG:
 	case DT_LNK:
 		return exclude ? path_excluded : path_untracked;
@@ -1693,17 +1804,23 @@ static int valid_cached_dir(struct dir_struct *dir,
 	if (!untracked)
 		return 0;
 
-	if (stat(path->len ? path->buf : ".", &st)) {
-		invalidate_directory(dir->untracked, untracked);
-		memset(&untracked->stat_data, 0, sizeof(untracked->stat_data));
-		return 0;
-	}
-	if (!untracked->valid ||
-	    match_stat_data_racy(istate, &untracked->stat_data, &st)) {
-		if (untracked->valid)
+	/*
+	 * With fsmonitor, we can trust the untracked cache's valid field.
+	 */
+	refresh_fsmonitor(istate);
+	if (!(dir->untracked->use_fsmonitor && untracked->valid)) {
+		if (stat(path->len ? path->buf : ".", &st)) {
 			invalidate_directory(dir->untracked, untracked);
-		fill_stat_data(&untracked->stat_data, &st);
-		return 0;
+			memset(&untracked->stat_data, 0, sizeof(untracked->stat_data));
+			return 0;
+		}
+		if (!untracked->valid ||
+			match_stat_data_racy(istate, &untracked->stat_data, &st)) {
+			if (untracked->valid)
+				invalidate_directory(dir->untracked, untracked);
+			fill_stat_data(&untracked->stat_data, &st);
+			return 0;
+		}
 	}
 
 	if (untracked->check_only != !!check_only) {
@@ -2279,10 +2396,10 @@ static int remove_dir_recurse(struct strbuf *path, int flag, int *kept_up)
 	int ret = 0, original_len = path->len, len, kept_down = 0;
 	int only_empty = (flag & REMOVE_DIR_EMPTY_ONLY);
 	int keep_toplevel = (flag & REMOVE_DIR_KEEP_TOPLEVEL);
-	unsigned char submodule_head[20];
+	struct object_id submodule_head;
 
 	if ((flag & REMOVE_DIR_KEEP_NESTED_GIT) &&
-	    !resolve_gitlink_ref(path->buf, "HEAD", submodule_head)) {
+	    !resolve_gitlink_ref(path->buf, "HEAD", &submodule_head)) {
 		/* Do not descend and nuke a nested git work tree. */
 		if (kept_up)
 			*kept_up = 1;

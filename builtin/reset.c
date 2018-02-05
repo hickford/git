@@ -12,7 +12,7 @@
 #include "lockfile.h"
 #include "tag.h"
 #include "object.h"
-#include "commit.h"
+#include "pretty.h"
 #include "run-command.h"
 #include "refs.h"
 #include "diff.h"
@@ -166,7 +166,7 @@ static int read_from_tree(const struct pathspec *pathspec,
 	opt.output_format = DIFF_FORMAT_CALLBACK;
 	opt.format_callback = update_index_from_diff;
 	opt.format_callback_data = &intent_to_add;
-	opt.flags |= DIFF_OPT_OVERRIDE_SUBMODULE_CONFIG;
+	opt.flags.override_submodule_config = 1;
 
 	if (do_diff_cache(tree_oid, &opt))
 		return 1;
@@ -266,12 +266,12 @@ static int reset_refs(const char *rev, const struct object_id *oid)
 	if (!get_oid("HEAD", &oid_orig)) {
 		orig = &oid_orig;
 		set_reflog_message(&msg, "updating ORIG_HEAD", NULL);
-		update_ref_oid(msg.buf, "ORIG_HEAD", orig, old_orig, 0,
+		update_ref(msg.buf, "ORIG_HEAD", orig, old_orig, 0,
 			   UPDATE_REFS_MSG_ON_ERR);
 	} else if (old_orig)
-		delete_ref(NULL, "ORIG_HEAD", old_orig->hash, 0);
+		delete_ref(NULL, "ORIG_HEAD", old_orig, 0);
 	set_reflog_message(&msg, "updating HEAD", rev);
-	update_ref_status = update_ref_oid(msg.buf, "HEAD", oid, orig, 0,
+	update_ref_status = update_ref(msg.buf, "HEAD", oid, orig, 0,
 				       UPDATE_REFS_MSG_ON_ERR);
 	strbuf_release(&msg);
 	return update_ref_status;

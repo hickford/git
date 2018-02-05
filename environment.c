@@ -76,6 +76,7 @@ int protect_hfs = PROTECT_HFS_DEFAULT;
 #define PROTECT_NTFS_DEFAULT 0
 #endif
 int protect_ntfs = PROTECT_NTFS_DEFAULT;
+const char *core_fsmonitor;
 
 /*
  * The character that begins a commented line in user-editable file
@@ -342,4 +343,19 @@ void reset_shared_repository(void)
 int use_optional_locks(void)
 {
 	return git_env_bool(GIT_OPTIONAL_LOCKS_ENVIRONMENT, 1);
+}
+
+int print_sha1_ellipsis(void)
+{
+	/*
+	 * Determine if the calling environment contains the variable
+	 * GIT_PRINT_SHA1_ELLIPSIS set to "yes".
+	 */
+	static int cached_result = -1; /* unknown */
+
+	if (cached_result < 0) {
+		const char *v = getenv("GIT_PRINT_SHA1_ELLIPSIS");
+		cached_result = (v && !strcasecmp(v, "yes"));
+	}
+	return cached_result;
 }

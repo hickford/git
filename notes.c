@@ -334,23 +334,6 @@ static void note_tree_free(struct int_node *tree)
 	}
 }
 
-/*
- * Read `len` pairs of hexadecimal digits from `hex` and write the
- * values to `binary` as `len` bytes. Return 0 on success, or -1 if
- * the input does not consist of hex digits).
- */
-static int hex_to_bytes(unsigned char *binary, const char *hex, size_t len)
-{
-	for (; len; len--, hex += 2) {
-		unsigned int val = (hexval(hex[0]) << 4) | hexval(hex[1]);
-
-		if (val & ~0xff)
-			return -1;
-		*binary++ = val;
-	}
-	return 0;
-}
-
 static int non_note_cmp(const struct non_note *a, const struct non_note *b)
 {
 	return strcmp(a->path, b->path);
@@ -1027,7 +1010,7 @@ void init_notes(struct notes_tree *t, const char *notes_ref,
 	if (flags & NOTES_INIT_EMPTY || !notes_ref ||
 	    get_oid_treeish(notes_ref, &object_oid))
 		return;
-	if (flags & NOTES_INIT_WRITABLE && read_ref(notes_ref, object_oid.hash))
+	if (flags & NOTES_INIT_WRITABLE && read_ref(notes_ref, &object_oid))
 		die("Cannot use notes ref %s", notes_ref);
 	if (get_tree_entry(object_oid.hash, "", oid.hash, &mode))
 		die("Failed to read notes tree referenced by %s (%s)",

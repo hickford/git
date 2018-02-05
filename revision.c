@@ -395,8 +395,16 @@ static struct commit *one_relevant_parent(const struct rev_info *revs,
  * if the whole diff is removal of old data, and otherwise
  * REV_TREE_DIFFERENT (of course if the trees are the same we
  * want REV_TREE_SAME).
- * That means that once we get to REV_TREE_DIFFERENT, we do not
- * have to look any further.
+ *
+ * The only time we care about the distinction is when
+ * remove_empty_trees is in effect, in which case we care only about
+ * whether the whole change is REV_TREE_NEW, or if there's another type
+ * of change. Which means we can stop the diff early in either of these
+ * cases:
+ *
+ *   1. We're not using remove_empty_trees at all.
+ *
+ *   2. We saw anything except REV_TREE_NEW.
  */
 static int tree_difference = REV_TREE_SAME;
 
@@ -407,10 +415,11 @@ static void file_add_remove(struct diff_options *options,
 		    const char *fullpath, unsigned dirty_submodule)
 {
 	int diff = addremove == '+' ? REV_TREE_NEW : REV_TREE_OLD;
+	struct rev_info *revs = options->change_fn_data;
 
 	tree_difference |= diff;
-	if (tree_difference == REV_TREE_DIFFERENT)
-		DIFF_OPT_SET(options, HAS_CHANGES);
+	if (!revs->remove_empty_trees || tree_difference != REV_TREE_NEW)
+		options->flags.has_changes = 1;
 }
 
 static void file_change(struct diff_options *options,
@@ -422,7 +431,7 @@ static void file_change(struct diff_options *options,
 		 unsigned old_dirty_submodule, unsigned new_dirty_submodule)
 {
 	tree_difference = REV_TREE_DIFFERENT;
-	DIFF_OPT_SET(options, HAS_CHANGES);
+	options->flags.has_changes = 1;
 }
 
 static int rev_compare_tree(struct rev_info *revs,
@@ -455,7 +464,7 @@ static int rev_compare_tree(struct rev_info *revs,
 	}
 
 	tree_difference = REV_TREE_SAME;
-	DIFF_OPT_CLR(&revs->pruning, HAS_CHANGES);
+	revs->pruning.flags.has_changes = 0;
 	if (diff_tree_oid(&t1->object.oid, &t2->object.oid, "",
 			   &revs->pruning) < 0)
 		return REV_TREE_DIFFERENT;
@@ -471,7 +480,7 @@ static int rev_same_tree_as_empty(struct rev_info *revs, struct commit *commit)
 		return 0;
 
 	tree_difference = REV_TREE_SAME;
-	DIFF_OPT_CLR(&revs->pruning, HAS_CHANGES);
+	revs->pruning.flags.has_changes = 0;
 	retval = diff_tree_oid(NULL, &t1->object.oid, "", &revs->pruning);
 
 	return retval >= 0 && (tree_difference == REV_TREE_SAME);
@@ -1403,10 +1412,11 @@ void init_revisions(struct rev_info *revs, const char *prefix)
 	revs->abbrev = DEFAULT_ABBREV;
 	revs->ignore_merges = 1;
 	revs->simplify_history = 1;
-	DIFF_OPT_SET(&revs->pruning, RECURSIVE);
-	DIFF_OPT_SET(&revs->pruning, QUICK);
+	revs->pruning.flags.recursive = 1;
+	revs->pruning.flags.quick = 1;
 	revs->pruning.add_remove = file_add_remove;
 	revs->pruning.change = file_change;
+	revs->pruning.change_fn_data = revs;
 	revs->sort_order = REV_SORT_IN_GRAPH_ORDER;
 	revs->dense = 1;
 	revs->prefix = prefix;
@@ -1822,7 +1832,7 @@ static int handle_revision_opt(struct rev_info *revs, int argc, const char **arg
 		revs->simplify_by_decoration = 1;
 		revs->limited = 1;
 		revs->prune = 1;
-		load_ref_decorations(DECORATE_SHORT_REFS);
+		load_ref_decorations(NULL, DECORATE_SHORT_REFS);
 	} else if (!strcmp(arg, "--date-order")) {
 		revs->sort_order = REV_SORT_BY_COMMIT_DATE;
 		revs->topo_order = 1;
@@ -1845,6 +1855,8 @@ static int handle_revision_opt(struct rev_info *revs, int argc, const char **arg
 		revs->dense = 0;
 	} else if (!strcmp(arg, "--show-all")) {
 		revs->show_all = 1;
+	} else if (!strcmp(arg, "--in-commit-order")) {
+		revs->tree_blobs_in_commit_order = 1;
 	} else if (!strcmp(arg, "--remove-empty")) {
 		revs->remove_empty_trees = 1;
 	} else if (!strcmp(arg, "--merges")) {
@@ -1917,11 +1929,11 @@ static int handle_revision_opt(struct rev_info *revs, int argc, const char **arg
 		die("--unpacked=<packfile> no longer supported.");
 	} else if (!strcmp(arg, "-r")) {
 		revs->diff = 1;
-		DIFF_OPT_SET(&revs->diffopt, RECURSIVE);
+		revs->diffopt.flags.recursive = 1;
 	} else if (!strcmp(arg, "-t")) {
 		revs->diff = 1;
-		DIFF_OPT_SET(&revs->diffopt, RECURSIVE);
-		DIFF_OPT_SET(&revs->diffopt, TREE_IN_RECURSIVE);
+		revs->diffopt.flags.recursive = 1;
+		revs->diffopt.flags.tree_in_recursive = 1;
 	} else if (!strcmp(arg, "-m")) {
 		revs->ignore_merges = 0;
 	} else if (!strcmp(arg, "-c")) {
@@ -2066,7 +2078,7 @@ static int handle_revision_opt(struct rev_info *revs, int argc, const char **arg
 		revs->grep_filter.pattern_type_option = GREP_PATTERN_TYPE_ERE;
 	} else if (!strcmp(arg, "--regexp-ignore-case") || !strcmp(arg, "-i")) {
 		revs->grep_filter.ignore_case = 1;
-		DIFF_OPT_SET(&revs->diffopt, PICKAXE_IGNORE_CASE);
+		revs->diffopt.flags.pickaxe_ignore_case = 1;
 	} else if (!strcmp(arg, "--fixed-strings") || !strcmp(arg, "-F")) {
 		revs->grep_filter.pattern_type_option = GREP_PATTERN_TYPE_FIXED;
 	} else if (!strcmp(arg, "--perl-regexp") || !strcmp(arg, "-P")) {
@@ -2399,7 +2411,7 @@ int setup_revisions(int argc, const char **argv, struct rev_info *revs, struct s
 	/* Pickaxe, diff-filter and rename following need diffs */
 	if (revs->diffopt.pickaxe ||
 	    revs->diffopt.filter ||
-	    DIFF_OPT_TST(&revs->diffopt, FOLLOW_RENAMES))
+	    revs->diffopt.flags.follow_renames)
 		revs->diff = 1;
 
 	if (revs->topo_order)
@@ -2408,7 +2420,7 @@ int setup_revisions(int argc, const char **argv, struct rev_info *revs, struct s
 	if (revs->prune_data.nr) {
 		copy_pathspec(&revs->pruning.pathspec, &revs->prune_data);
 		/* Can't prune commits with rename following: the paths change.. */
-		if (!DIFF_OPT_TST(&revs->diffopt, FOLLOW_RENAMES))
+		if (!revs->diffopt.flags.follow_renames)
 			revs->prune = 1;
 		if (!revs->full_diff)
 			copy_pathspec(&revs->diffopt.pathspec,
