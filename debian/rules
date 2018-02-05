@@ -149,6 +149,7 @@ override_dh_installdocs-arch:
 	rm -f '$(GIT)'/usr/share/doc/git/contrib/subtree/git-subtree.1
 	rm -f '$(GIT)'/usr/share/doc/git/contrib/subtree/git-subtree.html
 	rm -f '$(GIT)'/usr/share/doc/git/contrib/subtree/git-subtree.xml
+	find '$(GIT)'/usr/share/doc/git/ -name .gitattributes | xargs rm -f
 	find '$(GIT)'/usr/share/doc/git/ -name .gitignore | xargs rm -f
 
 override_dh_installdocs-indep:

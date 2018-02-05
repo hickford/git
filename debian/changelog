@@ -6,6 +6,9 @@ git (1:2.16.1-0.1) unstable; urgency=low
     https://crbug.com/git/7).
   * debian/patches/git-gui-Sort-entries-in-optimized-tclIndex.diff:
     remove; applied upstream.
+  * debian/rules: do not install contrib/**/.gitattributes to
+    /usr/share/doc (thx Paul Wise and Bastien Roucaries for suggesting
+    it through lintian).
 
  -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 05 Feb 2018 11:40:40 -0800
 
