@@ -1,3 +1,14 @@
+git (1:2.16.1-0.1) unstable; urgency=low
+
+  * new upstream release (see RelNotes/2.16.txt, RelNotes/2.16.1.txt).
+  * debian/control: Breaks: openssh-client (<< 1:6.8) since the latter
+    lacks support for the "-G" option (thx Bryan Turner; see
+    https://crbug.com/git/7).
+  * debian/patches/git-gui-Sort-entries-in-optimized-tclIndex.diff:
+    remove; applied upstream.
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 05 Feb 2018 11:40:40 -0800
+
 git (1:2.15.1-3) unstable; urgency=low
 
   * debian/rules: remove remnants of git-core package that prevented

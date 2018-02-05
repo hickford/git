@@ -38,6 +38,7 @@ Replaces: gitweb (<< 1:1.7.4~rc1),
 Breaks: bash-completion (<< 1:1.90-1), gitweb (<< 1:1.7.4~rc1),
  git-buildpackage (<< 0.6.5),
  cogito (<= 0.18.2+),
+ ssh-client (<< 1:6.8),
  stgit (<< 0.15), stgit-contrib (<< 0.15), gitpkg (<< 0.15),
  guilt (<< 0.33), gitosis (<< 0.2+20090917-7),
  git-core (<< 1:1.7.0.4-1.)

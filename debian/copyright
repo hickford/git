@@ -3,7 +3,7 @@ Upstream-Contact: git@vger.kernel.org
 Source: https://www.kernel.org/pub/software/scm/git/
 
 Files: *
-Copyright: © 2005-2017, Linus Torvalds and others.
+Copyright: © 2005-2018, Linus Torvalds and others.
 License: GPL-2
 
 Files: xdiff/*
@@ -39,7 +39,7 @@ Copyright: © 2005-2016, Paul Mackerras, et al.
 License: GPL-2+
 
 Files: gitk-git/po/bg.po
-Copyright: © 2014, 2015, 2016, 2017 Alexander Shopov <ash@kambanaria.org>
+Copyright: © 2014, 2015, 2016, 2017, 2018 Alexander Shopov <ash@kambanaria.org>
 License: GPL-2
 Comment: This file is distributed under the same license as the git package.
 
