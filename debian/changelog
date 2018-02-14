@@ -1,3 +1,10 @@
+git (1:2.16.1-1.1) unstable; urgency=low
+
+  * debian/control: correct spelling of openssh-client in Breaks
+    relation.
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 13 Feb 2018 16:59:10 -0800
+
 git (1:2.16.1-1) unstable; urgency=low
 
   * new upstream release (see RelNotes/2.16.txt, RelNotes/2.16.1.txt).
