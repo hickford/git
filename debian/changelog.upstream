@@ -1,3 +1,47 @@
+Version v2.16.2; changes since v2.16.1:
+---------------------------------------
+
+Andreas G. Schacker (1):
+      doc/read-tree: remove obsolete remark
+
+Daniel Knittl-Frank (1):
+      describe: prepend "tags/" when describing tags with embedded name
+
+Jason Merrill (1):
+      git-svn: fix svn.pushmergeinfo handling of svn+ssh usernames.
+
+Jeff King (4):
+      t5600: fix outdated comment about unborn HEAD
+      t5600: modernize style
+      clone: factor out dir_exists() helper
+      clone: do not clean up directories we didn't create
+
+Junio C Hamano (2):
+      merge: teach -Xours/-Xtheirs to symbolic link merge
+      Git 2.16.2
+
+Nguyễn Thái Ngọc Duy (1):
+      add--interactive: ignore submodule changes except HEAD
+
+René Scharfe (9):
+      commit: avoid allocation in clear_commit_marks_many()
+      commit: use clear_commit_marks_many() in remove_redundant()
+      ref-filter: use clear_commit_marks_many() in do_merge_filter()
+      object: add clear_commit_marks_all()
+      bisect: avoid using the rev_info flag leak_pending
+      bundle: avoid using the rev_info flag leak_pending
+      checkout: avoid using the rev_info flag leak_pending
+      revision: remove the unused flag leak_pending
+      commit: remove unused function clear_commit_marks_for_object_array()
+
+Thomas Gummerer (1):
+      stash: don't delete untracked files that match pathspec
+
+Ævar Arnfjörð Bjarmason (2):
+      perf: amend the grep tests to test grep.threads
+      cat-file doc: document that -e will return some output
+
+
 Version v2.16.1; changes since v2.16.0:
 ---------------------------------------
 

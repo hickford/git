@@ -1,9 +1,10 @@
-git (1:2.16.1-1.1) unstable; urgency=low
+git (1:2.16.2-1) unstable; urgency=low
 
+  * new upstream point release (see RelNotes/2.16.2.txt).
   * debian/control: correct spelling of openssh-client in Breaks
     relation.
 
- -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 13 Feb 2018 16:59:10 -0800
+ -- Jonathan Nieder <jrnieder@gmail.com>  Fri, 23 Feb 2018 13:53:02 -0800
 
 git (1:2.16.1-1) unstable; urgency=low
 
