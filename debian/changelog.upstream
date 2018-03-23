@@ -1,3 +1,131 @@
+Version v2.16.3; changes since v2.16.2:
+---------------------------------------
+
+Ben Peart (1):
+      fsmonitor: update documentation to remove reference to invalid config settings
+
+Brandon Williams (1):
+      oidmap: ensure map is initialized
+
+Christian Ludwig (1):
+      t9001: use existing helper in send-email test
+
+Eric Sunshine (2):
+      git-worktree.txt: fix missing ")" typo
+      git-worktree.txt: fix indentation of example and text of 'add' command
+
+Eric Wong (2):
+      fsck: fix leak when traversing trees
+      git-svn: control destruction order to avoid segfault
+
+Genki Sky (1):
+      test-lib.sh: unset XDG_CACHE_HOME
+
+Jeff King (10):
+      t5570: use ls-remote instead of clone for interp tests
+      t/lib-git-daemon: record daemon log
+      daemon: fix off-by-one in logging extended attributes
+      daemon: handle NULs in extended attribute string
+      t/lib-git-daemon: add network-protocol helpers
+      daemon: fix length computation in newline stripping
+      t0205: drop redundant test
+      git-sh-i18n: check GETTEXT_POISON before USE_GETTEXT_SCHEME
+      commit: drop uses of get_cached_commit_buffer()
+      revision: drop --show-all option
+
+Jonathan Tan (2):
+      http: support cookie redaction when tracing
+      http: support omitting data from traces
+
+Juan F. Codagnone (1):
+      mailinfo: avoid segfault when can't open files
+
+Junio C Hamano (2):
+      worktree: say that "add" takes an arbitrary commit in short-help
+      Git 2.16.3
+
+Kaartic Sivaraam (2):
+      Doc/gitsubmodules: make some changes to improve readability and syntax
+      Doc/git-submodule: improve readability and grammar of a sentence
+
+Mathias Rav (1):
+      files_initial_transaction_commit(): only unlock if locked
+
+Motoki Seki (1):
+      Documentation/gitsubmodules.txt: avoid non-ASCII apostrophes
+
+Nguyễn Thái Ngọc Duy (12):
+      t2203: test status output with porcelain v2 format
+      Use DIFF_DETECT_RENAME for detect_rename assignments
+      wt-status.c: coding style fix
+      wt-status.c: catch unhandled diff status codes
+      wt-status.c: rename rename-related fields in wt_status_change_data
+      wt-status.c: handle worktree renames
+      read-cache.c: change type of "temp" in write_shared_index()
+      read-cache.c: move tempfile creation/cleanup out of write_shared_index
+      diff.c: flush stdout before printing rename warnings
+      read-cache: don't write index twice if we can't write shared index
+      completion: fix completing merge strategies on non-C locales
+      gitignore.txt: elaborate shell glob syntax
+
+Ramsay Jones (2):
+      config.mak.uname: remove SPARSE_FLAGS setting for cygwin
+      Makefile: suppress a sparse warning for pack-revindex.c
+
+Randall S. Becker (1):
+      hashmap.h: remove unused variable
+
+René Scharfe (2):
+      describe: use strbuf_add_unique_abbrev() for adding short hashes
+      cocci: simplify check for trivial format strings
+
+Robert P. J. Day (2):
+      t/: correct obvious typo "detahced"
+      Correct mispellings of ".gitmodule" to ".gitmodules"
+
+SZEDER Gábor (11):
+      travis-ci: build Git during the 'script' phase
+      t5541: add 'test_i18ngrep's missing filename parameter
+      t5812: add 'test_i18ngrep's missing filename parameter
+      t6022: don't run 'git merge' upstream of a pipe
+      t4001: don't run 'git status' upstream of a pipe
+      t5510: consolidate 'grep' and 'test_i18ngrep' patterns
+      t5536: let 'test_i18ngrep' read the file without redirection
+      t: move 'test_i18ncmp' and 'test_i18ngrep' to 'test-lib-functions.sh'
+      t: validate 'test_i18ngrep's parameters
+      t: make 'test_i18ngrep' more informative on failure
+      t: document 'test_must_fail ok=<signal-name>'
+
+Stefan Beller (5):
+      t/lib-submodule-update.sh: clarify test
+      t/lib-submodule-update.sh: fix test ignoring ignored files in submodules
+      unpack-trees: oneway_merge to update submodules
+      submodule: submodule_move_head omits old argument in forced case
+      Documentation/git-status: clarify status table for porcelain mode
+
+Stefan Moch (2):
+      t7001: add test case for --dry-run
+      mv: remove unneeded 'if (!show_only)'
+
+Thomas Gummerer (3):
+      read-cache: fix reading the shared index for other repos
+      split-index: don't write cache tree with null oid entries
+      travis: run tests with GIT_TEST_SPLIT_INDEX
+
+Todd Zullinger (1):
+      doc: mention 'git show' defaults to HEAD
+
+Yasushi SHOJI (1):
+      bisect: debug: convert struct object to object_id
+
+brian m. carlson (1):
+      docs/interpret-trailers: fix agreement error
+
+Ævar Arnfjörð Bjarmason (2):
+      commit doc: document that -c, -C, -F and --fixup with -m error
+      commit: add support for --fixup <commit> -m"<extra message>"
+
+
 Version v2.16.2; changes since v2.16.1:
 ---------------------------------------
 
