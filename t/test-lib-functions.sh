@@ -610,6 +610,14 @@ list_contains () {
 #
 # Writing this as "! git checkout ../outerspace" is wrong, because
 # the failure could be due to a segv.  We want a controlled failure.
+#
+# Accepts the following options:
+#
+#   ok=<signal-name>[,<...>]:
+#     Don't treat an exit caused by the given signal as error.
+#     Multiple signals can be specified as a comma separated list.
+#     Currently recognized signal names are: sigpipe, success.
+#     (Don't use 'success', use 'test_might_fail' instead.)
 
 test_must_fail () {
 	case "$1" in
@@ -656,6 +664,8 @@ test_must_fail () {
 #
 # Writing "git config --unset all.configuration || :" would be wrong,
 # because we want to notice if it fails due to segv.
+#
+# Accepts the same options as test_must_fail.
 
 test_might_fail () {
 	test_must_fail ok=success "$@"
@@ -703,6 +713,60 @@ test_cmp() {
 
 test_cmp_bin() {
 	cmp "$@"
+}
+
+# Use this instead of test_cmp to compare files that contain expected and
+# actual output from git commands that can be translated.  When running
+# under GETTEXT_POISON this pretends that the command produced expected
+# results.
+test_i18ncmp () {
+	test -n "$GETTEXT_POISON" || test_cmp "$@"
+}
+
+# Use this instead of "grep expected-string actual" to see if the
+# output from a git command that can be translated either contains an
+# expected string, or does not contain an unwanted one.  When running
+# under GETTEXT_POISON this pretends that the command produced expected
+# results.
+test_i18ngrep () {
+	eval "last_arg=\${$#}"
+
+	test -f "$last_arg" ||
+	error "bug in the test script: test_i18ngrep requires a file" \
+	      "to read as the last parameter"
+
+	if test $# -lt 2 ||
+	   { test "x!" = "x$1" && test $# -lt 3 ; }
+	then
+		error "bug in the test script: too few parameters to test_i18ngrep"
+	fi
+
+	if test -n "$GETTEXT_POISON"
+	then
+		# pretend success
+		return 0
+	fi
+
+	if test "x!" = "x$1"
+	then
+		shift
+		! grep "$@" && return 0
+
+		echo >&2 "error: '! grep $@' did find a match in:"
+	else
+		grep "$@" && return 0
+
+		echo >&2 "error: 'grep $@' didn't find a match in:"
+	fi
+
+	if test -s "$last_arg"
+	then
+		cat >&2 "$last_arg"
+	else
+		echo >&2 "<File '$last_arg' is empty>"
+	fi
+
+	return 1
 }
 
 # Call any command "$@" but be more verbose about its
@@ -1019,4 +1083,38 @@ nongit () {
 		cd non-repo &&
 		"$@"
 	)
+}
+
+# convert stdin to pktline representation; note that empty input becomes an
+# empty packet, not a flush packet (for that you can just print 0000 yourself).
+packetize() {
+	cat >packetize.tmp &&
+	len=$(wc -c <packetize.tmp) &&
+	printf '%04x%s' "$(($len + 4))" &&
+	cat packetize.tmp &&
+	rm -f packetize.tmp
+}
+
+# Parse the input as a series of pktlines, writing the result to stdout.
+# Sideband markers are removed automatically, and the output is routed to
+# stderr if appropriate.
+#
+# NUL bytes are converted to "\\0" for ease of parsing with text tools.
+depacketize () {
+	perl -e '
+		while (read(STDIN, $len, 4) == 4) {
+			if ($len eq "0000") {
+				print "FLUSH\n";
+			} else {
+				read(STDIN, $buf, hex($len) - 4);
+				$buf =~ s/\0/\\0/g;
+				if ($buf =~ s/^[\x2\x3]//) {
+					print STDERR $buf;
+				} else {
+					$buf =~ s/^\x1//;
+					print $buf;
+				}
+			}
+		}
+	'
 }
