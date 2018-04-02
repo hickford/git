@@ -7,10 +7,11 @@ Build-Depends: libz-dev, gettext,
  libpcre2-dev | libpcre3-dev,
  libcurl4-gnutls-dev, libexpat1-dev,
  subversion, libsvn-perl, libyaml-perl,
- tcl,
+ tcl, python,
  libhttp-date-perl | libtime-modules-perl,
  libcgi-pm-perl,
- python,
+ liberror-perl,
+ libmailtools-perl,
  cvs, cvsps, libdbd-sqlite3-perl,
  unzip, libio-pty-perl,
  debhelper (>= 9),
@@ -168,6 +169,7 @@ Architecture: all
 Multi-Arch: foreign
 Depends: ${misc:Depends}, git (>> ${source:Upstream-Version}), git (<< ${source:Upstream-Version}-.)
 Recommends: libemail-valid-perl,
+ libmailtools-perl,
  perl (>> 5.21.5) | libnet-smtp-ssl-perl,
  libauthen-sasl-perl,
  libio-socket-ssl-perl (>= 1.951)

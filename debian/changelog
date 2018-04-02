@@ -1,3 +1,13 @@
+git (1:2.17.0-1) unstable; urgency=low
+
+  * new upstream release (see RelNotes/2.17.0.txt).
+  * debian/rules: add NO_USE_CPAN_FALLBACKS=1 to OPTS to avoid
+    installing bundled copies of perl modules.
+  * debian/control: Build-Depends: libmailtools-perl, liberror-perl;
+    git-email: Depends: libmailtools-perl for Mail::Address.
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 02 Apr 2018 12:58:14 -0700
+
 git (1:2.16.3-1) unstable; urgency=low
 
   * new upstream point release (see RelNotes/2.16.3.txt).

@@ -1,3 +1,593 @@
+Version v2.17.0; changes since v2.17.0-rc2:
+-------------------------------------------
+
+Alexander Shopov (1):
+      l10n: bg.po: Updated Bulgarian translation (3376t)
+
+Changwoo Ryu (1):
+      l10n: ko.po: Update Korean translation
+
+Christopher Diaz Riveros (2):
+      l10n: es.po: fixes to Spanish translation
+      l10n: es.po: Update Spanish translation 2.17.0
+
+Jean-Noël Avila (2):
+      l10n: fr.po v2.17.0 round 1
+      l10n: fr.po: v2.17.0 no fuzzy
+
+Jiang Xin (2):
+      l10n: git.pot: v2.17.0 round 1 (132 new, 44 removed)
+      l10n: zh_CN: for git v2.17.0 l10n round 1
+
+Jonathan Nieder (1):
+      upload-pack: disable object filtering when disabled by config
+
+Jordi Mas (1):
+      l10n: Update Catalan translation
+
+Junio C Hamano (1):
+      Git 2.17
+
+Peter Krefting (1):
+      l10n: sv.po: Update Swedish translation (3376t0f0u)
+
+Ralf Thielow (1):
+      l10n: de.po: translate 132 new messages
+
+Ray Chen (1):
+      l10n: zh_CN: review for git v2.17.0 l10n round 1
+
+René Scharfe (1):
+      unpack-trees: release oid_array after use in check_updates()
+
+Trần Ngọc Quân (1):
+      l10n: vi.po(3376t): Updated Vietnamese translation for v2.17
+
+Ævar Arnfjörð Bjarmason (1):
+      add -p: fix 2.17.0-rc* regression due to moved code
+
+
+Version v2.17.0-rc2; changes since v2.17.0-rc1:
+-----------------------------------------------
+
+Junio C Hamano (3):
+      Git 2.16.3
+      t9902: disable test on the list of merge-strategies under GETTEXT_POISON
+      Git 2.17-rc2
+
+SZEDER Gábor (1):
+      completion: clear cached --options when sourcing the completion script
+
+Stefan Beller (1):
+      submodule deinit: handle non existing pathspecs gracefully
+
+Thomas Gummerer (1):
+      git-stash.txt: remove extra square bracket
+
+
+Version v2.17.0-rc1; changes since v2.17.0-rc0:
+-----------------------------------------------
+
+Ben Peart (1):
+      Fix bugs preventing adding updated cache entries to the name hash
+
+David Pursehouse (1):
+      Documentation/merge-strategies: typofix
+
+Jeff King (1):
+      doc/gitattributes: mention non-recursive behavior
+
+Johannes Schindelin (1):
+      mingw: abort on invalid strftime formats
+
+Jonathan Tan (3):
+      sha1_file: restore OBJECT_INFO_QUICK functionality
+      index-pack: support checking objects but not links
+      fetch-pack: do not check links for partial fetch
+
+Junio C Hamano (1):
+      Git 2.17-rc1
+
+Kaartic Sivaraam (1):
+      t/t3200: fix a typo in a test description
+
+Martin Ågren (4):
+      t7006: add tests for how git config paginates
+      config: respect `pager.config` in list/get-mode only
+      config: change default of `pager.config` to "on"
+      write_locked_index(): add flag to avoid writing unchanged index
+
+Michele Locati (1):
+      filter-branch: use printf instead of echo -e
+
+Ramsay Jones (3):
+      http: fix an unused variable warning for 'curl_no_proxy'
+      -Wuninitialized: remove some 'init-self' workarounds
+      read-cache: fix an -Wmaybe-uninitialized warning
+
+Todd Zullinger (2):
+      RelNotes: add details on Perl module changes
+      completion: complete tags with git tag --delete/--verify
+
+
+Version v2.17.0-rc0; changes since v2.16.3:
+-------------------------------------------
+
+Adam Borowski (1):
+      hooks/pre-auto-gc-battery: allow gc to run on non-laptops
+
+Alban Gruin (1):
+      userdiff: add built-in pattern for golang
+
+Alex Bennée (1):
+      send-email: add test for Linux's get_maintainer.pl
+
+Alexander Shopov (1):
+      Mark messages for translations
+
+Ben Peart (2):
+      dir.c: don't flag the index as dirty for changes to the untracked cache
+      name-hash: properly fold directory names in adjust_dirname_case()
+
+Bernhard M. Wiedemann (1):
+      perl: call timegm and timelocal with 4-digit year
+
+Brandon Williams (38):
+      object_info: change member name from 'typename' to 'type_name'
+      object: rename function 'typename' to 'type_name'
+      blame: rename 'this' variables
+      pack-objects: rename 'this' variables
+      rev-parse: rename 'this' variable
+      submodule: indicate that 'submodule.recurse' doesn't apply to clone
+      diff: rename 'this' variables
+      apply: rename 'try' variables
+      apply: rename 'new' variables
+      checkout: rename 'new' variables
+      help: rename 'new' variables
+      pack-redundant: rename 'new' variables
+      reflog: rename 'new' variables
+      remote: rename 'new' variables
+      combine-diff: rename 'new' variables
+      commit: rename 'new' variables
+      diff-lib: rename 'new' variable
+      diff: rename 'new' variables
+      diffcore-delta: rename 'new' variables
+      entry: rename 'new' variables
+      http: rename 'new' variables
+      imap-send: rename 'new' variables
+      line-log: rename 'new' variables
+      read-cache: rename 'new' variables
+      ref-filter: rename 'new' variables
+      remote: rename 'new' variables
+      split-index: rename 'new' variables
+      submodule: rename 'new' variables
+      trailer: rename 'new' variables
+      unpack-trees: rename 'new' variables
+      init-db: rename 'template' variables
+      environment: rename 'template' variables
+      diff: rename 'template' variables
+      environment: rename 'namespace' variables
+      wrapper: rename 'template' variables
+      tempfile: rename 'template' variables
+      trailer: rename 'template' variables
+      replace: rename 'new' variables
+
+Christian Couder (12):
+      perf/aggregate: fix checking ENV{GIT_PERF_SUBSECTION}
+      perf/aggregate: refactor printing results
+      perf/aggregate: implement codespeed JSON output
+      perf/run: add conf_opts argument to get_var_from_env_or_config()
+      perf/run: learn about perf.codespeedOutput
+      perf/run: learn to send output to codespeed server
+      perf/run: read GIT_PERF_REPO_NAME from perf.repoName
+      sha1_file: remove static strbuf from sha1_file_name()
+      sha1_file: improve sha1_file_name() perfs
+      perf/aggregate: add --subsection option
+      perf/aggregate: add --reponame option
+      perf/aggregate: sort JSON fields in output
+
+Christian Ludwig (2):
+      send-email: rename variable for clarity
+      send-email: support separate Reply-To address
+
+Derrick Stolee (3):
+      packfile: use get_be64() for large offsets
+      sha1_name: fix uninitialized memory errors
+      revision.c: reduce object database queries
+
+Elijah Newren (3):
+      Tighten and correct a few testcases for merging and cherry-picking
+      merge-recursive: fix logic ordering issue
+      merge-recursive: add explanation for src_entry and dst_entry
+
+Eric Sunshine (2):
+      worktree: add: fix 'post-checkout' not knowing new worktree location
+      t2028: fix minor error and issues in newly-added "worktree move" tests
+
+Gargi Sharma (1):
+      mru: Replace mru.[ch] with list.h implementation
+
+Genki Sky (1):
+      rebase: add --allow-empty-message option
+
+Gregory Herrero (1):
+      rebase -p: fix incorrect commit message when calling `git merge`.
+
+Jeff Hostetler (12):
+      upload-pack: add object filtering for partial clone
+      fetch-pack, index-pack, transport: partial clone
+      fetch-pack: add --no-filter
+      fetch: support filters
+      partial-clone: define partial clone settings in config
+      t5616: end-to-end tests for partial clone
+      fetch: inherit filter-spec from partial clone
+      t5616: test bulk prefetch after partial fetch
+      stat_tracking_info: return +1 when branches not equal
+      status: add --[no-]ahead-behind to status and commit for V2 format.
+      status: update short status to respect --no-ahead-behind
+      status: support --no-ahead-behind in long format
+
+Jeff King (20):
+      sq_quote_argv: drop maxlen parameter
+      trace: avoid unnecessary quoting
+      correct error messages for NULL packet_read_line()
+      CodingGuidelines: mention "static" and "extern"
+      t0002: simplify error checking
+      describe: confirm that blobs actually exist
+      test-hashmap: use ALLOC_ARRAY rather than bare malloc
+      test-hashmap: check allocation computation for overflow
+      test-hashmap: use xsnprintf rather than snprintf
+      test-hashmap: use strbuf_getline rather than fgets
+      test-hashmap: simplify alloc_test_entry
+      test-hashmap: use "unsigned int" for hash storage
+      sq_dequote: fix extra consumption of source string
+      t5545: factor out http repository setup
+      remote-curl: unquote incoming push-options
+      t: send verbose test-helper output to fd 4
+      strbuf_read_file(): preserve errno across close() call
+      smart-http: document flush after "# service" line
+      t3701: add a test for interactive.diffFilter
+      add--interactive: detect bogus diffFilter output
+
+Johannes Schindelin (2):
+      sequencer: assign only free()able strings to gpg_sign
+      apply: demonstrate a problem applying svn diffs
+
+Jon Simons (1):
+      always check for NULL return from packet_read_line()
+
+Jonathan Nieder (1):
+      perl: treat PERLLIB_EXTRA as an extra path again
+
+Jonathan Tan (18):
+      extension.partialclone: introduce partial clone extension
+      fsck: introduce partialclone extension
+      fsck: support refs pointing to promisor objects
+      fsck: support referenced promisor objects
+      fsck: support promisor objects as CLI argument
+      index-pack: refactor writing of .keep files
+      introduce fetch-object: fetch one promisor object
+      sha1_file: support lazily fetching missing objects
+      rev-list: support termination at promisor objects
+      gc: do not repack promisor packfiles
+      fetch-pack: test support excluding large blobs
+      fetch: refactor calculation of remote list
+      clone: partial clone
+      unpack-trees: batch fetching of missing blobs
+      fetch-pack: restore save_commit_buffer after use
+      Docs: split out long-running subprocess handshake
+      packfile: remove GIT_DEBUG_LOOKUP log statements
+      packfile: refactor hash search with fanout table
+
+Junio C Hamano (14):
+      Start 2.17 cycle
+      First batch after 2.16
+      blame: tighten command line parser
+      Second batch for 2.17
+      Third batch for 2.17
+      merge: allow fast-forward when merging a tracked tag
+      Fourth batch for 2.17
+      Fifth batch for 2.17
+      test_must_be_empty: make sure the file exists, not just empty
+      untracked cache: use git_env_bool() not getenv() for customization
+      Sixth batch for 2.17
+      Seventh batch for 2.17
+      Eighth batch for 2.17
+      Git 2.17-rc0
+
+Kim Gybels (1):
+      packed_ref_cache: don't use mmap() for small files
+
+Lucas Werkmeister (1):
+      daemon: add --log-destination=(stderr|syslog|none)
+
+Martin Ågren (5):
+      sequencer: make lockfiles non-static
+      sequencer: always roll back lock in `do_recursive_merge()`
+      merge-recursive: always roll back lock in `merge_recursive_generic()`
+      merge: always roll back lock in `checkout_fast_forward()`
+      sequencer: do not roll back lockfile unnecessarily
+
+Matthieu Moy (2):
+      send-email: add and use a local copy of Mail::Address
+      perl/Git: remove now useless email-address parsing code
+
+Michael Haggerty (5):
+      struct snapshot: store `start` rather than `header_len`
+      create_snapshot(): use `xmemdupz()` rather than a strbuf
+      find_reference_location(): make function safe for empty snapshots
+      packed_ref_iterator_begin(): make optimization more general
+      load_contents(): don't try to mmap an empty file
+
+Mårten Kongstad (1):
+      docs/pretty-formats: fix typo '% <(<N>)' -> '%<|(<N>)'
+
+Nathan Payre (1):
+      send-email: extract email-parsing code into a subroutine
+
+Nguyễn Thái Ngọc Duy (72):
+      trace.c: move strbuf_release() out of print_trace_line()
+      run-command.c: introduce trace_run_command()
+      run-command.c: print program 'git' when tracing git_cmd mode
+      run-command.c: print env vars in trace_run_command()
+      run-command.c: print new cwd in trace_run_command()
+      worktree.c: add validate_worktree()
+      dir.c: avoid stat() in valid_cached_dir()
+      dir.c: fix missing dir invalidation in untracked code
+      format-patch: keep cover-letter diffstat wrapped in 72 columns
+      dir.c: stop ignoring opendir() error in open_cached_dir()
+      format-patch: reduce patch diffstat width to 72
+      trace: measure where the time is spent in the index-heavy operations
+      diff.c: refactor pprint_rename() to use strbuf
+      dir.c: ignore paths containing .git when invalidating untracked cache
+      parse-options: support --git-completion-helper
+      parse-options: add OPT_xxx_F() variants
+      parse-options: let OPT__FORCE take optional flags argument
+      git-completion.bash: introduce __gitcomp_builtin
+      completion: use __gitcomp_builtin in _git_add
+      completion: use __gitcomp_builtin in _git_am
+      completion: use __gitcomp_builtin in _git_apply
+      completion: use __gitcomp_builtin in _git_branch
+      completion: use __gitcomp_builtin in _git_checkout
+      completion: use __gitcomp_builtin in _git_cherry_pick
+      completion: use __gitcomp_builtin in _git_clean
+      completion: use __gitcomp_builtin in _git_clone
+      completion: use __gitcomp_builtin in _git_commit
+      completion: use __gitcomp_builtin in _git_config
+      completion: use __gitcomp_builtin in _git_describe
+      completion: use __gitcomp_builtin in _git_difftool
+      completion: use __gitcomp_builtin in _git_fetch
+      completion: use __gitcomp_builtin in _git_fsck
+      completion: use __gitcomp_builtin in _git_gc
+      completion: use __gitcomp_builtin in _git_grep
+      completion: use __gitcomp_builtin in _git_help
+      completion: use __gitcomp_builtin in _git_init
+      completion: use __gitcomp_builtin in _git_ls_files
+      completion: use __gitcomp_builtin in _git_ls_remote
+      completion: use __gitcomp_builtin in _git_merge
+      completion: use __gitcomp_builtin in _git_merge_base
+      completion: use __gitcomp_builtin in _git_mv
+      completion: use __gitcomp_builtin in _git_name_rev
+      completion: use __gitcomp_builtin in _git_notes
+      completion: use __gitcomp_builtin in _git_pull
+      completion: use __gitcomp_builtin in _git_push
+      completion: use __gitcomp_builtin in _git_remote
+      remote: force completing --mirror= instead of --mirror
+      completion: use __gitcomp_builtin in _git_replace
+      completion: use __gitcomp_builtin in _git_reset
+      completion: use __gitcomp_builtin in _git_revert
+      completion: use __gitcomp_builtin in _git_rm
+      completion: use __gitcomp_builtin in _git_show_branch
+      completion: use __gitcomp_builtin in _git_status
+      completion: use __gitcomp_builtin in _git_tag
+      completion: use __gitcomp_builtin in _git_worktree
+      worktree.c: add update_worktree_location()
+      worktree move: new command
+      worktree move: accept destination as directory
+      worktree move: refuse to move worktrees with submodules
+      worktree remove: new command
+      worktree remove: allow it when $GIT_WORK_TREE is already gone
+      am: add --show-current-patch
+      rebase: add --show-current-patch
+      rebase: introduce and use pseudo-ref REBASE_HEAD
+      am: support --quit
+      diff: add --compact-summary
+      object.h: update flag allocation comment
+      object.h: realign object flag allocation comment
+      completion: don't set PARSE_OPT_NOCOMPLETE on --rerere-autoupdate
+      completion: simplify _git_notes
+      completion: complete --{reuse,reedit}-message= for all notes subcmds
+      completion: more subcommands in _git_notes()
+
+Nicolas Morey-Chaisemartin (1):
+      tag: add --edit option
+
+Olga Telezhnaya (3):
+      mru: use double-linked list from list.h
+      ref-filter: get rid of duplicate code
+      ref-filter: get rid of goto
+
+Patryk Obara (14):
+      clang-format: adjust penalty for return type line break
+      http-push: improve error log
+      sha1_file: convert pretend_sha1_file to object_id
+      dir: convert struct sha1_stat to use object_id
+      sha1_file: convert hash_sha1_file to object_id
+      cache: clear whole hash buffer with oidclr
+      match-trees: convert splice_tree to object_id
+      commit: convert commit_tree* to object_id
+      notes: convert combine_notes_* to object_id
+      notes: convert write_notes_tree to object_id
+      sha1_file: convert write_sha1_file to object_id
+      sha1_file: convert force_object_loose to object_id
+      sha1_file: convert write_loose_object to object_id
+      sha1_file: rename hash_sha1_file_literally
+
+Phillip Wood (25):
+      t3404: check intermediate squash messages
+      commit: move empty message checks to libgit
+      Add a function to update HEAD after creating a commit
+      commit: move post-rewrite code to libgit
+      commit: move print_commit_summary() to libgit
+      sequencer: simplify adding Signed-off-by: trailer
+      sequencer: load commit related config
+      sequencer: try to commit without forking 'git commit'
+      t3512/t3513: remove KNOWN_FAILURE_CHERRY_PICK_SEES_EMPTY_COMMIT=1
+      sequencer: improve config handling
+      t7505: style fixes
+      t7505: add tests for cherry-pick and rebase -i/-p
+      sequencer: run 'prepare-commit-msg' hook
+      add -p: only display help for active keys
+      add -p: only bind search key if there's more than one hunk
+      add -p: improve error messages
+      add -i: add function to format hunk header
+      t3701: indent here documents
+      t3701: use test_write_lines and write_script
+      t3701: don't hard code sha1 hash values
+      t3701: add failing test for pathological context lines
+      add -p: adjust offsets of subsequent hunks when one is skipped
+      add -p: calculate offset delta for edited patches
+      add -p: fix counting when splitting and coalescing
+      add -p: don't rely on apply's '--recount' option
+
+Prathamesh Chavan (2):
+      submodule: port submodule subcommand 'sync' from shell to C
+      submodule: port submodule subcommand 'deinit' from shell to C
+
+Ramsay Jones (1):
+      t4151: consolidate multiple calls to test_i18ngrep
+
+Rasmus Villemoes (2):
+      grep: move grep_source_init outside critical section
+      grep: simplify grep_oid and grep_file
+
+René Scharfe (4):
+      cocci: use format keyword instead of a literal string
+      check-ignore: fix mix of directories and other file types
+      sequencer: factor out strbuf_read_file_or_whine()
+      perf: use GIT_PERF_REPEAT_COUNT=3 by default even without config file
+
+SZEDER Gábor (22):
+      Use MOVE_ARRAY
+      travis-ci: use 'set -x' for the commands under 'su' in the 32 bit Linux build
+      travis-ci: use 'set -e' in the 32 bit Linux build job
+      travis-ci: don't repeat the path of the cache directory
+      travis-ci: don't run the test suite as root in the 32 bit Linux build
+      travis-ci: don't fail if user already exists on 32 bit Linux build job
+      t6300-for-each-ref: fix "more than one quoting style" tests
+      Makefile: generate Git(3pm) as dependency of the 'doc' and 'man' targets
+      t: prevent '-x' tracing from interfering with test helpers' stderr
+      t: add means to disable '-x' tracing for individual test scripts
+      t1507-rev-parse-upstream: don't check the stderr of a shell function
+      t5536: simplify checking of messages output to stderr
+      t3030-merge-recursive: don't check the stderr of a subshell
+      t5500-fetch-pack: don't check the stderr of a subshell
+      t5526: use $TRASH_DIRECTORY to specify the path of GIT_TRACE log file
+      t5570-git-daemon: don't check the stderr of a subshell
+      t9903-bash-prompt: don't check the stderr of __git_ps1()
+      t1510-repo-setup: mark as untraceable with '-x'
+      t/README: add a note about don't saving stderr of compound commands
+      travis-ci: run tests with '-x' tracing
+      t9400-git-cvsserver-server: don't rely on the output of 'test_cmp'
+      t9402-git-cvsserver-refs: don't check the stderr of a subshell
+
+Stefan Beller (9):
+      diff.h: make pickaxe_opts an unsigned bit field
+      diff: migrate diff_flags.pickaxe_ignore_case to a pickaxe_opts bit
+      diff: introduce DIFF_PICKAXE_KINDS_MASK
+      diffcore: add a pickaxe option to find a specific blob
+      diff: properly error out when combining multiple pickaxe options
+      diff: use HAS_MULTI_BITS instead of counting bits manually
+      builtin/pull: respect verbosity settings in submodules
+      send-email: error out when relogin delay is missing
+      color.h: document and modernize header
+
+Stephen R Guglielmo (1):
+      subtree: fix add and pull for GPG-signed commits
+
+Tatyana Krasnukha (1):
+      apply: handle Subversion diffs with /dev/null gracefully
+
+Thomas Gummerer (1):
+      reset --hard: make use of the pretty machinery
+
+Thomas Levesque (1):
+      userdiff.c: add C# async keyword in diff pattern
+
+Todd Zullinger (2):
+      Makefile: remove *.spec from clean target
+      Makefile: add NO_PERL_CPAN_FALLBACKS knob
+
+Torsten Bögershausen (1):
+      convert_to_git(): safe_crlf/checksafe becomes int conv_flags
+
+brian m. carlson (13):
+      hash: move SHA-1 macros to hash.h
+      hash: create union for hash context allocation
+      builtin/index-pack: improve hash function abstraction
+      builtin/unpack-objects: switch uses of SHA-1 to the_hash_algo
+      sha1_file: switch uses of SHA-1 to the_hash_algo
+      fast-import: switch various uses of SHA-1 to the_hash_algo
+      pack-check: convert various uses of SHA-1 to abstract forms
+      pack-write: switch various SHA-1 values to abstract forms
+      read-cache: abstract away uses of SHA-1
+      csum-file: rename sha1file to hashfile
+      csum-file: abstract uses of SHA-1
+      bulk-checkin: abstract SHA-1 usage
+      hash: update obsolete reference to SHA1_HEADER
+
+Ævar Arnfjörð Bjarmason (49):
+      Makefile: don't error out under DC_SHA1_EXTERNAL if DC_SHA1_SUBMODULE=auto
+      Makefile: under "make dist", include the sha1collisiondetection submodule
+      sha1dc_git.h: re-arrange an ifdef chain for a subsequent change
+      Makefile: replace perl/Makefile.PL with simple make rules
+      perl: avoid *.pmc and fix Error.pm further
+      status: add a failing test showing a core.untrackedCache bug
+      wildmatch test: indent with tabs, not spaces
+      wildmatch test: use more standard shell style
+      wildmatch test: don't try to vertically align our output
+      wildmatch test: use a paranoia pattern from nul_match()
+      wildmatch test: remove dead fnmatch() test code
+      wildmatch test: use test_must_fail, not ! for test-wildmatch
+      wildmatch test: perform all tests under all wildmatch() modes
+      wildmatch test: create & test files on disk in addition to in-memory
+      test-lib: add an EXPENSIVE_ON_WINDOWS prerequisite
+      wildmatch test: mark test as EXPENSIVE_ON_WINDOWS
+      fetch: don't redundantly NULL something calloc() gave us
+      fetch: trivially refactor assignment to ref_nr
+      fetch: stop accessing "remote" variable indirectly
+      remote: add a macro for "refs/tags/*:refs/tags/*"
+      fetch tests: refactor in preparation for testing tag pruning
+      fetch tests: re-arrange arguments for future readability
+      fetch tests: add a tag to be deleted to the pruning tests
+      fetch tests: test --prune and refspec interaction
+      fetch tests: double quote a variable for interpolation
+      fetch tests: expand case/esac for later change
+      fetch tests: fetch <url> <spec> as well as fetch [<remote>]
+      git fetch doc: add a new section to explain the ins & outs of pruning
+      git remote doc: correct dangerous lies about what prune does
+      git-fetch & config doc: link to the new PRUNING section
+      fetch tests: add scaffolding for the new fetch.pruneTags
+      fetch: add a --prune-tags option and fetch.pruneTags config
+      fetch: make the --prune-tags work with <url>
+      update-index doc: note a fixed bug in the untracked cache
+      update-index doc: note the caveat with "could not open..."
+      perl: *.pm files should not have the executable bit
+      Git.pm: remove redundant "use strict" from sub-package
+      Git.pm: add the "use warnings" pragma
+      commit: run git gc --auto just before the post-commit hook
+      gitweb: hard-depend on the Digest::MD5 5.8 module
+      Git.pm: hard-depend on the File::{Temp,Spec} modules
+      git-send-email: unconditionally use Net::{SMTP,Domain}
+      perl: update our ancient copy of Error.pm
+      perl: update our copy of Mail::Address
+      perl: move CPAN loader wrappers to another namespace
+      perl: generalize the Git::LoadCPAN facility
+      perl: move the perl/Git/FromCPAN tree to perl/FromCPAN
+      perl Git::LoadCPAN: emit better errors under NO_PERL_CPAN_FALLBACKS
+      git manpage: note git-security@googlegroups.com
+
+
 Version v2.16.3; changes since v2.16.2:
 ---------------------------------------
 

@@ -11,6 +11,7 @@ OPTS =NO_OPENSSL=1 prefix=/usr gitexecdir=/usr/lib/git-core \
   INSTALLDIRS=vendor \
   SANE_TOOL_PATH= INSTALL=install TAR=tar \
   NO_CROSS_DIRECTORY_HARDLINKS=1 NO_INSTALL_HARDLINKS=1 \
+  NO_PERL_CPAN_FALLBACKS=1 \
   DEFAULT_PAGER=pager DEFAULT_EDITOR=editor \
   V=1 \
   CC='$(CC)' CFLAGS='$(CFLAGS)' LDFLAGS='$(LDFLAGS)'
@@ -91,7 +92,6 @@ override_dh_auto_install-arch:
 	DESTDIR='$(GIT)' $(MAKE) install $(OPTS)
 	DESTDIR='$(GIT)' $(MAKE) -C contrib/subtree install $(OPTS)
 	install -d -m0755 '$(GIT)'/var/lib/git
-	rm -f '$(GIT)'/usr/share/perl5/Error.pm
 	rm -rf '$(GIT)'/usr/share/man
 	# don't include arch, cvs, p4, svn, email, gui tools, and gitk program
 	for i in git-archimport git-cvs git-p4 git-svn git-send-email \
@@ -135,7 +135,6 @@ override_dh_install-indep:
 	 git-gui git-citool; do \
 	  rm -f '$(GIT)'-man/usr/share/man/man1/$$i*; \
 	done
-	rm -f '$(GIT)'-man/usr/share/man/man3/Git::SVN*.3pm
 
 override_dh_installdocs-arch:
 	dh_installdocs --arch -X.gitignore
