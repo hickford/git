@@ -15,6 +15,7 @@
 #include "submodule.h"
 #include "submodule-config.h"
 #include "fsmonitor.h"
+#include "fetch-object.h"
 
 /*
  * Error messages expected by scripts out of plumbing commands such as
@@ -194,10 +195,10 @@ static int do_add_entry(struct unpack_trees_options *o, struct cache_entry *ce,
 static struct cache_entry *dup_entry(const struct cache_entry *ce)
 {
 	unsigned int size = ce_size(ce);
-	struct cache_entry *new = xmalloc(size);
+	struct cache_entry *new_entry = xmalloc(size);
 
-	memcpy(new, ce, size);
-	return new;
+	memcpy(new_entry, ce, size);
+	return new_entry;
 }
 
 static void add_entry(struct unpack_trees_options *o,
@@ -370,6 +371,28 @@ static int check_updates(struct unpack_trees_options *o)
 		load_gitmodules_file(index, &state);
 
 	enable_delayed_checkout(&state);
+	if (repository_format_partial_clone && o->update && !o->dry_run) {
+		/*
+		 * Prefetch the objects that are to be checked out in the loop
+		 * below.
+		 */
+		struct oid_array to_fetch = OID_ARRAY_INIT;
+		int fetch_if_missing_store = fetch_if_missing;
+		fetch_if_missing = 0;
+		for (i = 0; i < index->cache_nr; i++) {
+			struct cache_entry *ce = index->cache[i];
+			if ((ce->ce_flags & CE_UPDATE) &&
+			    !S_ISGITLINK(ce->ce_mode)) {
+				if (!has_object_file(&ce->oid))
+					oid_array_append(&to_fetch, &ce->oid);
+			}
+		}
+		if (to_fetch.nr)
+			fetch_objects(repository_format_partial_clone,
+				      &to_fetch);
+		fetch_if_missing = fetch_if_missing_store;
+		oid_array_clear(&to_fetch);
+	}
 	for (i = 0; i < index->cache_nr; i++) {
 		struct cache_entry *ce = index->cache[i];
 
@@ -1506,7 +1529,7 @@ static void invalidate_ce_path(const struct cache_entry *ce,
 	if (!ce)
 		return;
 	cache_tree_invalidate_path(o->src_index, ce->name);
-	untracked_cache_invalidate_path(o->src_index, ce->name);
+	untracked_cache_invalidate_path(o->src_index, ce->name, 1);
 }
 
 /*

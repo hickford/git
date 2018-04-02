@@ -187,13 +187,14 @@ static int build_tag_object(struct strbuf *buf, int sign, struct object_id *resu
 {
 	if (sign && do_sign(buf) < 0)
 		return error(_("unable to sign the tag"));
-	if (write_sha1_file(buf->buf, buf->len, tag_type, result->hash) < 0)
+	if (write_object_file(buf->buf, buf->len, tag_type, result) < 0)
 		return error(_("unable to write tag file"));
 	return 0;
 }
 
 struct create_tag_options {
 	unsigned int message_given:1;
+	unsigned int use_editor:1;
 	unsigned int sign;
 	enum {
 		CLEANUP_NONE,
@@ -220,11 +221,11 @@ static void create_tag(const struct object_id *object, const char *tag,
 		    "tag %s\n"
 		    "tagger %s\n\n",
 		    oid_to_hex(object),
-		    typename(type),
+		    type_name(type),
 		    tag,
 		    git_committer_info(IDENT_STRICT));
 
-	if (!opt->message_given) {
+	if (!opt->message_given || opt->use_editor) {
 		int fd;
 
 		/* write the template message before editing: */
@@ -233,7 +234,10 @@ static void create_tag(const struct object_id *object, const char *tag,
 		if (fd < 0)
 			die_errno(_("could not create file '%s'"), path);
 
-		if (!is_null_oid(prev)) {
+		if (opt->message_given) {
+			write_or_die(fd, buf->buf, buf->len);
+			strbuf_reset(buf);
+		} else if (!is_null_oid(prev)) {
 			write_tag_body(fd, prev);
 		} else {
 			struct strbuf buf = STRBUF_INIT;
@@ -372,6 +376,7 @@ int cmd_tag(int argc, const char **argv, const char *prefix)
 	static struct ref_sorting *sorting = NULL, **sorting_tail = &sorting;
 	struct ref_format format = REF_FORMAT_INIT;
 	int icase = 0;
+	int edit_flag = 0;
 	struct option options[] = {
 		OPT_CMDMODE('l', "list", &cmdmode, N_("list tag names"), 'l'),
 		{ OPTION_INTEGER, 'n', NULL, &filter.lines, N_("n"),
@@ -386,12 +391,13 @@ int cmd_tag(int argc, const char **argv, const char *prefix)
 		OPT_CALLBACK('m', "message", &msg, N_("message"),
 			     N_("tag message"), parse_msg_arg),
 		OPT_FILENAME('F', "file", &msgfile, N_("read message from file")),
+		OPT_BOOL('e', "edit", &edit_flag, N_("force edit of tag message")),
 		OPT_BOOL('s', "sign", &opt.sign, N_("annotated and GPG-signed tag")),
 		OPT_STRING(0, "cleanup", &cleanup_arg, N_("mode"),
 			N_("how to strip spaces and #comments from message")),
 		OPT_STRING('u', "local-user", &keyid, N_("key-id"),
 					N_("use another key to sign the tag")),
-		OPT__FORCE(&force, N_("replace the tag if exists")),
+		OPT__FORCE(&force, N_("replace the tag if exists"), 0),
 		OPT_BOOL(0, "create-reflog", &create_reflog, N_("create a reflog")),
 
 		OPT_GROUP(N_("Tag listing options")),
@@ -524,6 +530,7 @@ int cmd_tag(int argc, const char **argv, const char *prefix)
 		die(_("tag '%s' already exists"), tag);
 
 	opt.message_given = msg.given || msgfile;
+	opt.use_editor = edit_flag;
 
 	if (!cleanup_arg || !strcmp(cleanup_arg, "strip"))
 		opt.cleanup_mode = CLEANUP_ALL;

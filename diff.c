@@ -1504,7 +1504,7 @@ struct diff_words_style_elem {
 
 struct diff_words_style {
 	enum diff_words_type type;
-	struct diff_words_style_elem new, old, ctx;
+	struct diff_words_style_elem new_word, old_word, ctx;
 	const char *newline;
 };
 
@@ -1655,12 +1655,12 @@ static void fn_out_diff_words_aux(void *priv, char *line, unsigned long len)
 	}
 	if (minus_begin != minus_end) {
 		fn_out_diff_words_write_helper(diff_words->opt,
-				&style->old, style->newline,
+				&style->old_word, style->newline,
 				minus_end - minus_begin, minus_begin);
 	}
 	if (plus_begin != plus_end) {
 		fn_out_diff_words_write_helper(diff_words->opt,
-				&style->new, style->newline,
+				&style->new_word, style->newline,
 				plus_end - plus_begin, plus_begin);
 	}
 
@@ -1758,7 +1758,7 @@ static void diff_words_show(struct diff_words_data *diff_words)
 		emit_diff_symbol(diff_words->opt, DIFF_SYMBOL_WORD_DIFF,
 				 line_prefix, strlen(line_prefix), 0);
 		fn_out_diff_words_write_helper(diff_words->opt,
-			&style->old, style->newline,
+			&style->old_word, style->newline,
 			diff_words->minus.text.size,
 			diff_words->minus.text.ptr);
 		diff_words->minus.text.size = 0;
@@ -1883,8 +1883,8 @@ static void init_diff_words_data(struct emit_callback *ecbdata,
 	}
 	if (want_color(o->use_color)) {
 		struct diff_words_style *st = ecbdata->diff_words->style;
-		st->old.color = diff_get_color_opt(o, DIFF_FILE_OLD);
-		st->new.color = diff_get_color_opt(o, DIFF_FILE_NEW);
+		st->old_word.color = diff_get_color_opt(o, DIFF_FILE_OLD);
+		st->new_word.color = diff_get_color_opt(o, DIFF_FILE_NEW);
 		st->ctx.color = diff_get_color_opt(o, DIFF_CONTEXT);
 	}
 }
@@ -2045,11 +2045,10 @@ static void fn_out_consume(void *priv, char *line, unsigned long len)
 	}
 }
 
-static char *pprint_rename(const char *a, const char *b)
+static void pprint_rename(struct strbuf *name, const char *a, const char *b)
 {
-	const char *old = a;
-	const char *new = b;
-	struct strbuf name = STRBUF_INIT;
+	const char *old_name = a;
+	const char *new_name = b;
 	int pfx_length, sfx_length;
 	int pfx_adjust_for_slash;
 	int len_a = strlen(a);
@@ -2059,24 +2058,24 @@ static char *pprint_rename(const char *a, const char *b)
 	int qlen_b = quote_c_style(b, NULL, NULL, 0);
 
 	if (qlen_a || qlen_b) {
-		quote_c_style(a, &name, NULL, 0);
-		strbuf_addstr(&name, " => ");
-		quote_c_style(b, &name, NULL, 0);
-		return strbuf_detach(&name, NULL);
+		quote_c_style(a, name, NULL, 0);
+		strbuf_addstr(name, " => ");
+		quote_c_style(b, name, NULL, 0);
+		return;
 	}
 
 	/* Find common prefix */
 	pfx_length = 0;
-	while (*old && *new && *old == *new) {
-		if (*old == '/')
-			pfx_length = old - a + 1;
-		old++;
-		new++;
+	while (*old_name && *new_name && *old_name == *new_name) {
+		if (*old_name == '/')
+			pfx_length = old_name - a + 1;
+		old_name++;
+		new_name++;
 	}
 
 	/* Find common suffix */
-	old = a + len_a;
-	new = b + len_b;
+	old_name = a + len_a;
+	new_name = b + len_b;
 	sfx_length = 0;
 	/*
 	 * If there is a common prefix, it must end in a slash.  In
@@ -2087,13 +2086,13 @@ static char *pprint_rename(const char *a, const char *b)
 	 * underrun the input strings.
 	 */
 	pfx_adjust_for_slash = (pfx_length ? 1 : 0);
-	while (a + pfx_length - pfx_adjust_for_slash <= old &&
-	       b + pfx_length - pfx_adjust_for_slash <= new &&
-	       *old == *new) {
-		if (*old == '/')
-			sfx_length = len_a - (old - a);
-		old--;
-		new--;
+	while (a + pfx_length - pfx_adjust_for_slash <= old_name &&
+	       b + pfx_length - pfx_adjust_for_slash <= new_name &&
+	       *old_name == *new_name) {
+		if (*old_name == '/')
+			sfx_length = len_a - (old_name - a);
+		old_name--;
+		new_name--;
 	}
 
 	/*
@@ -2109,19 +2108,18 @@ static char *pprint_rename(const char *a, const char *b)
 	if (b_midlen < 0)
 		b_midlen = 0;
 
-	strbuf_grow(&name, pfx_length + a_midlen + b_midlen + sfx_length + 7);
+	strbuf_grow(name, pfx_length + a_midlen + b_midlen + sfx_length + 7);
 	if (pfx_length + sfx_length) {
-		strbuf_add(&name, a, pfx_length);
-		strbuf_addch(&name, '{');
+		strbuf_add(name, a, pfx_length);
+		strbuf_addch(name, '{');
 	}
-	strbuf_add(&name, a + pfx_length, a_midlen);
-	strbuf_addstr(&name, " => ");
-	strbuf_add(&name, b + pfx_length, b_midlen);
+	strbuf_add(name, a + pfx_length, a_midlen);
+	strbuf_addstr(name, " => ");
+	strbuf_add(name, b + pfx_length, b_midlen);
 	if (pfx_length + sfx_length) {
-		strbuf_addch(&name, '}');
-		strbuf_add(&name, a + len_a - sfx_length, sfx_length);
+		strbuf_addch(name, '}');
+		strbuf_add(name, a + len_a - sfx_length, sfx_length);
 	}
-	return strbuf_detach(&name, NULL);
 }
 
 struct diffstat_t {
@@ -2131,6 +2129,7 @@ struct diffstat_t {
 		char *from_name;
 		char *name;
 		char *print_name;
+		const char *comments;
 		unsigned is_unmerged:1;
 		unsigned is_binary:1;
 		unsigned is_renamed:1;
@@ -2197,23 +2196,20 @@ static void show_graph(struct strbuf *out, char ch, int cnt,
 
 static void fill_print_name(struct diffstat_file *file)
 {
-	char *pname;
+	struct strbuf pname = STRBUF_INIT;
 
 	if (file->print_name)
 		return;
 
-	if (!file->is_renamed) {
-		struct strbuf buf = STRBUF_INIT;
-		if (quote_c_style(file->name, &buf, NULL, 0)) {
-			pname = strbuf_detach(&buf, NULL);
-		} else {
-			pname = file->name;
-			strbuf_release(&buf);
-		}
-	} else {
-		pname = pprint_rename(file->from_name, file->name);
-	}
-	file->print_name = pname;
+	if (file->is_renamed)
+		pprint_rename(&pname, file->from_name, file->name);
+	else
+		quote_c_style(file->name, &pname, NULL, 0);
+
+	if (file->comments)
+		strbuf_addf(&pname, " (%s)", file->comments);
+
+	file->print_name = strbuf_detach(&pname, NULL);
 }
 
 static void print_stat_summary_inserts_deletes(struct diff_options *options,
@@ -2594,14 +2590,14 @@ struct dirstat_dir {
 static long gather_dirstat(struct diff_options *opt, struct dirstat_dir *dir,
 		unsigned long changed, const char *base, int baselen)
 {
-	unsigned long this_dir = 0;
+	unsigned long sum_changes = 0;
 	unsigned int sources = 0;
 	const char *line_prefix = diff_line_prefix(opt);
 
 	while (dir->nr) {
 		struct dirstat_file *f = dir->files;
 		int namelen = strlen(f->name);
-		unsigned long this;
+		unsigned long changes;
 		char *slash;
 
 		if (namelen < baselen)
@@ -2611,15 +2607,15 @@ static long gather_dirstat(struct diff_options *opt, struct dirstat_dir *dir,
 		slash = strchr(f->name + baselen, '/');
 		if (slash) {
 			int newbaselen = slash + 1 - f->name;
-			this = gather_dirstat(opt, dir, changed, f->name, newbaselen);
+			changes = gather_dirstat(opt, dir, changed, f->name, newbaselen);
 			sources++;
 		} else {
-			this = f->changed;
+			changes = f->changed;
 			dir->files++;
 			dir->nr--;
 			sources += 2;
 		}
-		this_dir += this;
+		sum_changes += changes;
 	}
 
 	/*
@@ -2629,8 +2625,8 @@ static long gather_dirstat(struct diff_options *opt, struct dirstat_dir *dir,
 	 *    under this directory (sources == 1).
 	 */
 	if (baselen && sources != 1) {
-		if (this_dir) {
-			int permille = this_dir * 1000 / changed;
+		if (sum_changes) {
+			int permille = sum_changes * 1000 / changed;
 			if (permille >= dir->permille) {
 				fprintf(opt->file, "%s%4d.%01d%% %.*s\n", line_prefix,
 					permille / 10, permille % 10, baselen, base);
@@ -2639,7 +2635,7 @@ static long gather_dirstat(struct diff_options *opt, struct dirstat_dir *dir,
 			}
 		}
 	}
-	return this_dir;
+	return sum_changes;
 }
 
 static int dirstat_compare(const void *_a, const void *_b)
@@ -2797,8 +2793,7 @@ static void free_diffstat_info(struct diffstat_t *diffstat)
 	int i;
 	for (i = 0; i < diffstat->nr; i++) {
 		struct diffstat_file *f = diffstat->files[i];
-		if (f->name != f->print_name)
-			free(f->print_name);
+		free(f->print_name);
 		free(f->name);
 		free(f->from_name);
 		free(f);
@@ -3248,6 +3243,32 @@ static void builtin_diff(const char *name_a,
 	return;
 }
 
+static char *get_compact_summary(const struct diff_filepair *p, int is_renamed)
+{
+	if (!is_renamed) {
+		if (p->status == DIFF_STATUS_ADDED) {
+			if (S_ISLNK(p->two->mode))
+				return "new +l";
+			else if ((p->two->mode & 0777) == 0755)
+				return "new +x";
+			else
+				return "new";
+		} else if (p->status == DIFF_STATUS_DELETED)
+			return "gone";
+	}
+	if (S_ISLNK(p->one->mode) && !S_ISLNK(p->two->mode))
+		return "mode -l";
+	else if (!S_ISLNK(p->one->mode) && S_ISLNK(p->two->mode))
+		return "mode +l";
+	else if ((p->one->mode & 0777) == 0644 &&
+		 (p->two->mode & 0777) == 0755)
+		return "mode +x";
+	else if ((p->one->mode & 0777) == 0755 &&
+		 (p->two->mode & 0777) == 0644)
+		return "mode -x";
+	return NULL;
+}
+
 static void builtin_diffstat(const char *name_a, const char *name_b,
 			     struct diff_filespec *one,
 			     struct diff_filespec *two,
@@ -3267,6 +3288,8 @@ static void builtin_diffstat(const char *name_a, const char *name_b,
 
 	data = diffstat_add(diffstat, name_a, name_b);
 	data->is_interesting = p->status != DIFF_STATUS_UNKNOWN;
+	if (o->flags.stat_with_summary)
+		data->comments = get_compact_summary(p, data->is_renamed);
 
 	if (!one || !two) {
 		data->is_unmerged = 1;
@@ -3520,13 +3543,13 @@ int diff_populate_filespec(struct diff_filespec *s, unsigned int flags)
 {
 	int size_only = flags & CHECK_SIZE_ONLY;
 	int err = 0;
+	int conv_flags = global_conv_flags_eol;
 	/*
 	 * demote FAIL to WARN to allow inspecting the situation
 	 * instead of refusing.
 	 */
-	enum safe_crlf crlf_warn = (safe_crlf == SAFE_CRLF_FAIL
-				    ? SAFE_CRLF_WARN
-				    : safe_crlf);
+	if (conv_flags & CONV_EOL_RNDTRP_DIE)
+		conv_flags = CONV_EOL_RNDTRP_WARN;
 
 	if (!DIFF_FILE_VALID(s))
 		die("internal error: asking to populate invalid file.");
@@ -3603,7 +3626,7 @@ int diff_populate_filespec(struct diff_filespec *s, unsigned int flags)
 		/*
 		 * Convert from working tree format to canonical git format
 		 */
-		if (convert_to_git(&the_index, s->path, s->data, s->size, &buf, crlf_warn)) {
+		if (convert_to_git(&the_index, s->path, s->data, s->size, &buf, conv_flags)) {
 			size_t size = 0;
 			munmap(s->data, s->size);
 			s->should_munmap = 0;
@@ -3660,15 +3683,15 @@ static void prep_temp_blob(const char *path, struct diff_tempfile *temp,
 			   int mode)
 {
 	struct strbuf buf = STRBUF_INIT;
-	struct strbuf template = STRBUF_INIT;
+	struct strbuf tempfile = STRBUF_INIT;
 	char *path_dup = xstrdup(path);
 	const char *base = basename(path_dup);
 
 	/* Generate "XXXXXX_basename.ext" */
-	strbuf_addstr(&template, "XXXXXX_");
-	strbuf_addstr(&template, base);
+	strbuf_addstr(&tempfile, "XXXXXX_");
+	strbuf_addstr(&tempfile, base);
 
-	temp->tempfile = mks_tempfile_ts(template.buf, strlen(base) + 1);
+	temp->tempfile = mks_tempfile_ts(tempfile.buf, strlen(base) + 1);
 	if (!temp->tempfile)
 		die_errno("unable to create temp-file");
 	if (convert_to_working_tree(path,
@@ -3683,7 +3706,7 @@ static void prep_temp_blob(const char *path, struct diff_tempfile *temp,
 	oid_to_hex_r(temp->hex, oid);
 	xsnprintf(temp->mode, sizeof(temp->mode), "%06o", mode);
 	strbuf_release(&buf);
-	strbuf_release(&template);
+	strbuf_release(&tempfile);
 	free(path_dup);
 }
 
@@ -4086,6 +4109,7 @@ void diff_setup(struct diff_options *options)
 	options->interhunkcontext = diff_interhunk_context_default;
 	options->ws_error_highlight = ws_error_highlight_default;
 	options->flags.rename_empty = 1;
+	options->objfind = NULL;
 
 	/* pathchange left =NULL by default */
 	options->change = diff_change;
@@ -4110,21 +4134,19 @@ void diff_setup(struct diff_options *options)
 
 void diff_setup_done(struct diff_options *options)
 {
-	int count = 0;
+	unsigned check_mask = DIFF_FORMAT_NAME |
+			      DIFF_FORMAT_NAME_STATUS |
+			      DIFF_FORMAT_CHECKDIFF |
+			      DIFF_FORMAT_NO_OUTPUT;
 
 	if (options->set_default)
 		options->set_default(options);
 
-	if (options->output_format & DIFF_FORMAT_NAME)
-		count++;
-	if (options->output_format & DIFF_FORMAT_NAME_STATUS)
-		count++;
-	if (options->output_format & DIFF_FORMAT_CHECKDIFF)
-		count++;
-	if (options->output_format & DIFF_FORMAT_NO_OUTPUT)
-		count++;
-	if (count > 1)
+	if (HAS_MULTI_BITS(options->output_format & check_mask))
 		die(_("--name-only, --name-status, --check and -s are mutually exclusive"));
+
+	if (HAS_MULTI_BITS(options->pickaxe_opts & DIFF_PICKAXE_KINDS_MASK))
+		die(_("-G, -S and --find-object are mutually exclusive"));
 
 	/*
 	 * Most of the time we can say "there are changes"
@@ -4175,7 +4197,7 @@ void diff_setup_done(struct diff_options *options)
 	/*
 	 * Also pickaxe would not work very well if you do not say recursive
 	 */
-	if (options->pickaxe)
+	if (options->pickaxe_opts & DIFF_PICKAXE_KINDS_MASK)
 		options->flags.recursive = 1;
 	/*
 	 * When patches are generated, submodules diffed against the work tree
@@ -4489,6 +4511,23 @@ static int parse_ws_error_highlight_opt(struct diff_options *opt, const char *ar
 	return 1;
 }
 
+static int parse_objfind_opt(struct diff_options *opt, const char *arg)
+{
+	struct object_id oid;
+
+	if (get_oid(arg, &oid))
+		return error("unable to resolve '%s'", arg);
+
+	if (!opt->objfind)
+		opt->objfind = xcalloc(1, sizeof(*opt->objfind));
+
+	opt->pickaxe_opts |= DIFF_PICKAXE_KIND_OBJFIND;
+	opt->flags.recursive = 1;
+	opt->flags.tree_in_recursive = 1;
+	oidset_insert(opt->objfind, &oid);
+	return 1;
+}
+
 int diff_opt_parse(struct diff_options *options,
 		   const char **av, int ac, const char *prefix)
 {
@@ -4537,6 +4576,11 @@ int diff_opt_parse(struct diff_options *options,
 	else if (starts_with(arg, "--stat"))
 		/* --stat, --stat-width, --stat-name-width, or --stat-count */
 		return stat_opt(options, av);
+	else if (!strcmp(arg, "--compact-summary")) {
+		 options->flags.stat_with_summary = 1;
+		 options->output_format |= DIFF_FORMAT_DIFFSTAT;
+	} else if (!strcmp(arg, "--no-compact-summary"))
+		 options->flags.stat_with_summary = 0;
 
 	/* renames options */
 	else if (starts_with(arg, "-B") ||
@@ -4736,7 +4780,8 @@ int diff_opt_parse(struct diff_options *options,
 	else if ((argcount = short_opt('O', av, &optarg))) {
 		options->orderfile = prefix_filename(prefix, optarg);
 		return argcount;
-	}
+	} else if (skip_prefix(arg, "--find-object=", &arg))
+		return parse_objfind_opt(options, arg);
 	else if ((argcount = parse_long_opt("diff-filter", av, &optarg))) {
 		int offending = parse_diff_filter_opt(optarg, options);
 		if (offending)
@@ -5224,10 +5269,12 @@ static void show_rename_copy(struct diff_options *opt, const char *renamecopy,
 		struct diff_filepair *p)
 {
 	struct strbuf sb = STRBUF_INIT;
-	char *names = pprint_rename(p->one->path, p->two->path);
+	struct strbuf names = STRBUF_INIT;
+
+	pprint_rename(&names, p->one->path, p->two->path);
 	strbuf_addf(&sb, " %s %s (%d%%)\n",
-			renamecopy, names, similarity_index(p));
-	free(names);
+		    renamecopy, names.buf, similarity_index(p));
+	strbuf_release(&names);
 	emit_diff_symbol(opt, DIFF_SYMBOL_SUMMARY,
 				 sb.buf, sb.len, 0);
 	show_mode_change(opt, p, 0);
@@ -5784,7 +5831,7 @@ void diffcore_std(struct diff_options *options)
 		if (options->break_opt != -1)
 			diffcore_merge_broken();
 	}
-	if (options->pickaxe)
+	if (options->pickaxe_opts & DIFF_PICKAXE_KINDS_MASK)
 		diffcore_pickaxe(options);
 	if (options->orderfile)
 		diffcore_order(options->orderfile);

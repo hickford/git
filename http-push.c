@@ -362,7 +362,7 @@ static void start_put(struct transfer_request *request)
 	git_zstream stream;
 
 	unpacked = read_sha1_file(request->obj->oid.hash, &type, &len);
-	hdrlen = xsnprintf(hdr, sizeof(hdr), "%s %lu", typename(type), len) + 1;
+	hdrlen = xsnprintf(hdr, sizeof(hdr), "%s %lu", type_name(type), len) + 1;
 
 	/* Set it up */
 	git_deflate_init(&stream, zlib_compression_level);
@@ -915,6 +915,10 @@ static struct remote_lock *lock_remote(const char *path, long timeout)
 				lock->timeout = -1;
 			}
 			XML_ParserFree(parser);
+		} else {
+			fprintf(stderr,
+				"error: curl result=%d, HTTP code=%ld\n",
+				results.curl_result, results.http_code);
 		}
 	} else {
 		fprintf(stderr, "Unable to start LOCK request\n");

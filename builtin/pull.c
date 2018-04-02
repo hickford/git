@@ -193,7 +193,7 @@ static struct option pull_options[] = {
 	OPT_PASSTHRU(0, "upload-pack", &opt_upload_pack, N_("path"),
 		N_("path to upload pack on remote end"),
 		0),
-	OPT__FORCE(&opt_force, N_("force overwrite of local branch")),
+	OPT__FORCE(&opt_force, N_("force overwrite of local branch"), 0),
 	OPT_PASSTHRU('t', "tags", &opt_tags, NULL,
 		N_("fetch all tags and associated objects"),
 		PARSE_OPT_NOARG),
@@ -574,6 +574,7 @@ static int rebase_submodules(void)
 	cp.no_stdin = 1;
 	argv_array_pushl(&cp.args, "submodule", "update",
 				   "--recursive", "--rebase", NULL);
+	argv_push_verbosity(&cp.args);
 
 	return run_command(&cp);
 }
@@ -586,6 +587,7 @@ static int update_submodules(void)
 	cp.no_stdin = 1;
 	argv_array_pushl(&cp.args, "submodule", "update",
 				   "--recursive", "--checkout", NULL);
+	argv_push_verbosity(&cp.args);
 
 	return run_command(&cp);
 }

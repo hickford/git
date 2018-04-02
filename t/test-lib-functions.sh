@@ -629,30 +629,30 @@ test_must_fail () {
 		_test_ok=
 		;;
 	esac
-	"$@"
+	"$@" 2>&7
 	exit_code=$?
 	if test $exit_code -eq 0 && ! list_contains "$_test_ok" success
 	then
-		echo >&2 "test_must_fail: command succeeded: $*"
+		echo >&4 "test_must_fail: command succeeded: $*"
 		return 1
 	elif test_match_signal 13 $exit_code && list_contains "$_test_ok" sigpipe
 	then
 		return 0
 	elif test $exit_code -gt 129 && test $exit_code -le 192
 	then
-		echo >&2 "test_must_fail: died by signal $(($exit_code - 128)): $*"
+		echo >&4 "test_must_fail: died by signal $(($exit_code - 128)): $*"
 		return 1
 	elif test $exit_code -eq 127
 	then
-		echo >&2 "test_must_fail: command not found: $*"
+		echo >&4 "test_must_fail: command not found: $*"
 		return 1
 	elif test $exit_code -eq 126
 	then
-		echo >&2 "test_must_fail: valgrind error: $*"
+		echo >&4 "test_must_fail: valgrind error: $*"
 		return 1
 	fi
 	return 0
-}
+} 7>&2 2>&4
 
 # Similar to test_must_fail, but tolerates success, too.  This is
 # meant to be used in contexts like:
@@ -668,8 +668,8 @@ test_must_fail () {
 # Accepts the same options as test_must_fail.
 
 test_might_fail () {
-	test_must_fail ok=success "$@"
-}
+	test_must_fail ok=success "$@" 2>&7
+} 7>&2 2>&4
 
 # Similar to test_must_fail and test_might_fail, but check that a
 # given command exited with a given exit code. Meant to be used as:
@@ -681,16 +681,16 @@ test_might_fail () {
 test_expect_code () {
 	want_code=$1
 	shift
-	"$@"
+	"$@" 2>&7
 	exit_code=$?
 	if test $exit_code = $want_code
 	then
 		return 0
 	fi
 
-	echo >&2 "test_expect_code: command exited with $exit_code, we wanted $want_code $*"
+	echo >&4 "test_expect_code: command exited with $exit_code, we wanted $want_code $*"
 	return 1
-}
+} 7>&2 2>&4
 
 # test_cmp is a helper function to compare actual and expected output.
 # You can use it like:
@@ -752,18 +752,18 @@ test_i18ngrep () {
 		shift
 		! grep "$@" && return 0
 
-		echo >&2 "error: '! grep $@' did find a match in:"
+		echo >&4 "error: '! grep $@' did find a match in:"
 	else
 		grep "$@" && return 0
 
-		echo >&2 "error: 'grep $@' didn't find a match in:"
+		echo >&4 "error: 'grep $@' didn't find a match in:"
 	fi
 
 	if test -s "$last_arg"
 	then
-		cat >&2 "$last_arg"
+		cat >&4 "$last_arg"
 	else
-		echo >&2 "<File '$last_arg' is empty>"
+		echo >&4 "<File '$last_arg' is empty>"
 	fi
 
 	return 1
@@ -774,7 +774,7 @@ test_i18ngrep () {
 # not output anything when they fail.
 verbose () {
 	"$@" && return 0
-	echo >&2 "command failed: $(git rev-parse --sq-quote "$@")"
+	echo >&4 "command failed: $(git rev-parse --sq-quote "$@")"
 	return 1
 }
 
@@ -782,7 +782,11 @@ verbose () {
 # otherwise.
 
 test_must_be_empty () {
-	if test -s "$1"
+	if ! test -f "$1"
+	then
+		echo "'$1' is missing"
+		return 1
+	elif test -s "$1"
 	then
 		echo "'$1' is not empty, it contains:"
 		cat "$1"
@@ -892,8 +896,8 @@ test_write_lines () {
 }
 
 perl () {
-	command "$PERL_PATH" "$@"
-}
+	command "$PERL_PATH" "$@" 2>&7
+} 7>&2 2>&4
 
 # Is the value one of the various ways to spell a boolean true/false?
 test_normalize_bool () {
@@ -1033,13 +1037,13 @@ test_env () {
 				shift
 				;;
 			*)
-				"$@"
+				"$@" 2>&7
 				exit
 				;;
 			esac
 		done
 	)
-}
+} 7>&2 2>&4
 
 # Returns true if the numeric exit code in "$2" represents the expected signal
 # in "$1". Signals should be given numerically.
@@ -1081,9 +1085,9 @@ nongit () {
 		GIT_CEILING_DIRECTORIES=$(pwd) &&
 		export GIT_CEILING_DIRECTORIES &&
 		cd non-repo &&
-		"$@"
+		"$@" 2>&7
 	)
-}
+} 7>&2 2>&4
 
 # convert stdin to pktline representation; note that empty input becomes an
 # empty packet, not a flush packet (for that you can just print 0000 yourself).

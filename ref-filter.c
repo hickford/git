@@ -529,12 +529,12 @@ static void end_align_handler(struct ref_formatting_stack **stack)
 
 static void align_atom_handler(struct atom_value *atomv, struct ref_formatting_state *state)
 {
-	struct ref_formatting_stack *new;
+	struct ref_formatting_stack *new_stack;
 
 	push_stack_element(&state->stack);
-	new = state->stack;
-	new->at_end = end_align_handler;
-	new->at_end_data = &atomv->atom->u.align;
+	new_stack = state->stack;
+	new_stack->at_end = end_align_handler;
+	new_stack->at_end_data = &atomv->atom->u.align;
 }
 
 static void if_then_else_handler(struct ref_formatting_stack **stack)
@@ -574,16 +574,16 @@ static void if_then_else_handler(struct ref_formatting_stack **stack)
 
 static void if_atom_handler(struct atom_value *atomv, struct ref_formatting_state *state)
 {
-	struct ref_formatting_stack *new;
+	struct ref_formatting_stack *new_stack;
 	struct if_then_else *if_then_else = xcalloc(sizeof(struct if_then_else), 1);
 
 	if_then_else->str = atomv->atom->u.if_then_else.str;
 	if_then_else->cmp_status = atomv->atom->u.if_then_else.cmp_status;
 
 	push_stack_element(&state->stack);
-	new = state->stack;
-	new->at_end = if_then_else_handler;
-	new->at_end_data = if_then_else;
+	new_stack = state->stack;
+	new_stack->at_end = if_then_else_handler;
+	new_stack->at_end_data = if_then_else;
 }
 
 static int is_empty(const char *s)
@@ -769,7 +769,7 @@ static void grab_common_values(struct atom_value *val, int deref, struct object 
 		if (deref)
 			name++;
 		if (!strcmp(name, "objecttype"))
-			v->s = typename(obj->type);
+			v->s = type_name(obj->type);
 		else if (!strcmp(name, "objectsize")) {
 			v->value = sz;
 			v->s = xstrfmt("%lu", sz);
@@ -795,7 +795,7 @@ static void grab_tag_values(struct atom_value *val, int deref, struct object *ob
 		if (!strcmp(name, "tag"))
 			v->s = tag->tag;
 		else if (!strcmp(name, "type") && tag->tagged)
-			v->s = typename(tag->tagged->type);
+			v->s = type_name(tag->tagged->type);
 		else if (!strcmp(name, "object") && tag->tagged)
 			v->s = xstrdup(oid_to_hex(&tag->tagged->oid));
 	}
@@ -1249,8 +1249,8 @@ static void fill_remote_ref_details(struct used_atom *atom, const char *refname,
 	if (atom->u.remote_ref.option == RR_REF)
 		*s = show_ref(&atom->u.remote_ref.refname, refname);
 	else if (atom->u.remote_ref.option == RR_TRACK) {
-		if (stat_tracking_info(branch, &num_ours,
-				       &num_theirs, NULL)) {
+		if (stat_tracking_info(branch, &num_ours, &num_theirs,
+				       NULL, AHEAD_BEHIND_FULL) < 0) {
 			*s = xstrdup(msgs.gone);
 		} else if (!num_ours && !num_theirs)
 			*s = "";
@@ -1267,8 +1267,8 @@ static void fill_remote_ref_details(struct used_atom *atom, const char *refname,
 			free((void *)to_free);
 		}
 	} else if (atom->u.remote_ref.option == RR_TRACKSHORT) {
-		if (stat_tracking_info(branch, &num_ours,
-				       &num_theirs, NULL))
+		if (stat_tracking_info(branch, &num_ours, &num_theirs,
+				       NULL, AHEAD_BEHIND_FULL) < 0)
 			return;
 
 		if (!num_ours && !num_theirs)
@@ -1354,15 +1354,31 @@ static const char *get_refname(struct used_atom *atom, struct ref_array_item *re
 	return show_ref(&atom->u.refname, ref->refname);
 }
 
+static void get_object(struct ref_array_item *ref, const struct object_id *oid,
+		       int deref, struct object **obj)
+{
+	int eaten;
+	unsigned long size;
+	void *buf = get_obj(oid, obj, &size, &eaten);
+	if (!buf)
+		die(_("missing object %s for %s"),
+		    oid_to_hex(oid), ref->refname);
+	if (!*obj)
+		die(_("parse_object_buffer failed on %s for %s"),
+		    oid_to_hex(oid), ref->refname);
+
+	grab_values(ref->value, deref, *obj, buf, size);
+	if (!eaten)
+		free(buf);
+}
+
 /*
  * Parse the object referred by ref, and grab needed value.
  */
 static void populate_value(struct ref_array_item *ref)
 {
-	void *buf;
 	struct object *obj;
-	int eaten, i;
-	unsigned long size;
+	int i;
 	const struct object_id *tagged;
 
 	ref->value = xcalloc(used_atom_cnt, sizeof(struct atom_value));
@@ -1478,22 +1494,12 @@ static void populate_value(struct ref_array_item *ref)
 	for (i = 0; i < used_atom_cnt; i++) {
 		struct atom_value *v = &ref->value[i];
 		if (v->s == NULL)
-			goto need_obj;
+			break;
 	}
-	return;
+	if (used_atom_cnt <= i)
+		return;
 
- need_obj:
-	buf = get_obj(&ref->objectname, &obj, &size, &eaten);
-	if (!buf)
-		die(_("missing object %s for %s"),
-		    oid_to_hex(&ref->objectname), ref->refname);
-	if (!obj)
-		die(_("parse_object_buffer failed on %s for %s"),
-		    oid_to_hex(&ref->objectname), ref->refname);
-
-	grab_values(ref->value, 0, obj, buf, size);
-	if (!eaten)
-		free(buf);
+	get_object(ref, &ref->objectname, 0, &obj);
 
 	/*
 	 * If there is no atom that wants to know about tagged
@@ -1514,16 +1520,7 @@ static void populate_value(struct ref_array_item *ref)
 	 * is not consistent with what deref_tag() does
 	 * which peels the onion to the core.
 	 */
-	buf = get_obj(tagged, &obj, &size, &eaten);
-	if (!buf)
-		die(_("missing object %s for %s"),
-		    oid_to_hex(tagged), ref->refname);
-	if (!obj)
-		die(_("parse_object_buffer failed on %s for %s"),
-		    oid_to_hex(tagged), ref->refname);
-	grab_values(ref->value, 1, obj, buf, size);
-	if (!eaten)
-		free(buf);
+	get_object(ref, tagged, 1, &obj);
 }
 
 /*

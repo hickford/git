@@ -74,9 +74,9 @@ struct exclude_list_group {
 	struct exclude_list *el;
 };
 
-struct sha1_stat {
+struct oid_stat {
 	struct stat_data stat;
-	unsigned char sha1[20];
+	struct object_id oid;
 	int valid;
 };
 
@@ -124,8 +124,8 @@ struct untracked_cache_dir {
 };
 
 struct untracked_cache {
-	struct sha1_stat ss_info_exclude;
-	struct sha1_stat ss_excludes_file;
+	struct oid_stat ss_info_exclude;
+	struct oid_stat ss_excludes_file;
 	const char *exclude_per_dir;
 	struct strbuf ident;
 	/*
@@ -195,8 +195,8 @@ struct dir_struct {
 
 	/* Enable untracked file cache if set */
 	struct untracked_cache *untracked;
-	struct sha1_stat ss_info_exclude;
-	struct sha1_stat ss_excludes_file;
+	struct oid_stat ss_info_exclude;
+	struct oid_stat ss_excludes_file;
 	unsigned unmanaged_exclude_files;
 };
 
@@ -350,7 +350,7 @@ static inline int dir_path_match(const struct dir_entry *ent,
 int cmp_dir_entry(const void *p1, const void *p2);
 int check_dir_entry_contains(const struct dir_entry *out, const struct dir_entry *in);
 
-void untracked_cache_invalidate_path(struct index_state *, const char *);
+void untracked_cache_invalidate_path(struct index_state *, const char *, int safe_path);
 void untracked_cache_remove_from_index(struct index_state *, const char *);
 void untracked_cache_add_to_index(struct index_state *, const char *);
 

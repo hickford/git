@@ -62,6 +62,7 @@ static void replace_index_entry(struct index_state *istate, int nr, struct cache
 	replace_index_entry_in_base(istate, old, ce);
 	remove_name_hash(istate, old);
 	free(old);
+	ce->ce_flags &= ~CE_HASHED;
 	set_index_entry(istate, nr, ce);
 	ce->ce_flags |= CE_UPDATE_IN_BASE;
 	mark_fsmonitor_invalid(istate, ce);
@@ -70,20 +71,20 @@ static void replace_index_entry(struct index_state *istate, int nr, struct cache
 
 void rename_index_entry_at(struct index_state *istate, int nr, const char *new_name)
 {
-	struct cache_entry *old = istate->cache[nr], *new;
+	struct cache_entry *old_entry = istate->cache[nr], *new_entry;
 	int namelen = strlen(new_name);
 
-	new = xmalloc(cache_entry_size(namelen));
-	copy_cache_entry(new, old);
-	new->ce_flags &= ~CE_HASHED;
-	new->ce_namelen = namelen;
-	new->index = 0;
-	memcpy(new->name, new_name, namelen + 1);
+	new_entry = xmalloc(cache_entry_size(namelen));
+	copy_cache_entry(new_entry, old_entry);
+	new_entry->ce_flags &= ~CE_HASHED;
+	new_entry->ce_namelen = namelen;
+	new_entry->index = 0;
+	memcpy(new_entry->name, new_name, namelen + 1);
 
-	cache_tree_invalidate_path(istate, old->name);
-	untracked_cache_remove_from_index(istate, old->name);
+	cache_tree_invalidate_path(istate, old_entry->name);
+	untracked_cache_remove_from_index(istate, old_entry->name);
 	remove_index_entry_at(istate, nr);
-	add_index_entry(istate, new, ADD_CACHE_OK_TO_ADD|ADD_CACHE_OK_TO_REPLACE);
+	add_index_entry(istate, new_entry, ADD_CACHE_OK_TO_ADD|ADD_CACHE_OK_TO_REPLACE);
 }
 
 void fill_stat_data(struct stat_data *sd, struct stat *st)
@@ -615,26 +616,26 @@ static struct cache_entry *create_alias_ce(struct index_state *istate,
 					   struct cache_entry *alias)
 {
 	int len;
-	struct cache_entry *new;
+	struct cache_entry *new_entry;
 
 	if (alias->ce_flags & CE_ADDED)
 		die("Will not add file alias '%s' ('%s' already exists in index)", ce->name, alias->name);
 
 	/* Ok, create the new entry using the name of the existing alias */
 	len = ce_namelen(alias);
-	new = xcalloc(1, cache_entry_size(len));
-	memcpy(new->name, alias->name, len);
-	copy_cache_entry(new, ce);
+	new_entry = xcalloc(1, cache_entry_size(len));
+	memcpy(new_entry->name, alias->name, len);
+	copy_cache_entry(new_entry, ce);
 	save_or_free_index_entry(istate, ce);
-	return new;
+	return new_entry;
 }
 
 void set_object_name_for_intent_to_add_entry(struct cache_entry *ce)
 {
-	unsigned char sha1[20];
-	if (write_sha1_file("", 0, blob_type, sha1))
+	struct object_id oid;
+	if (write_object_file("", 0, blob_type, &oid))
 		die("cannot create an empty blob in the object database");
-	hashcpy(ce->oid.hash, sha1);
+	oidcpy(&ce->oid, &oid);
 }
 
 int add_to_index(struct index_state *istate, const char *path, struct stat *st, int flags)
@@ -1217,9 +1218,8 @@ int add_index_entry(struct index_state *istate, struct cache_entry *ce, int opti
 	/* Add it in.. */
 	istate->cache_nr++;
 	if (istate->cache_nr > pos + 1)
-		memmove(istate->cache + pos + 1,
-			istate->cache + pos,
-			(istate->cache_nr - pos - 1) * sizeof(ce));
+		MOVE_ARRAY(istate->cache + pos + 1, istate->cache + pos,
+			   istate->cache_nr - pos - 1);
 	set_index_entry(istate, pos, ce);
 	istate->cache_changed |= CE_ENTRY_ADDED;
 	return 0;
@@ -1325,7 +1325,8 @@ static struct cache_entry *refresh_cache_ent(struct index_state *istate,
 
 	size = ce_size(ce);
 	updated = xmalloc(size);
-	memcpy(updated, ce, size);
+	copy_cache_entry(updated, ce);
+	memcpy(updated->name, ce->name, ce->ce_namelen + 1);
 	fill_stat_cache_info(updated, &st);
 	/*
 	 * If ignore_valid is not set, we should leave CE_VALID bit
@@ -1372,6 +1373,7 @@ int refresh_index(struct index_state *istate, unsigned int flags,
 	const char *typechange_fmt;
 	const char *added_fmt;
 	const char *unmerged_fmt;
+	uint64_t start = getnanotime();
 
 	modified_fmt = (in_porcelain ? "M\t%s\n" : "%s: needs update\n");
 	deleted_fmt = (in_porcelain ? "D\t%s\n" : "%s: needs update\n");
@@ -1379,7 +1381,7 @@ int refresh_index(struct index_state *istate, unsigned int flags,
 	added_fmt = (in_porcelain ? "A\t%s\n" : "%s needs update\n");
 	unmerged_fmt = (in_porcelain ? "U\t%s\n" : "%s: needs merge\n");
 	for (i = 0; i < istate->cache_nr; i++) {
-		struct cache_entry *ce, *new;
+		struct cache_entry *ce, *new_entry;
 		int cache_errno = 0;
 		int changed = 0;
 		int filtered = 0;
@@ -1408,10 +1410,10 @@ int refresh_index(struct index_state *istate, unsigned int flags,
 		if (filtered)
 			continue;
 
-		new = refresh_cache_ent(istate, ce, options, &cache_errno, &changed);
-		if (new == ce)
+		new_entry = refresh_cache_ent(istate, ce, options, &cache_errno, &changed);
+		if (new_entry == ce)
 			continue;
-		if (!new) {
+		if (!new_entry) {
 			const char *fmt;
 
 			if (really && cache_errno == EINVAL) {
@@ -1440,8 +1442,9 @@ int refresh_index(struct index_state *istate, unsigned int flags,
 			continue;
 		}
 
-		replace_index_entry(istate, i, new);
+		replace_index_entry(istate, i, new_entry);
 	}
+	trace_performance_since(start, "refresh index");
 	return has_errors;
 }
 
@@ -1545,8 +1548,8 @@ int verify_ce_order;
 
 static int verify_hdr(struct cache_header *hdr, unsigned long size)
 {
-	git_SHA_CTX c;
-	unsigned char sha1[20];
+	git_hash_ctx c;
+	unsigned char hash[GIT_MAX_RAWSZ];
 	int hdr_version;
 
 	if (hdr->hdr_signature != htonl(CACHE_SIGNATURE))
@@ -1558,10 +1561,10 @@ static int verify_hdr(struct cache_header *hdr, unsigned long size)
 	if (!verify_index_checksum)
 		return 0;
 
-	git_SHA1_Init(&c);
-	git_SHA1_Update(&c, hdr, size - 20);
-	git_SHA1_Final(sha1, &c);
-	if (hashcmp(sha1, (unsigned char *)hdr + size - 20))
+	the_hash_algo->init_fn(&c);
+	the_hash_algo->update_fn(&c, hdr, size - the_hash_algo->rawsz);
+	the_hash_algo->final_fn(hash, &c);
+	if (hashcmp(hash, (unsigned char *)hdr + size - the_hash_algo->rawsz))
 		return error("bad index file sha1 signature");
 	return 0;
 }
@@ -1791,7 +1794,7 @@ int do_read_index(struct index_state *istate, const char *path, int must_exist)
 		die_errno("cannot stat the open index");
 
 	mmap_size = xsize_t(st.st_size);
-	if (mmap_size < sizeof(struct cache_header) + 20)
+	if (mmap_size < sizeof(struct cache_header) + the_hash_algo->rawsz)
 		die("index file smaller than expected");
 
 	mmap = xmmap(NULL, mmap_size, PROT_READ, MAP_PRIVATE, fd, 0);
@@ -1803,7 +1806,7 @@ int do_read_index(struct index_state *istate, const char *path, int must_exist)
 	if (verify_hdr(hdr, mmap_size) < 0)
 		goto unmap;
 
-	hashcpy(istate->sha1, (const unsigned char *)hdr + mmap_size - 20);
+	hashcpy(istate->sha1, (const unsigned char *)hdr + mmap_size - the_hash_algo->rawsz);
 	istate->version = ntohl(hdr->hdr_version);
 	istate->cache_nr = ntohl(hdr->hdr_entries);
 	istate->cache_alloc = alloc_nr(istate->cache_nr);
@@ -1831,7 +1834,7 @@ int do_read_index(struct index_state *istate, const char *path, int must_exist)
 	istate->timestamp.sec = st.st_mtime;
 	istate->timestamp.nsec = ST_MTIME_NSEC(st);
 
-	while (src_offset <= mmap_size - 20 - 8) {
+	while (src_offset <= mmap_size - the_hash_algo->rawsz - 8) {
 		/* After an array of active_nr index entries,
 		 * there can be arbitrary number of extended
 		 * sections, each of which is prefixed with
@@ -1872,6 +1875,7 @@ static void freshen_shared_index(const char *shared_index, int warn)
 int read_index_from(struct index_state *istate, const char *path,
 		    const char *gitdir)
 {
+	uint64_t start = getnanotime();
 	struct split_index *split_index;
 	int ret;
 	char *base_sha1_hex;
@@ -1882,6 +1886,7 @@ int read_index_from(struct index_state *istate, const char *path,
 		return istate->cache_nr;
 
 	ret = do_read_index(istate, path, 0);
+	trace_performance_since(start, "read cache %s", path);
 
 	split_index = istate->split_index;
 	if (!split_index || is_null_sha1(split_index->base_sha1)) {
@@ -1905,6 +1910,7 @@ int read_index_from(struct index_state *istate, const char *path,
 	freshen_shared_index(base_path, 0);
 	merge_base_index(istate);
 	post_read_index_from(istate);
+	trace_performance_since(start, "read cache %s", base_path);
 	free(base_path);
 	return ret;
 }
@@ -1957,11 +1963,11 @@ int unmerged_index(const struct index_state *istate)
 static unsigned char write_buffer[WRITE_BUFFER_SIZE];
 static unsigned long write_buffer_len;
 
-static int ce_write_flush(git_SHA_CTX *context, int fd)
+static int ce_write_flush(git_hash_ctx *context, int fd)
 {
 	unsigned int buffered = write_buffer_len;
 	if (buffered) {
-		git_SHA1_Update(context, write_buffer, buffered);
+		the_hash_algo->update_fn(context, write_buffer, buffered);
 		if (write_in_full(fd, write_buffer, buffered) < 0)
 			return -1;
 		write_buffer_len = 0;
@@ -1969,7 +1975,7 @@ static int ce_write_flush(git_SHA_CTX *context, int fd)
 	return 0;
 }
 
-static int ce_write(git_SHA_CTX *context, int fd, void *data, unsigned int len)
+static int ce_write(git_hash_ctx *context, int fd, void *data, unsigned int len)
 {
 	while (len) {
 		unsigned int buffered = write_buffer_len;
@@ -1991,7 +1997,7 @@ static int ce_write(git_SHA_CTX *context, int fd, void *data, unsigned int len)
 	return 0;
 }
 
-static int write_index_ext_header(git_SHA_CTX *context, int fd,
+static int write_index_ext_header(git_hash_ctx *context, int fd,
 				  unsigned int ext, unsigned int sz)
 {
 	ext = htonl(ext);
@@ -2000,26 +2006,26 @@ static int write_index_ext_header(git_SHA_CTX *context, int fd,
 		(ce_write(context, fd, &sz, 4) < 0)) ? -1 : 0;
 }
 
-static int ce_flush(git_SHA_CTX *context, int fd, unsigned char *sha1)
+static int ce_flush(git_hash_ctx *context, int fd, unsigned char *hash)
 {
 	unsigned int left = write_buffer_len;
 
 	if (left) {
 		write_buffer_len = 0;
-		git_SHA1_Update(context, write_buffer, left);
+		the_hash_algo->update_fn(context, write_buffer, left);
 	}
 
-	/* Flush first if not enough space for SHA1 signature */
-	if (left + 20 > WRITE_BUFFER_SIZE) {
+	/* Flush first if not enough space for hash signature */
+	if (left + the_hash_algo->rawsz > WRITE_BUFFER_SIZE) {
 		if (write_in_full(fd, write_buffer, left) < 0)
 			return -1;
 		left = 0;
 	}
 
-	/* Append the SHA1 signature at the end */
-	git_SHA1_Final(write_buffer + left, context);
-	hashcpy(sha1, write_buffer + left);
-	left += 20;
+	/* Append the hash signature at the end */
+	the_hash_algo->final_fn(write_buffer + left, context);
+	hashcpy(hash, write_buffer + left);
+	left += the_hash_algo->rawsz;
 	return (write_in_full(fd, write_buffer, left) < 0) ? -1 : 0;
 }
 
@@ -2100,17 +2106,19 @@ static void copy_cache_entry_to_ondisk(struct ondisk_cache_entry *ondisk,
 	}
 }
 
-static int ce_write_entry(git_SHA_CTX *c, int fd, struct cache_entry *ce,
+static int ce_write_entry(git_hash_ctx *c, int fd, struct cache_entry *ce,
 			  struct strbuf *previous_name, struct ondisk_cache_entry *ondisk)
 {
 	int size;
-	int saved_namelen = saved_namelen; /* compiler workaround */
 	int result;
+	unsigned int saved_namelen;
+	int stripped_name = 0;
 	static unsigned char padding[8] = { 0x00 };
 
 	if (ce->ce_flags & CE_STRIP_NAME) {
 		saved_namelen = ce_namelen(ce);
 		ce->ce_namelen = 0;
+		stripped_name = 1;
 	}
 
 	if (ce->ce_flags & CE_EXTENDED)
@@ -2150,7 +2158,7 @@ static int ce_write_entry(git_SHA_CTX *c, int fd, struct cache_entry *ce,
 		strbuf_splice(previous_name, common, to_remove,
 			      ce->name + common, ce_namelen(ce) - common);
 	}
-	if (ce->ce_flags & CE_STRIP_NAME) {
+	if (stripped_name) {
 		ce->ce_namelen = saved_namelen;
 		ce->ce_flags &= ~CE_STRIP_NAME;
 	}
@@ -2167,7 +2175,7 @@ static int verify_index_from(const struct index_state *istate, const char *path)
 	int fd;
 	ssize_t n;
 	struct stat st;
-	unsigned char sha1[20];
+	unsigned char hash[GIT_MAX_RAWSZ];
 
 	if (!istate->initialized)
 		return 0;
@@ -2179,14 +2187,14 @@ static int verify_index_from(const struct index_state *istate, const char *path)
 	if (fstat(fd, &st))
 		goto out;
 
-	if (st.st_size < sizeof(struct cache_header) + 20)
+	if (st.st_size < sizeof(struct cache_header) + the_hash_algo->rawsz)
 		goto out;
 
-	n = pread_in_full(fd, sha1, 20, st.st_size - 20);
-	if (n != 20)
+	n = pread_in_full(fd, hash, the_hash_algo->rawsz, st.st_size - the_hash_algo->rawsz);
+	if (n != the_hash_algo->rawsz)
 		goto out;
 
-	if (hashcmp(istate->sha1, sha1))
+	if (hashcmp(istate->sha1, hash))
 		goto out;
 
 	close(fd);
@@ -2234,8 +2242,9 @@ void update_index_if_able(struct index_state *istate, struct lock_file *lockfile
 static int do_write_index(struct index_state *istate, struct tempfile *tempfile,
 			  int strip_extensions)
 {
+	uint64_t start = getnanotime();
 	int newfd = tempfile->fd;
-	git_SHA_CTX c;
+	git_hash_ctx c;
 	struct cache_header hdr;
 	int i, err = 0, removed, extended, hdr_version;
 	struct cache_entry **cache = istate->cache;
@@ -2273,7 +2282,7 @@ static int do_write_index(struct index_state *istate, struct tempfile *tempfile,
 	hdr.hdr_version = htonl(hdr_version);
 	hdr.hdr_entries = htonl(entries - removed);
 
-	git_SHA1_Init(&c);
+	the_hash_algo->init_fn(&c);
 	if (ce_write(&c, newfd, &hdr, sizeof(hdr)) < 0)
 		return -1;
 
@@ -2374,6 +2383,7 @@ static int do_write_index(struct index_state *istate, struct tempfile *tempfile,
 		return -1;
 	istate->timestamp.sec = (unsigned int)st.st_mtime;
 	istate->timestamp.nsec = ST_MTIME_NSEC(st);
+	trace_performance_since(start, "write index, changed mask = %x", istate->cache_changed);
 	return 0;
 }
 
@@ -2531,6 +2541,12 @@ int write_locked_index(struct index_state *istate, struct lock_file *lock,
 {
 	int new_shared_index, ret;
 	struct split_index *si = istate->split_index;
+
+	if ((flags & SKIP_IF_UNCHANGED) && !istate->cache_changed) {
+		if (flags & COMMIT_LOCK)
+			rollback_lock_file(lock);
+		return 0;
+	}
 
 	if (istate->fsmonitor_last_update)
 		fill_fsmonitor_bitmap(istate);

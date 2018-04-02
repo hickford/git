@@ -225,6 +225,14 @@ test_expect_success 'stop on conflicting pick' '
 	test 0 = $(grep -c "^[^#]" < .git/rebase-merge/git-rebase-todo)
 '
 
+test_expect_success 'show conflicted patch' '
+	GIT_TRACE=1 git rebase --show-current-patch >/dev/null 2>stderr &&
+	grep "show.*REBASE_HEAD" stderr &&
+	# the original stopped-sha1 is abbreviated
+	stopped_sha1="$(git rev-parse $(cat ".git/rebase-merge/stopped-sha"))" &&
+	test "$(git rev-parse REBASE_HEAD)" = "$stopped_sha1"
+'
+
 test_expect_success 'abort' '
 	git rebase --abort &&
 	test $(git rev-parse new-branch1) = $(git rev-parse HEAD) &&
@@ -453,6 +461,10 @@ test_expect_success C_LOCALE_OUTPUT 'squash and fixup generate correct log messa
 		git rebase -i $base &&
 	git cat-file commit HEAD | sed -e 1,/^\$/d > actual-squash-fixup &&
 	test_cmp expect-squash-fixup actual-squash-fixup &&
+	git cat-file commit HEAD@{2} |
+		grep "^# This is a combination of 3 commits\."  &&
+	git cat-file commit HEAD@{3} |
+		grep "^# This is a combination of 2 commits\."  &&
 	git checkout to-be-rebased &&
 	git branch -D squash-fixup
 '
@@ -1336,6 +1348,16 @@ test_expect_success 'editor saves as CR/LF' '
 
 SQ="'"
 test_expect_success 'rebase -i --gpg-sign=<key-id>' '
+	test_when_finished "test_might_fail git rebase --abort" &&
+	set_fake_editor &&
+	FAKE_LINES="edit 1" git rebase -i --gpg-sign="\"S I Gner\"" HEAD^ \
+		>out 2>err &&
+	test_i18ngrep "$SQ-S\"S I Gner\"$SQ" err
+'
+
+test_expect_success 'rebase -i --gpg-sign=<key-id> overrides commit.gpgSign' '
+	test_when_finished "test_might_fail git rebase --abort" &&
+	test_config commit.gpgsign true &&
 	set_fake_editor &&
 	FAKE_LINES="edit 1" git rebase -i --gpg-sign="\"S I Gner\"" HEAD^ \
 		>out 2>err &&

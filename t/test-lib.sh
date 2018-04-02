@@ -264,7 +264,24 @@ do
 		GIT_TEST_CHAIN_LINT=0
 		shift ;;
 	-x)
-		trace=t
+		# Some test scripts can't be reliably traced  with '-x',
+		# unless the test is run with a Bash version supporting
+		# BASH_XTRACEFD (introduced in Bash v4.1).  Check whether
+		# this test is marked as such, and ignore '-x' if it
+		# isn't executed with a suitable Bash version.
+		if test -z "$test_untraceable" || {
+		     test -n "$BASH_VERSION" && {
+		       test ${BASH_VERSINFO[0]} -gt 4 || {
+			 test ${BASH_VERSINFO[0]} -eq 4 &&
+			 test ${BASH_VERSINFO[1]} -ge 1
+		       }
+		     }
+		   }
+		then
+			trace=t
+		else
+			echo >&2 "warning: ignoring -x; '$0' is untraceable without BASH_XTRACEFD"
+		fi
 		shift ;;
 	--verbose-log)
 		verbose_log=t
@@ -940,7 +957,7 @@ then
 	fi
 fi
 
-GITPERLLIB="$GIT_BUILD_DIR"/perl/blib/lib:"$GIT_BUILD_DIR"/perl/blib/arch/auto/Git
+GITPERLLIB="$GIT_BUILD_DIR"/perl/build/lib
 export GITPERLLIB
 test -d "$GIT_BUILD_DIR"/templates/blt || {
 	error "You haven't built things yet, have you?"
@@ -1105,6 +1122,10 @@ test_lazy_prereq AUTOIDENT '
 
 test_lazy_prereq EXPENSIVE '
 	test -n "$GIT_TEST_LONG"
+'
+
+test_lazy_prereq EXPENSIVE_ON_WINDOWS '
+	test_have_prereq EXPENSIVE || test_have_prereq !MINGW,!CYGWIN
 '
 
 test_lazy_prereq USR_BIN_TIME '

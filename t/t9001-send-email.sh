@@ -178,6 +178,25 @@ test_expect_success $PREREQ 'cc trailer with various syntax' '
 	test_cmp expected-cc commandline1
 '
 
+test_expect_success $PREREQ 'setup fake get_maintainer.pl script for cc trailer' "
+	write_script expected-cc-script.sh <<-EOF
+	echo 'One Person <one@example.com> (supporter:THIS (FOO/bar))'
+	echo 'Two Person <two@example.com> (maintainer:THIS THING)'
+	echo 'Third List <three@example.com> (moderated list:THIS THING (FOO/bar))'
+	echo '<four@example.com> (moderated list:FOR THING)'
+	echo 'five@example.com (open list:FOR THING (FOO/bar))'
+	echo 'six@example.com (open list)'
+	EOF
+"
+
+test_expect_success $PREREQ 'cc trailer with get_maintainer.pl output' '
+	clean_fake_sendmail &&
+	git send-email -1 --to=recipient@example.com \
+		--cc-cmd=./expected-cc-script.sh \
+		--smtp-server="$(pwd)/fake.sendmail" &&
+	test_cmp expected-cc commandline1
+'
+
 test_expect_success $PREREQ 'setup expect' "
 cat >expected-show-all-headers <<\EOF
 0001-Second.patch
@@ -205,6 +224,7 @@ Message-Id: MESSAGE-ID-STRING
 X-Mailer: X-MAILER-STRING
 In-Reply-To: <unique-message-id@example.com>
 References: <unique-message-id@example.com>
+Reply-To: Reply <reply@example.com>
 
 Result: OK
 EOF
@@ -297,6 +317,7 @@ test_expect_success $PREREQ 'Show all headers' '
 		--dry-run \
 		--suppress-cc=sob \
 		--from="Example <from@example.com>" \
+		--reply-to="Reply <reply@example.com>" \
 		--to=to@example.com \
 		--cc=cc@example.com \
 		--bcc=bcc@example.com \

@@ -381,7 +381,7 @@ static int show_ambiguous_object(const struct object_id *oid, void *data)
 
 	advise("  %s %s%s",
 	       find_unique_abbrev(oid->hash, DEFAULT_ABBREV),
-	       typename(type) ? typename(type) : "unknown type",
+	       type_name(type) ? type_name(type) : "unknown type",
 	       desc.buf);
 
 	strbuf_release(&desc);
@@ -542,20 +542,20 @@ static void find_abbrev_len_for_pack(struct packed_git *p,
 	/*
 	 * first is now the position in the packfile where we would insert
 	 * mad->hash if it does not exist (or the position of mad->hash if
-	 * it does exist). Hence, we consider a maximum of three objects
+	 * it does exist). Hence, we consider a maximum of two objects
 	 * nearby for the abbreviation length.
 	 */
 	mad->init_len = 0;
 	if (!match) {
-		nth_packed_object_oid(&oid, p, first);
-		extend_abbrev_len(&oid, mad);
+		if (nth_packed_object_oid(&oid, p, first))
+			extend_abbrev_len(&oid, mad);
 	} else if (first < num - 1) {
-		nth_packed_object_oid(&oid, p, first + 1);
-		extend_abbrev_len(&oid, mad);
+		if (nth_packed_object_oid(&oid, p, first + 1))
+			extend_abbrev_len(&oid, mad);
 	}
 	if (first > 0) {
-		nth_packed_object_oid(&oid, p, first - 1);
-		extend_abbrev_len(&oid, mad);
+		if (nth_packed_object_oid(&oid, p, first - 1))
+			extend_abbrev_len(&oid, mad);
 	}
 	mad->init_len = mad->cur_len;
 }
@@ -901,8 +901,8 @@ struct object *peel_to_type(const char *name, int namelen,
 			if (name)
 				error("%.*s: expected %s type, but the object "
 				      "dereferences to %s type",
-				      namelen, name, typename(expected_type),
-				      typename(o->type));
+				      namelen, name, type_name(expected_type),
+				      type_name(o->type));
 			return NULL;
 		}
 	}

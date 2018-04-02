@@ -5,7 +5,7 @@
 
 . ${0%/*}/lib-travisci.sh
 
-ln -s $HOME/travis-cache/.prove t/.prove
+ln -s "$cache_dir/.prove" t/.prove
 
 make --jobs=2
 make --quiet test
