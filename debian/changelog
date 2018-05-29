@@ -1,3 +1,10 @@
+git (1:2.17.1-1) unstable; urgency=high
+
+  * new upstream point release to fix CVE-2018-11235, arbitary code
+    execution via submodule names in .gitmodules (see RelNotes/2.17.1.txt).
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 28 May 2018 17:37:54 -0700
+
 git (1:2.17.0-1) unstable; urgency=low
 
   * new upstream release (see RelNotes/2.17.0.txt).

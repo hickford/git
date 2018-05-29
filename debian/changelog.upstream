@@ -1,3 +1,38 @@
+Version v2.17.1; changes since v2.17.0:
+---------------------------------------
+
+Jeff King (18):
+      submodule-config: verify submodule names as paths
+      is_ntfs_dotgit: use a size_t for traversing string
+      is_hfs_dotgit: match other .git files
+      skip_prefix: add case-insensitive variant
+      verify_path: drop clever fallthrough
+      verify_dotfile: mention case-insensitivity in comment
+      update-index: stat updated files earlier
+      verify_path: disallow symlinks in .gitmodules
+      index-pack: make fsck error message more specific
+      fsck: simplify ".git" check
+      fsck: actually fsck blob data
+      fsck: detect gitmodules files
+      fsck: handle promisor objects in .gitmodules check
+      fsck: check .gitmodules content
+      fsck: call fsck_finish() after fscking objects
+      unpack-objects: call fsck_finish() after fscking objects
+      index-pack: check .gitmodules files with --strict
+      fsck: complain when .gitmodules is a symlink
+
+Johannes Schindelin (2):
+      is_ntfs_dotgit: match other .git files
+      is_{hfs,ntfs}_dotgitmodules: add tests
+
+Junio C Hamano (5):
+      Git 2.13.7
+      Git 2.14.4
+      Git 2.15.2
+      Git 2.16.4
+      Git 2.17.1
+
+
 Version v2.17.0; changes since v2.17.0-rc2:
 -------------------------------------------
 
@@ -110,7 +145,7 @@ Todd Zullinger (2):
       completion: complete tags with git tag --delete/--verify
 
 
-Version v2.17.0-rc0; changes since v2.16.3:
+Version v2.17.0-rc0; changes since v2.16.4:
 -------------------------------------------
 
 Adam Borowski (1):
@@ -588,6 +623,30 @@ brian m. carlson (13):
       git manpage: note git-security@googlegroups.com
 
 
+Version v2.16.4; changes since v2.16.3:
+---------------------------------------
+
+Jeff King (8):
+      submodule-config: verify submodule names as paths
+      is_ntfs_dotgit: use a size_t for traversing string
+      is_hfs_dotgit: match other .git files
+      skip_prefix: add case-insensitive variant
+      verify_path: drop clever fallthrough
+      verify_dotfile: mention case-insensitivity in comment
+      update-index: stat updated files earlier
+      verify_path: disallow symlinks in .gitmodules
+
+Johannes Schindelin (2):
+      is_ntfs_dotgit: match other .git files
+      is_{hfs,ntfs}_dotgitmodules: add tests
+
+Junio C Hamano (4):
+      Git 2.13.7
+      Git 2.14.4
+      Git 2.15.2
+      Git 2.16.4
+
+
 Version v2.16.3; changes since v2.16.2:
 ---------------------------------------
 
@@ -929,7 +988,7 @@ Torsten Bögershausen (1):
       check-non-portable-shell.pl: `wc -l` may have leading WS
 
 
-Version v2.16.0-rc0; changes since v2.15.1:
+Version v2.16.0-rc0; changes since v2.15.2:
 -------------------------------------------
 
 Albert Astals Cid (1):
@@ -1052,9 +1111,8 @@ Derrick Stolee (5):
       sha1_name: minimize OID comparisons during disambiguation
       sha1_file: use strbuf_add() instead of strbuf_addf()
 
-Elijah Newren (7):
+Elijah Newren (6):
       sequencer: warn when internal merge may be suboptimal due to renameLimit
-      merge-recursive: handle addition of submodule on our side of history
       progress: fix progress meters when dealing with lots of work
       diff: remove silent clamp of renameLimit
       sequencer: show rename progress during cherry picks
@@ -1069,8 +1127,7 @@ Eric Sunshine (3):
       clone: support 'clone --shared' from a worktree
       version --build-options: also report host CPU
 
-Eric Wong (2):
-      rebase: use mboxrd format to avoid split errors
+Eric Wong (1):
       git-svn: convert CRLF to LF in commit message to SVN
 
 Florian Klink (1):
@@ -1167,7 +1224,7 @@ Jonathan Tan (10):
       clone, fetch: remove redundant transport check
       transport: make transport vtable more private
 
-Junio C Hamano (28):
+Junio C Hamano (26):
       t0027: do not use an empty string as a pathspec element
       describe: do not use cmd_*() as a subroutine
       merge-ours: do not use cmd_*() as a subroutine
@@ -1177,7 +1234,6 @@ Junio C Hamano (28):
       The first batch for 2.16
       RelNotes: the second batch post 2.15 comes
       diff: --ignore-cr-at-eol
-      merge-base --fork-point doc: clarify the example and failure modes
       RelNotes: the third batch for 2.16
       branch: correctly reject refs/heads/{-dash,HEAD}
       RelNotes: the fourth batch for 2.16
@@ -1186,7 +1242,6 @@ Junio C Hamano (28):
       RelNotes: the sixth batch for 2.16
       RelNotes: the seventh batch
       t2020: test variations that matter
-      Prepare for 2.15.2
       RelNotes: the eighth batch
       diff: use skip_to_optional_arg_default() in parsing --relative
       t4045: reindent to make helpers readable
@@ -1249,9 +1304,7 @@ Martin Ågren (15):
       branch: respect `pager.branch` in list-mode only
       branch: change default of `pager.branch` to "on"
 
-Michael Haggerty (12):
-      t1409: check that `packed-refs` is not rewritten unnecessarily
-      files-backend: don't rewrite the `packed-refs` file unnecessarily
+Michael Haggerty (10):
       t0000: check whether the shell supports the "local" keyword
       files_transaction_prepare(): don't leak flags to packed transaction
       prune_ref(): call `ref_transaction_add_update()` directly
@@ -1273,10 +1326,6 @@ Olga Telezhnaya (2):
 Phil Hord (2):
       doc: prefer 'stash push' over 'stash save'
       stash: learn to parse -m/--message like commit does
-
-Phillip Wood (2):
-      config: avoid "write_in_full(fd, buf, len) != len" pattern
-      sequencer: reschedule pick if index can't be locked
 
 Pranit Bauva (6):
       bisect--helper: use OPT_CMDMODE instead of OPT_BOOL
@@ -1304,11 +1353,10 @@ Rasmus Villemoes (2):
       Documentation/config: add sendemail.tocmd to list preceding "See git-send-email(1)"
       completion: add git config sendemail.tocmd
 
-René Scharfe (15):
+René Scharfe (14):
       notes: move hex_to_bytes() to hex.c and export it
       http-push: use hex_to_bytes()
       sha1_file: use hex_to_bytes()
-      apply: update line lengths for --inaccurate-eof
       t4051: add test for comments preceding function lines
       xdiff: factor out is_func_rec()
       xdiff: show non-empty lines before functions with -W
@@ -1338,18 +1386,14 @@ SZEDER Gábor (5):
       travis-ci: set GIT_TEST_HTTPD in 'ci/lib-travisci.sh'
       travis-ci: use 'set -x' in 'ci/*' scripts for extra tracing output
 
-Shuyu Wei (1):
-      pull: pass -4/-6 option to 'git fetch'
-
 Simon Ruderich (1):
       config: document default value of http.sslVerify
 
-Stefan Beller (12):
+Stefan Beller (11):
       recursive submodules: detach HEAD from new state
       Documentation/checkout: clarify submodule HEADs to be detached
       t6120: fix typo in test name
       list-objects.c: factor out traverse_trees_and_blobs
-      t/3512: demonstrate unrelated submodule/file conflict as cherry-pick failure
       revision.h: introduce blob/tree walking in order of the commits
       builtin/describe.c: rename `oid` to avoid variable shadowing
       builtin/describe.c: print debug statements earlier
@@ -1377,12 +1421,8 @@ Thomas Gummerer (11):
       worktree: add --guess-remote flag to add subcommand
       add worktree.guessRemote config option
 
-Todd Zullinger (8):
-      t/lib-gpg: fix gpgconf stderr redirect to /dev/null
-      rebase: fix stderr redirect in apply_autostash()
-      notes: send "Automatic notes merge failed" messages to stderr
+Todd Zullinger (4):
       branch doc: remove --set-upstream from synopsis
-      completion: add '--copy' option to 'git branch'
       t/lib-git-svn: cleanup inconsistent tab/space usage
       t/lib-git-svn.sh: improve svnserve tests with parallel make test
       RelNotes: minor typo fixes in 2.16.0 draft
@@ -1398,7 +1438,7 @@ W. Trevor King (1):
 Wei Shuyu (1):
       http: support CURLPROXY_HTTPS
 
-brian m. carlson (31):
+brian m. carlson (29):
       walker: convert to struct object_id
       refs/files-backend: convert struct ref_to_prune to object_id
       refs: convert delete_ref and refs_delete_ref to struct object_id
@@ -1424,12 +1464,10 @@ brian m. carlson (31):
       refs: convert peel_object to struct object_id
       refs: convert read_raw_ref backends to struct object_id
       refs/files-backend: convert static functions to object_id
-      Documentation: enable compat-mode for Asciidoctor
       setup: expose enumerated repo info
       Add structure representing hash algorithm
       Integrate hash algorithm support with repo setup
       Switch empty tree and blob lookups to use hash abstraction
-      Documentation: convert SubmittingPatches to AsciiDoc
 
 Ævar Arnfjörð Bjarmason (2):
       test-lib: add LIBPCRE1 & LIBPCRE2 prerequisites
@@ -1437,6 +1475,64 @@ brian m. carlson (31):
 
 Łukasz Stelmach (1):
       git-gui: prevent double UTF-8 conversion
+
+
+Version v2.15.2; changes since v2.15.1:
+---------------------------------------
+
+Elijah Newren (1):
+      merge-recursive: handle addition of submodule on our side of history
+
+Eric Wong (1):
+      rebase: use mboxrd format to avoid split errors
+
+Jeff King (8):
+      submodule-config: verify submodule names as paths
+      is_ntfs_dotgit: use a size_t for traversing string
+      is_hfs_dotgit: match other .git files
+      skip_prefix: add case-insensitive variant
+      verify_path: drop clever fallthrough
+      verify_dotfile: mention case-insensitivity in comment
+      update-index: stat updated files earlier
+      verify_path: disallow symlinks in .gitmodules
+
+Johannes Schindelin (2):
+      is_ntfs_dotgit: match other .git files
+      is_{hfs,ntfs}_dotgitmodules: add tests
+
+Junio C Hamano (5):
+      merge-base --fork-point doc: clarify the example and failure modes
+      Prepare for 2.15.2
+      Git 2.13.7
+      Git 2.14.4
+      Git 2.15.2
+
+Michael Haggerty (2):
+      t1409: check that `packed-refs` is not rewritten unnecessarily
+      files-backend: don't rewrite the `packed-refs` file unnecessarily
+
+Phillip Wood (2):
+      config: avoid "write_in_full(fd, buf, len) != len" pattern
+      sequencer: reschedule pick if index can't be locked
+
+René Scharfe (1):
+      apply: update line lengths for --inaccurate-eof
+
+Shuyu Wei (1):
+      pull: pass -4/-6 option to 'git fetch'
+
+Stefan Beller (1):
+      t/3512: demonstrate unrelated submodule/file conflict as cherry-pick failure
+
+Todd Zullinger (4):
+      t/lib-gpg: fix gpgconf stderr redirect to /dev/null
+      rebase: fix stderr redirect in apply_autostash()
+      notes: send "Automatic notes merge failed" messages to stderr
+      completion: add '--copy' option to 'git branch'
+
+brian m. carlson (2):
+      Documentation: enable compat-mode for Asciidoctor
+      Documentation: convert SubmittingPatches to AsciiDoc
 
 
 Version v2.15.1; changes since v2.15.0:
@@ -1743,7 +1839,7 @@ Todd Zullinger (1):
       api-argv-array.txt: remove broken link to string-list API
 
 
-Version v2.15.0-rc0; changes since v2.14.3:
+Version v2.15.0-rc0; changes since v2.14.4:
 -------------------------------------------
 
 Brandon Casey (7):
@@ -2285,6 +2381,28 @@ brian m. carlson (12):
       merge: add a --signoff flag
 
 
+Version v2.14.4; changes since v2.14.3:
+---------------------------------------
+
+Jeff King (8):
+      submodule-config: verify submodule names as paths
+      is_ntfs_dotgit: use a size_t for traversing string
+      is_hfs_dotgit: match other .git files
+      skip_prefix: add case-insensitive variant
+      verify_path: drop clever fallthrough
+      verify_dotfile: mention case-insensitivity in comment
+      update-index: stat updated files earlier
+      verify_path: disallow symlinks in .gitmodules
+
+Johannes Schindelin (2):
+      is_ntfs_dotgit: match other .git files
+      is_{hfs,ntfs}_dotgitmodules: add tests
+
+Junio C Hamano (2):
+      Git 2.13.7
+      Git 2.14.4
+
+
 Version v2.14.3; changes since v2.14.2:
 ---------------------------------------
 
@@ -2799,7 +2917,7 @@ Trần Ngọc Quân (1):
       RelNotes: mention "sha1dc: optionally use sha1collisiondetection as a submodule"
 
 
-Version v2.14.0-rc0; changes since v2.13.6:
+Version v2.14.0-rc0; changes since v2.13.7:
 -------------------------------------------
 
 Andreas Heiduk (4):
@@ -3310,6 +3428,27 @@ xiaoqiang zhao (1):
       grep: remove redundant REG_NEWLINE when compiling fixed regex
       strbuf: change an always NULL/"" strbuf_addftime() param to bool
       sha1dc: optionally use sha1collisiondetection as a submodule
+
+
+Version v2.13.7; changes since v2.13.6:
+---------------------------------------
+
+Jeff King (8):
+      submodule-config: verify submodule names as paths
+      is_ntfs_dotgit: use a size_t for traversing string
+      is_hfs_dotgit: match other .git files
+      skip_prefix: add case-insensitive variant
+      verify_path: drop clever fallthrough
+      verify_dotfile: mention case-insensitivity in comment
+      update-index: stat updated files earlier
+      verify_path: disallow symlinks in .gitmodules
+
+Johannes Schindelin (2):
+      is_ntfs_dotgit: match other .git files
+      is_{hfs,ntfs}_dotgitmodules: add tests
+
+Junio C Hamano (1):
+      Git 2.13.7
 
 
 Version v2.13.6; changes since v2.13.5:
