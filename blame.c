@@ -80,8 +80,8 @@ static void verify_working_tree_path(struct commit *work_tree, const char *path)
 		struct object_id blob_oid;
 		unsigned mode;
 
-		if (!get_tree_entry(commit_oid->hash, path, blob_oid.hash, &mode) &&
-		    sha1_object_info(blob_oid.hash, NULL) == OBJ_BLOB)
+		if (!get_tree_entry(commit_oid, path, &blob_oid, &mode) &&
+		    oid_object_info(the_repository, &blob_oid, NULL) == OBJ_BLOB)
 			return;
 	}
 
@@ -297,8 +297,8 @@ static void fill_origin_blob(struct diff_options *opt,
 		    textconv_object(o->path, o->mode, &o->blob_oid, 1, &file->ptr, &file_size))
 			;
 		else
-			file->ptr = read_sha1_file(o->blob_oid.hash, &type,
-						   &file_size);
+			file->ptr = read_object_file(&o->blob_oid, &type,
+						     &file_size);
 		file->size = file_size;
 
 		if (!file->ptr)
@@ -502,11 +502,9 @@ static int fill_blob_sha1_and_mode(struct blame_origin *origin)
 {
 	if (!is_null_oid(&origin->blob_oid))
 		return 0;
-	if (get_tree_entry(origin->commit->object.oid.hash,
-			   origin->path,
-			   origin->blob_oid.hash, &origin->mode))
+	if (get_tree_entry(&origin->commit->object.oid, origin->path, &origin->blob_oid, &origin->mode))
 		goto error_out;
-	if (sha1_object_info(origin->blob_oid.hash, NULL) != OBJ_BLOB)
+	if (oid_object_info(the_repository, &origin->blob_oid, NULL) != OBJ_BLOB)
 		goto error_out;
 	return 0;
  error_out:
@@ -553,10 +551,10 @@ static struct blame_origin *find_origin(struct commit *parent,
 	diff_setup_done(&diff_opts);
 
 	if (is_null_oid(&origin->commit->object.oid))
-		do_diff_cache(&parent->tree->object.oid, &diff_opts);
+		do_diff_cache(get_commit_tree_oid(parent), &diff_opts);
 	else
-		diff_tree_oid(&parent->tree->object.oid,
-			      &origin->commit->tree->object.oid,
+		diff_tree_oid(get_commit_tree_oid(parent),
+			      get_commit_tree_oid(origin->commit),
 			      "", &diff_opts);
 	diffcore_std(&diff_opts);
 
@@ -622,10 +620,10 @@ static struct blame_origin *find_rename(struct commit *parent,
 	diff_setup_done(&diff_opts);
 
 	if (is_null_oid(&origin->commit->object.oid))
-		do_diff_cache(&parent->tree->object.oid, &diff_opts);
+		do_diff_cache(get_commit_tree_oid(parent), &diff_opts);
 	else
-		diff_tree_oid(&parent->tree->object.oid,
-			      &origin->commit->tree->object.oid,
+		diff_tree_oid(get_commit_tree_oid(parent),
+			      get_commit_tree_oid(origin->commit),
 			      "", &diff_opts);
 	diffcore_std(&diff_opts);
 
@@ -1257,10 +1255,10 @@ static void find_copy_in_parent(struct blame_scoreboard *sb,
 		diff_opts.flags.find_copies_harder = 1;
 
 	if (is_null_oid(&target->commit->object.oid))
-		do_diff_cache(&parent->tree->object.oid, &diff_opts);
+		do_diff_cache(get_commit_tree_oid(parent), &diff_opts);
 	else
-		diff_tree_oid(&parent->tree->object.oid,
-			      &target->commit->tree->object.oid,
+		diff_tree_oid(get_commit_tree_oid(parent),
+			      get_commit_tree_oid(target->commit),
 			      "", &diff_opts);
 
 	if (!diff_opts.flags.find_copies_harder)
@@ -1808,7 +1806,7 @@ void setup_scoreboard(struct blame_scoreboard *sb, const char *path, struct blam
 			l->item = c;
 			if (add_decoration(&sb->revs->children,
 					   &c->parents->item->object, l))
-				die("BUG: not unique item in first-parent chain");
+				BUG("not unique item in first-parent chain");
 			c = c->parents->item;
 		}
 
@@ -1831,8 +1829,8 @@ void setup_scoreboard(struct blame_scoreboard *sb, const char *path, struct blam
 				    &sb->final_buf_size))
 			;
 		else
-			sb->final_buf = read_sha1_file(o->blob_oid.hash, &type,
-						       &sb->final_buf_size);
+			sb->final_buf = read_object_file(&o->blob_oid, &type,
+							 &sb->final_buf_size);
 
 		if (!sb->final_buf)
 			die(_("cannot read blob %s for path %s"),

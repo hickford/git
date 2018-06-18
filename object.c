@@ -1,9 +1,12 @@
 #include "cache.h"
 #include "object.h"
+#include "replace-object.h"
 #include "blob.h"
 #include "tree.h"
 #include "commit.h"
 #include "tag.h"
+#include "object-store.h"
+#include "packfile.h"
 
 static struct object **obj_hash;
 static int nr_objs, obj_hash_size;
@@ -244,7 +247,7 @@ struct object *parse_object(const struct object_id *oid)
 	unsigned long size;
 	enum object_type type;
 	int eaten;
-	const unsigned char *repl = lookup_replace_object(oid->hash);
+	const struct object_id *repl = lookup_replace_object(the_repository, oid);
 	void *buffer;
 	struct object *obj;
 
@@ -254,8 +257,8 @@ struct object *parse_object(const struct object_id *oid)
 
 	if ((obj && obj->type == OBJ_BLOB && has_object_file(oid)) ||
 	    (!obj && has_object_file(oid) &&
-	     sha1_object_info(oid->hash, NULL) == OBJ_BLOB)) {
-		if (check_sha1_signature(repl, NULL, 0, NULL) < 0) {
+	     oid_object_info(the_repository, oid, NULL) == OBJ_BLOB)) {
+		if (check_object_signature(repl, NULL, 0, NULL) < 0) {
 			error("sha1 mismatch %s", oid_to_hex(oid));
 			return NULL;
 		}
@@ -263,11 +266,11 @@ struct object *parse_object(const struct object_id *oid)
 		return lookup_object(oid->hash);
 	}
 
-	buffer = read_sha1_file(oid->hash, &type, &size);
+	buffer = read_object_file(oid, &type, &size);
 	if (buffer) {
-		if (check_sha1_signature(repl, buffer, size, type_name(type)) < 0) {
+		if (check_object_signature(repl, buffer, size, type_name(type)) < 0) {
 			free(buffer);
-			error("sha1 mismatch %s", sha1_to_hex(repl));
+			error("sha1 mismatch %s", oid_to_hex(repl));
 			return NULL;
 		}
 
@@ -444,4 +447,47 @@ void clear_commit_marks_all(unsigned int flags)
 		if (obj && obj->type == OBJ_COMMIT)
 			obj->flags &= ~flags;
 	}
+}
+
+struct raw_object_store *raw_object_store_new(void)
+{
+	struct raw_object_store *o = xmalloc(sizeof(*o));
+
+	memset(o, 0, sizeof(*o));
+	INIT_LIST_HEAD(&o->packed_git_mru);
+	return o;
+}
+
+static void free_alt_odb(struct alternate_object_database *alt)
+{
+	strbuf_release(&alt->scratch);
+	oid_array_clear(&alt->loose_objects_cache);
+	free(alt);
+}
+
+static void free_alt_odbs(struct raw_object_store *o)
+{
+	while (o->alt_odb_list) {
+		struct alternate_object_database *next;
+
+		next = o->alt_odb_list->next;
+		free_alt_odb(o->alt_odb_list);
+		o->alt_odb_list = next;
+	}
+}
+
+void raw_object_store_clear(struct raw_object_store *o)
+{
+	FREE_AND_NULL(o->objectdir);
+	FREE_AND_NULL(o->alternate_db);
+
+	oidmap_free(o->replace_map, 1);
+	FREE_AND_NULL(o->replace_map);
+
+	free_alt_odbs(o);
+	o->alt_odb_tail = NULL;
+
+	INIT_LIST_HEAD(&o->packed_git_mru);
+	close_all_packs(o);
+	o->packed_git = NULL;
 }

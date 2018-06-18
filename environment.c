@@ -13,6 +13,9 @@
 #include "refs.h"
 #include "fmt-merge-msg.h"
 #include "commit.h"
+#include "argv-array.h"
+#include "object-store.h"
+#include "chdir-notify.h"
 
 int trust_executable_bit = 1;
 int trust_ctime = 1;
@@ -48,10 +51,11 @@ const char *editor_program;
 const char *askpass_program;
 const char *excludes_file;
 enum auto_crlf auto_crlf = AUTO_CRLF_FALSE;
-int check_replace_refs = 1;
+int check_replace_refs = 1; /* NEEDSWORK: rename to read_replace_refs */
 char *git_replace_ref_base;
 enum eol core_eol = EOL_UNSET;
 int global_conv_flags_eol = CONV_EOL_RNDTRP_WARN;
+char *check_roundtrip_encoding = "SHIFT-JIS";
 unsigned whitespace_rule_cfg = WS_DEFAULT_RULE;
 enum branch_track git_branch_track = BRANCH_TRACK_REMOTE;
 enum rebase_setup_type autorebase = AUTOREBASE_NEVER;
@@ -62,6 +66,7 @@ enum push_default_type push_default = PUSH_DEFAULT_UNSPECIFIED;
 enum object_creation_mode object_creation_mode = OBJECT_CREATION_MODE;
 char *notes_ref_name;
 int grafts_replace_parents = 1;
+int core_commit_graph;
 int core_apply_sparse_checkout;
 int merge_log_config = -1;
 int precomposed_unicode = -1; /* see probe_utf8_pathname_composition() */
@@ -147,10 +152,35 @@ static char *expand_namespace(const char *raw_namespace)
 	return strbuf_detach(&buf, NULL);
 }
 
-void setup_git_env(void)
+/*
+ * Wrapper of getenv() that returns a strdup value. This value is kept
+ * in argv to be freed later.
+ */
+static const char *getenv_safe(struct argv_array *argv, const char *name)
+{
+	const char *value = getenv(name);
+
+	if (!value)
+		return NULL;
+
+	argv_array_push(argv, value);
+	return argv->argv[argv->argc - 1];
+}
+
+void setup_git_env(const char *git_dir)
 {
 	const char *shallow_file;
 	const char *replace_ref_base;
+	struct set_gitdir_args args = { NULL };
+	struct argv_array to_free = ARGV_ARRAY_INIT;
+
+	args.commondir = getenv_safe(&to_free, GIT_COMMON_DIR_ENVIRONMENT);
+	args.object_dir = getenv_safe(&to_free, DB_ENVIRONMENT);
+	args.graft_file = getenv_safe(&to_free, GRAFT_ENVIRONMENT);
+	args.index_file = getenv_safe(&to_free, INDEX_ENVIRONMENT);
+	args.alternate_db = getenv_safe(&to_free, ALTERNATE_DB_ENVIRONMENT);
+	repo_set_gitdir(the_repository, git_dir, &args);
+	argv_array_clear(&to_free);
 
 	if (getenv(NO_REPLACE_OBJECTS_ENVIRONMENT))
 		check_replace_refs = 0;
@@ -244,9 +274,9 @@ const char *get_git_work_tree(void)
 
 char *get_object_directory(void)
 {
-	if (!the_repository->objectdir)
+	if (!the_repository->objects->objectdir)
 		BUG("git environment hasn't been setup");
-	return the_repository->objectdir;
+	return the_repository->objects->objectdir;
 }
 
 int odb_mkstemp(struct strbuf *temp_filename, const char *pattern)
@@ -296,13 +326,31 @@ char *get_graft_file(void)
 	return the_repository->graft_file;
 }
 
-int set_git_dir(const char *path)
+static void set_git_dir_1(const char *path)
 {
 	if (setenv(GIT_DIR_ENVIRONMENT, path, 1))
-		return error("Could not set GIT_DIR to '%s'", path);
-	repo_set_gitdir(the_repository, path);
-	setup_git_env();
-	return 0;
+		die("could not set GIT_DIR to '%s'", path);
+	setup_git_env(path);
+}
+
+static void update_relative_gitdir(const char *name,
+				   const char *old_cwd,
+				   const char *new_cwd,
+				   void *data)
+{
+	char *path = reparent_relative_path(old_cwd, new_cwd, get_git_dir());
+	trace_printf_key(&trace_setup_key,
+			 "setup: move $GIT_DIR to '%s'",
+			 path);
+	set_git_dir_1(path);
+	free(path);
+}
+
+void set_git_dir(const char *path)
+{
+	set_git_dir_1(path);
+	if (!is_absolute_path(path))
+		chdir_notify_register(NULL, update_relative_gitdir, NULL);
 }
 
 const char *get_log_output_encoding(void)

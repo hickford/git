@@ -264,9 +264,9 @@ test_expect_success 'pack with missing parent' '
 '
 
 test_expect_success JGIT 'we can read jgit bitmaps' '
-	git clone . compat-jgit &&
+	git clone --bare . compat-jgit.git &&
 	(
-		cd compat-jgit &&
+		cd compat-jgit.git &&
 		rm -f .git/objects/pack/*.bitmap &&
 		jgit gc &&
 		git rev-list --test-bitmap HEAD
@@ -274,9 +274,9 @@ test_expect_success JGIT 'we can read jgit bitmaps' '
 '
 
 test_expect_success JGIT 'jgit can read our bitmaps' '
-	git clone . compat-us &&
+	git clone --bare . compat-us.git &&
 	(
-		cd compat-us &&
+		cd compat-us.git &&
 		git repack -adb &&
 		# jgit gc will barf if it does not like our bitmaps
 		jgit gc
@@ -284,7 +284,7 @@ test_expect_success JGIT 'jgit can read our bitmaps' '
 '
 
 test_expect_success 'splitting packs does not generate bogus bitmaps' '
-	test-genrandom foo $((1024 * 1024)) >rand &&
+	test-tool genrandom foo $((1024 * 1024)) >rand &&
 	git add rand &&
 	git commit -m "commit with big file" &&
 	git -c pack.packSizeLimit=500k repack -adb &&

@@ -19,6 +19,7 @@
 #include "varint.h"
 #include "ewah/ewok.h"
 #include "fsmonitor.h"
+#include "submodule-config.h"
 
 /*
  * Tells read_directory_recursive how a file or directory should be treated.
@@ -243,7 +244,7 @@ static int do_read_blob(const struct object_id *oid, struct oid_stat *oid_stat,
 	*size_out = 0;
 	*data_out = NULL;
 
-	data = read_sha1_file(oid->hash, &type, &sz);
+	data = read_object_file(oid, &type, &sz);
 	if (!data || type != OBJ_BLOB) {
 		free(data);
 		return -1;
@@ -828,7 +829,7 @@ static int add_excludes(const char *fname, const char *base, int baselen,
 		if (size == 0) {
 			if (oid_stat) {
 				fill_stat_data(&oid_stat->stat, &st);
-				oidcpy(&oid_stat->oid, &empty_blob_oid);
+				oidcpy(&oid_stat->oid, the_hash_algo->empty_blob);
 				oid_stat->valid = 1;
 			}
 			close(fd);
@@ -1240,11 +1241,11 @@ static void prep_exclude(struct dir_struct *dir,
 		    (!untracked || !untracked->valid ||
 		     /*
 		      * .. and .gitignore does not exist before
-		      * (i.e. null exclude_sha1). Then we can skip
+		      * (i.e. null exclude_oid). Then we can skip
 		      * loading .gitignore, which would result in
 		      * ENOENT anyway.
 		      */
-		     !is_null_sha1(untracked->exclude_sha1))) {
+		     !is_null_oid(&untracked->exclude_oid))) {
 			/*
 			 * dir->basebuf gets reused by the traversal, but we
 			 * need fname to remain unchanged to ensure the src
@@ -1275,9 +1276,9 @@ static void prep_exclude(struct dir_struct *dir,
 		 * order, though, if you do that.
 		 */
 		if (untracked &&
-		    hashcmp(oid_stat.oid.hash, untracked->exclude_sha1)) {
+		    oidcmp(&oid_stat.oid, &untracked->exclude_oid)) {
 			invalidate_gitignore(dir->untracked, untracked);
-			hashcpy(untracked->exclude_sha1, oid_stat.oid.hash);
+			oidcpy(&untracked->exclude_oid, &oid_stat.oid);
 		}
 		dir->exclude_stack = stk;
 		current = stk->baselen;
@@ -2622,9 +2623,10 @@ static void write_one_dir(struct untracked_cache_dir *untracked,
 		stat_data_to_disk(&stat_data, &untracked->stat_data);
 		strbuf_add(&wd->sb_stat, &stat_data, sizeof(stat_data));
 	}
-	if (!is_null_sha1(untracked->exclude_sha1)) {
+	if (!is_null_oid(&untracked->exclude_oid)) {
 		ewah_set(wd->sha1_valid, i);
-		strbuf_add(&wd->sb_sha1, untracked->exclude_sha1, 20);
+		strbuf_add(&wd->sb_sha1, untracked->exclude_oid.hash,
+			   the_hash_algo->rawsz);
 	}
 
 	intlen = encode_varint(untracked->untracked_nr, intbuf);
@@ -2825,16 +2827,16 @@ static void read_stat(size_t pos, void *cb)
 	ud->valid = 1;
 }
 
-static void read_sha1(size_t pos, void *cb)
+static void read_oid(size_t pos, void *cb)
 {
 	struct read_data *rd = cb;
 	struct untracked_cache_dir *ud = rd->ucd[pos];
-	if (rd->data + 20 > rd->end) {
+	if (rd->data + the_hash_algo->rawsz > rd->end) {
 		rd->data = rd->end + 1;
 		return;
 	}
-	hashcpy(ud->exclude_sha1, rd->data);
-	rd->data += 20;
+	hashcpy(ud->exclude_oid.hash, rd->data);
+	rd->data += the_hash_algo->rawsz;
 }
 
 static void load_oid_stat(struct oid_stat *oid_stat, const unsigned char *data,
@@ -2917,7 +2919,7 @@ struct untracked_cache *read_untracked_extension(const void *data, unsigned long
 	ewah_each_bit(rd.check_only, set_check_only, &rd);
 	rd.data = next + len;
 	ewah_each_bit(rd.valid, read_stat, &rd);
-	ewah_each_bit(rd.sha1_valid, read_sha1, &rd);
+	ewah_each_bit(rd.sha1_valid, read_oid, &rd);
 	next = rd.data;
 
 done:
@@ -3010,8 +3012,57 @@ void untracked_cache_add_to_index(struct index_state *istate,
 	untracked_cache_invalidate_path(istate, path, 1);
 }
 
-/* Update gitfile and core.worktree setting to connect work tree and git dir */
-void connect_work_tree_and_git_dir(const char *work_tree_, const char *git_dir_)
+static void connect_wt_gitdir_in_nested(const char *sub_worktree,
+					const char *sub_gitdir)
+{
+	int i;
+	struct repository subrepo;
+	struct strbuf sub_wt = STRBUF_INIT;
+	struct strbuf sub_gd = STRBUF_INIT;
+
+	const struct submodule *sub;
+
+	/* If the submodule has no working tree, we can ignore it. */
+	if (repo_init(&subrepo, sub_gitdir, sub_worktree))
+		return;
+
+	if (repo_read_index(&subrepo) < 0)
+		die("index file corrupt in repo %s", subrepo.gitdir);
+
+	for (i = 0; i < subrepo.index->cache_nr; i++) {
+		const struct cache_entry *ce = subrepo.index->cache[i];
+
+		if (!S_ISGITLINK(ce->ce_mode))
+			continue;
+
+		while (i + 1 < subrepo.index->cache_nr &&
+		       !strcmp(ce->name, subrepo.index->cache[i + 1]->name))
+			/*
+			 * Skip entries with the same name in different stages
+			 * to make sure an entry is returned only once.
+			 */
+			i++;
+
+		sub = submodule_from_path(&subrepo, &null_oid, ce->name);
+		if (!sub || !is_submodule_active(&subrepo, ce->name))
+			/* .gitmodules broken or inactive sub */
+			continue;
+
+		strbuf_reset(&sub_wt);
+		strbuf_reset(&sub_gd);
+		strbuf_addf(&sub_wt, "%s/%s", sub_worktree, sub->path);
+		strbuf_addf(&sub_gd, "%s/modules/%s", sub_gitdir, sub->name);
+
+		connect_work_tree_and_git_dir(sub_wt.buf, sub_gd.buf, 1);
+	}
+	strbuf_release(&sub_wt);
+	strbuf_release(&sub_gd);
+	repo_clear(&subrepo);
+}
+
+void connect_work_tree_and_git_dir(const char *work_tree_,
+				   const char *git_dir_,
+				   int recurse_into_nested)
 {
 	struct strbuf gitfile_sb = STRBUF_INIT;
 	struct strbuf cfg_sb = STRBUF_INIT;
@@ -3041,6 +3092,10 @@ void connect_work_tree_and_git_dir(const char *work_tree_, const char *git_dir_)
 	strbuf_release(&gitfile_sb);
 	strbuf_release(&cfg_sb);
 	strbuf_release(&rel_path);
+
+	if (recurse_into_nested)
+		connect_wt_gitdir_in_nested(work_tree, git_dir);
+
 	free(work_tree);
 	free(git_dir);
 }
@@ -3054,5 +3109,5 @@ void relocate_gitdir(const char *path, const char *old_git_dir, const char *new_
 		die_errno(_("could not migrate git directory from '%s' to '%s'"),
 			old_git_dir, new_git_dir);
 
-	connect_work_tree_and_git_dir(path, new_git_dir);
+	connect_work_tree_and_git_dir(path, new_git_dir, 0);
 }

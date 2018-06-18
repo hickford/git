@@ -238,10 +238,10 @@ test_expect_success '_gently() groks relative GIT_DIR & GIT_WORK_TREE' '
 
 test_expect_success 'diff-index respects work tree under .git dir' '
 	cat >diff-index-cached.expected <<-EOF &&
-	:000000 100644 $_z40 $EMPTY_BLOB A	sub/dir/tracked
+	:000000 100644 $ZERO_OID $EMPTY_BLOB A	sub/dir/tracked
 	EOF
 	cat >diff-index.expected <<-EOF &&
-	:000000 100644 $_z40 $_z40 A	sub/dir/tracked
+	:000000 100644 $ZERO_OID $ZERO_OID A	sub/dir/tracked
 	EOF
 
 	(
@@ -257,7 +257,7 @@ test_expect_success 'diff-index respects work tree under .git dir' '
 
 test_expect_success 'diff-files respects work tree under .git dir' '
 	cat >diff-files.expected <<-EOF &&
-	:100644 100644 $EMPTY_BLOB $_z40 M	sub/dir/tracked
+	:100644 100644 $EMPTY_BLOB $ZERO_OID M	sub/dir/tracked
 	EOF
 
 	(
@@ -341,7 +341,7 @@ test_expect_success 'make_relative_path handles double slashes in GIT_DIR' '
 
 test_expect_success 'relative $GIT_WORK_TREE and git subprocesses' '
 	GIT_DIR=repo.git GIT_WORK_TREE=repo.git/work \
-	test-subprocess --setup-work-tree rev-parse --show-toplevel >actual &&
+	test-tool subprocess --setup-work-tree rev-parse --show-toplevel >actual &&
 	echo "$(pwd)/repo.git/work" >expected &&
 	test_cmp expected actual
 '
@@ -360,7 +360,7 @@ test_expect_success 'GIT_DIR set (1)' '
 	(
 		cd work &&
 		GIT_DIR=../gitfile git rev-parse --git-common-dir >actual &&
-		test-path-utils real_path "$TRASH_DIRECTORY/repo.git" >expect &&
+		test-tool path-utils real_path "$TRASH_DIRECTORY/repo.git" >expect &&
 		test_cmp expect actual
 	)
 '
@@ -371,7 +371,7 @@ test_expect_success 'GIT_DIR set (2)' '
 	(
 		cd work &&
 		GIT_DIR=../gitfile git rev-parse --git-common-dir >actual &&
-		test-path-utils real_path "$TRASH_DIRECTORY/repo.git" >expect &&
+		test-tool path-utils real_path "$TRASH_DIRECTORY/repo.git" >expect &&
 		test_cmp expect actual
 	)
 '
@@ -382,7 +382,7 @@ test_expect_success 'Auto discovery' '
 	(
 		cd work &&
 		git rev-parse --git-common-dir >actual &&
-		test-path-utils real_path "$TRASH_DIRECTORY/repo.git" >expect &&
+		test-tool path-utils real_path "$TRASH_DIRECTORY/repo.git" >expect &&
 		test_cmp expect actual &&
 		echo haha >data1 &&
 		git add data1 &&
@@ -400,7 +400,7 @@ test_expect_success '$GIT_DIR/common overrides core.worktree' '
 	(
 		cd work &&
 		git rev-parse --git-common-dir >actual &&
-		test-path-utils real_path "$TRASH_DIRECTORY/repo.git" >expect &&
+		test-tool path-utils real_path "$TRASH_DIRECTORY/repo.git" >expect &&
 		test_cmp expect actual &&
 		echo haha >data2 &&
 		git add data2 &&
@@ -429,6 +429,18 @@ test_expect_success 'error out gracefully on invalid $GIT_WORK_TREE' '
 		export GIT_WORK_TREE &&
 		test_expect_code 128 git rev-parse
 	)
+'
+
+test_expect_success 'refs work with relative gitdir and work tree' '
+	git init relative &&
+	git -C relative commit --allow-empty -m one &&
+	git -C relative commit --allow-empty -m two &&
+
+	GIT_DIR=relative/.git GIT_WORK_TREE=relative git reset HEAD^ &&
+
+	git -C relative log -1 --format=%s >actual &&
+	echo one >expect &&
+	test_cmp expect actual
 '
 
 test_done

@@ -11,6 +11,7 @@
 #include "list-objects.h"
 #include "packfile.h"
 #include "worktree.h"
+#include "object-store.h"
 
 struct connectivity_progress {
 	struct progress *progress;
@@ -77,7 +78,7 @@ static void add_recent_object(const struct object_id *oid,
 	 * later processing, and the revision machinery expects
 	 * commits and tags to have been parsed.
 	 */
-	type = sha1_object_info(oid->hash, NULL);
+	type = oid_object_info(the_repository, oid, NULL);
 	if (type < 0)
 		die("unable to get object info for %s", oid_to_hex(oid));
 

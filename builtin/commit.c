@@ -143,6 +143,16 @@ static int opt_parse_m(const struct option *opt, const char *arg, int unset)
 	return 0;
 }
 
+static int opt_parse_rename_score(const struct option *opt, const char *arg, int unset)
+{
+	const char **value = opt->value;
+	if (arg != NULL && *arg == '=')
+		arg = arg + 1;
+
+	*value = arg;
+	return 0;
+}
+
 static void determine_whence(struct wt_status *s)
 {
 	if (file_exists(git_path_merge_head()))
@@ -161,9 +171,9 @@ static void determine_whence(struct wt_status *s)
 static void status_init_config(struct wt_status *s, config_fn_t fn)
 {
 	wt_status_prepare(s);
+	init_diff_ui_defaults();
 	git_config(fn, s);
 	determine_whence(s);
-	init_diff_ui_defaults();
 	s->hints = advice_status_hints; /* must come after git_config() */
 }
 
@@ -218,8 +228,7 @@ static int list_paths(struct string_list *list, const char *with_tree,
 
 	if (with_tree) {
 		char *max_prefix = common_prefix(pattern);
-		overlay_tree_on_index(&the_index, with_tree,
-				      max_prefix ? max_prefix : prefix);
+		overlay_tree_on_index(&the_index, with_tree, max_prefix);
 		free(max_prefix);
 	}
 
@@ -496,7 +505,7 @@ static int is_a_merge(const struct commit *current_head)
 static void assert_split_ident(struct ident_split *id, const struct strbuf *buf)
 {
 	if (split_ident_line(id, buf->buf, buf->len) || !id->date_begin)
-		die("BUG: unable to parse our own ident: %s", buf->buf);
+		BUG("unable to parse our own ident: %s", buf->buf);
 }
 
 static void export_one(const char *var, const char *s, const char *e, int hack)
@@ -1260,11 +1269,31 @@ static int git_status_config(const char *k, const char *v, void *cb)
 			return error(_("Invalid untracked files mode '%s'"), v);
 		return 0;
 	}
+	if (!strcmp(k, "diff.renamelimit")) {
+		if (s->rename_limit == -1)
+			s->rename_limit = git_config_int(k, v);
+		return 0;
+	}
+	if (!strcmp(k, "status.renamelimit")) {
+		s->rename_limit = git_config_int(k, v);
+		return 0;
+	}
+	if (!strcmp(k, "diff.renames")) {
+		if (s->detect_rename == -1)
+			s->detect_rename = git_config_rename(k, v);
+		return 0;
+	}
+	if (!strcmp(k, "status.renames")) {
+		s->detect_rename = git_config_rename(k, v);
+		return 0;
+	}
 	return git_diff_ui_config(k, v, NULL);
 }
 
 int cmd_status(int argc, const char **argv, const char *prefix)
 {
+	static int no_renames = -1;
+	static const char *rename_score_arg = (const char *)-1;
 	static struct wt_status s;
 	int fd;
 	struct object_id oid;
@@ -1298,6 +1327,10 @@ int cmd_status(int argc, const char **argv, const char *prefix)
 		  N_("ignore changes to submodules, optional when: all, dirty, untracked. (Default: all)"),
 		  PARSE_OPT_OPTARG, NULL, (intptr_t)"all" },
 		OPT_COLUMN(0, "column", &s.colopts, N_("list untracked files in columns")),
+		OPT_BOOL(0, "no-renames", &no_renames, N_("do not detect renames")),
+		{ OPTION_CALLBACK, 'M', "find-renames", &rename_score_arg,
+		  N_("n"), N_("detect renames, optionally set similarity index"),
+		  PARSE_OPT_OPTARG, opt_parse_rename_score },
 		OPT_END(),
 	};
 
@@ -1337,6 +1370,14 @@ int cmd_status(int argc, const char **argv, const char *prefix)
 	s.ignore_submodule_arg = ignore_submodule_arg;
 	s.status_format = status_format;
 	s.verbose = verbose;
+	if (no_renames != -1)
+		s.detect_rename = !no_renames;
+	if ((intptr_t)rename_score_arg != -1) {
+		if (s.detect_rename < DIFF_DETECT_RENAME)
+			s.detect_rename = DIFF_DETECT_RENAME;
+		if (rename_score_arg)
+			s.rename_score = parse_rename_score(&rename_score_arg);
+	}
 
 	wt_status_collect(&s);
 

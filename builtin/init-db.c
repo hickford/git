@@ -7,7 +7,7 @@
 #include "config.h"
 #include "refs.h"
 #include "builtin.h"
-#include "exec_cmd.h"
+#include "exec-cmd.h"
 #include "parse-options.h"
 
 #ifndef DEFAULT_GIT_TEMPLATE_DIR
@@ -117,7 +117,7 @@ static void copy_templates(const char *template_dir)
 
 	dir = opendir(template_path.buf);
 	if (!dir) {
-		warning(_("templates not found %s"), template_dir);
+		warning(_("templates not found in %s"), template_dir);
 		goto free_return;
 	}
 
@@ -391,7 +391,7 @@ int init_db(const char *git_dir, const char *real_git_dir,
 		else if (get_shared_repository() == PERM_EVERYBODY)
 			xsnprintf(buf, sizeof(buf), "%d", OLD_PERM_EVERYBODY);
 		else
-			die("BUG: invalid value for shared_repository");
+			BUG("invalid value for shared_repository");
 		git_config_set("core.sharedrepository", buf);
 		git_config_set("receive.denyNonFastforwards", "true");
 	}

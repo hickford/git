@@ -1185,7 +1185,7 @@ test_expect_success PIPE 'N: empty directory reads as missing' '
 	test_cmp expect.response response &&
 	git rev-list read-empty |
 	git diff-tree -r --root --stdin |
-	sed "s/$_x40/OBJNAME/g" >actual &&
+	sed "s/$OID_REGEX/OBJNAME/g" >actual &&
 	test_cmp expect actual
 '
 
@@ -1271,7 +1271,7 @@ test_expect_success 'N: delete directory by copying' '
 	git fast-import <input &&
 	git rev-list N-delete |
 		git diff-tree -r --stdin --root --always |
-		sed -e "s/$_x40/OBJID/g" >actual &&
+		sed -e "s/$OID_REGEX/OBJID/g" >actual &&
 	test_cmp expect actual
 '
 
@@ -2602,7 +2602,7 @@ test_expect_success 'R: terminating "done" within commit' '
 	EOF
 	git rev-list done-ends |
 	git diff-tree -r --stdin --root --always |
-	sed -e "s/$_x40/OBJID/g" >actual &&
+	sed -e "s/$OID_REGEX/OBJID/g" >actual &&
 	test_cmp expect actual
 '
 
@@ -2654,7 +2654,7 @@ test_expect_success 'R: corrupt lines do not mess marks file' '
 ##
 test_expect_success 'R: blob bigger than threshold' '
 	blobsize=$((2*1024*1024 + 53)) &&
-	test-genrandom bar $blobsize >expect &&
+	test-tool genrandom bar $blobsize >expect &&
 	cat >input <<-INPUT_END &&
 	commit refs/heads/big-file
 	committer $GIT_COMMITTER_NAME <$GIT_COMMITTER_EMAIL> $GIT_COMMITTER_DATE

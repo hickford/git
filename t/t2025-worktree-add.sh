@@ -198,13 +198,25 @@ test_expect_success '"add" with <branch> omitted' '
 	test_cmp_rev HEAD bat
 '
 
-test_expect_success '"add" auto-vivify does not clobber existing branch' '
-	test_commit c1 &&
-	test_commit c2 &&
-	git branch precious HEAD~1 &&
-	test_must_fail git worktree add precious &&
-	test_cmp_rev HEAD~1 precious &&
-	test_path_is_missing precious
+test_expect_success '"add" checks out existing branch of dwimd name' '
+	git branch dwim HEAD~1 &&
+	git worktree add dwim &&
+	test_cmp_rev HEAD~1 dwim &&
+	(
+		cd dwim &&
+		test_cmp_rev HEAD dwim
+	)
+'
+
+test_expect_success '"add <path>" dwim fails with checked out branch' '
+	git checkout -b test-branch &&
+	test_must_fail git worktree add test-branch &&
+	test_path_is_missing test-branch
+'
+
+test_expect_success '"add --force" with existing dwimd name doesnt die' '
+	git checkout test-branch &&
+	git worktree add --force test-branch
 '
 
 test_expect_success '"add" no auto-vivify with --detach and <branch> omitted' '
@@ -465,7 +477,7 @@ post_checkout_hook () {
 test_expect_success '"add" invokes post-checkout hook (branch)' '
 	post_checkout_hook &&
 	{
-		echo $_z40 $(git rev-parse HEAD) 1 &&
+		echo $ZERO_OID $(git rev-parse HEAD) 1 &&
 		echo $(pwd)/.git/worktrees/gumby &&
 		echo $(pwd)/gumby
 	} >hook.expect &&
@@ -476,7 +488,7 @@ test_expect_success '"add" invokes post-checkout hook (branch)' '
 test_expect_success '"add" invokes post-checkout hook (detached)' '
 	post_checkout_hook &&
 	{
-		echo $_z40 $(git rev-parse HEAD) 1 &&
+		echo $ZERO_OID $(git rev-parse HEAD) 1 &&
 		echo $(pwd)/.git/worktrees/grumpy &&
 		echo $(pwd)/grumpy
 	} >hook.expect &&
@@ -494,7 +506,7 @@ test_expect_success '"add --no-checkout" suppresses post-checkout hook' '
 test_expect_success '"add" in other worktree invokes post-checkout hook' '
 	post_checkout_hook &&
 	{
-		echo $_z40 $(git rev-parse HEAD) 1 &&
+		echo $ZERO_OID $(git rev-parse HEAD) 1 &&
 		echo $(pwd)/.git/worktrees/guppy &&
 		echo $(pwd)/guppy
 	} >hook.expect &&
@@ -506,7 +518,7 @@ test_expect_success '"add" in bare repo invokes post-checkout hook' '
 	rm -rf bare &&
 	git clone --bare . bare &&
 	{
-		echo $_z40 $(git --git-dir=bare rev-parse HEAD) 1 &&
+		echo $ZERO_OID $(git --git-dir=bare rev-parse HEAD) 1 &&
 		echo $(pwd)/bare/worktrees/goozy &&
 		echo $(pwd)/goozy
 	} >hook.expect &&

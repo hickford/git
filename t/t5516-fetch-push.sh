@@ -94,6 +94,9 @@ mk_child() {
 }
 
 check_push_result () {
+	test $# -ge 3 ||
+	error "bug in the test script: check_push_result requires at least 3 parameters"
+
 	repo_name="$1"
 	shift
 
@@ -553,10 +556,7 @@ test_expect_success 'branch.*.pushremote config order is irrelevant' '
 test_expect_success 'push with dry-run' '
 
 	mk_test testrepo heads/master &&
-	(
-		cd testrepo &&
-		old_commit=$(git show-ref -s --verify refs/heads/master)
-	) &&
+	old_commit=$(git -C testrepo show-ref -s --verify refs/heads/master) &&
 	git push --dry-run testrepo : &&
 	check_push_result testrepo $old_commit heads/master
 '
@@ -612,7 +612,7 @@ test_expect_success 'push does not update local refs on failure' '
 	chmod +x testrepo/.git/hooks/pre-receive &&
 	(
 		cd child &&
-		git pull .. master
+		git pull .. master &&
 		test_must_fail git push &&
 		test $(git rev-parse master) != \
 			$(git rev-parse remotes/origin/master)
@@ -634,7 +634,7 @@ test_expect_success 'pushing valid refs triggers post-receive and post-update ho
 	orgmaster=$(cd testrepo && git show-ref -s --verify refs/heads/master) &&
 	newmaster=$(git show-ref -s --verify refs/heads/master) &&
 	orgnext=$(cd testrepo && git show-ref -s --verify refs/heads/next) &&
-	newnext=$_z40 &&
+	newnext=$ZERO_OID &&
 	git push testrepo refs/heads/master:refs/heads/master :refs/heads/next &&
 	(
 		cd testrepo/.git &&
@@ -672,15 +672,15 @@ test_expect_success 'deleting dangling ref triggers hooks with correct args' '
 	(
 		cd testrepo/.git &&
 		cat >pre-receive.expect <<-EOF &&
-		$_z40 $_z40 refs/heads/master
+		$ZERO_OID $ZERO_OID refs/heads/master
 		EOF
 
 		cat >update.expect <<-EOF &&
-		refs/heads/master $_z40 $_z40
+		refs/heads/master $ZERO_OID $ZERO_OID
 		EOF
 
 		cat >post-receive.expect <<-EOF &&
-		$_z40 $_z40 refs/heads/master
+		$ZERO_OID $ZERO_OID refs/heads/master
 		EOF
 
 		cat >post-update.expect <<-EOF &&
@@ -703,12 +703,12 @@ test_expect_success 'deletion of a non-existent ref is not fed to post-receive a
 		cd testrepo/.git &&
 		cat >pre-receive.expect <<-EOF &&
 		$orgmaster $newmaster refs/heads/master
-		$_z40 $_z40 refs/heads/nonexistent
+		$ZERO_OID $ZERO_OID refs/heads/nonexistent
 		EOF
 
 		cat >update.expect <<-EOF &&
 		refs/heads/master $orgmaster $newmaster
-		refs/heads/nonexistent $_z40 $_z40
+		refs/heads/nonexistent $ZERO_OID $ZERO_OID
 		EOF
 
 		cat >post-receive.expect <<-EOF &&
@@ -732,11 +732,11 @@ test_expect_success 'deletion of a non-existent ref alone does trigger post-rece
 	(
 		cd testrepo/.git &&
 		cat >pre-receive.expect <<-EOF &&
-		$_z40 $_z40 refs/heads/nonexistent
+		$ZERO_OID $ZERO_OID refs/heads/nonexistent
 		EOF
 
 		cat >update.expect <<-EOF &&
-		refs/heads/nonexistent $_z40 $_z40
+		refs/heads/nonexistent $ZERO_OID $ZERO_OID
 		EOF
 
 		test_cmp pre-receive.expect pre-receive.actual &&
@@ -751,7 +751,7 @@ test_expect_success 'mixed ref updates, deletes, invalid deletes trigger hooks w
 	orgmaster=$(cd testrepo && git show-ref -s --verify refs/heads/master) &&
 	newmaster=$(git show-ref -s --verify refs/heads/master) &&
 	orgnext=$(cd testrepo && git show-ref -s --verify refs/heads/next) &&
-	newnext=$_z40 &&
+	newnext=$ZERO_OID &&
 	orgpu=$(cd testrepo && git show-ref -s --verify refs/heads/pu) &&
 	newpu=$(git show-ref -s --verify refs/heads/master) &&
 	git push testrepo refs/heads/master:refs/heads/master \
@@ -763,14 +763,14 @@ test_expect_success 'mixed ref updates, deletes, invalid deletes trigger hooks w
 		$orgmaster $newmaster refs/heads/master
 		$orgnext $newnext refs/heads/next
 		$orgpu $newpu refs/heads/pu
-		$_z40 $_z40 refs/heads/nonexistent
+		$ZERO_OID $ZERO_OID refs/heads/nonexistent
 		EOF
 
 		cat >update.expect <<-EOF &&
 		refs/heads/master $orgmaster $newmaster
 		refs/heads/next $orgnext $newnext
 		refs/heads/pu $orgpu $newpu
-		refs/heads/nonexistent $_z40 $_z40
+		refs/heads/nonexistent $ZERO_OID $ZERO_OID
 		EOF
 
 		cat >post-receive.expect <<-EOF &&
@@ -1121,6 +1121,25 @@ test_expect_success 'fetch exact SHA1' '
 	)
 '
 
+test_expect_success 'fetch exact SHA1 in protocol v2' '
+	mk_test testrepo heads/master hidden/one &&
+	git push testrepo master:refs/hidden/one &&
+	git -C testrepo config transfer.hiderefs refs/hidden &&
+	check_push_result testrepo $the_commit hidden/one &&
+
+	mk_child testrepo child &&
+	git -C child config protocol.version 2 &&
+
+	# make sure $the_commit does not exist here
+	git -C child repack -a -d &&
+	git -C child prune &&
+	test_must_fail git -C child cat-file -t $the_commit &&
+
+	# fetching the hidden object succeeds by default
+	# NEEDSWORK: should this match the v0 behavior instead?
+	git -C child fetch -v ../testrepo $the_commit:refs/heads/copy
+'
+
 for configallowtipsha1inwant in true false
 do
 	test_expect_success "shallow fetch reachable SHA1 (but not a ref), allowtipsha1inwant=$configallowtipsha1inwant" '
@@ -1418,7 +1437,7 @@ test_expect_success 'receive.denyCurrentBranch = updateInstead' '
 		cd testrepo &&
 		git reset --hard HEAD^ &&
 		test $(git -C .. rev-parse HEAD^) = $(git rev-parse HEAD) &&
-		test-chmtime +100 path1
+		test-tool chmtime +100 path1
 	) &&
 	git push testrepo master &&
 	(

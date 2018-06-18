@@ -9,10 +9,11 @@
 #include "tree.h"
 #include "progress.h"
 #include "fsck.h"
-#include "exec_cmd.h"
+#include "exec-cmd.h"
 #include "streaming.h"
 #include "thread-utils.h"
 #include "packfile.h"
+#include "object-store.h"
 
 static const char index_pack_usage[] =
 "git index-pack [-v] [-o <index-file>] [--keep | --keep=<msg>] [--verify] [--strict] (<pack-file> | --stdin [--fix-thin] [<pack-file>])";
@@ -59,7 +60,7 @@ struct ofs_delta_entry {
 };
 
 struct ref_delta_entry {
-	unsigned char sha1[20];
+	struct object_id oid;
 	int obj_no;
 };
 
@@ -222,7 +223,7 @@ static unsigned check_object(struct object *obj)
 
 	if (!(obj->flags & FLAG_CHECKED)) {
 		unsigned long size;
-		int type = sha1_object_info(obj->oid.hash, &size);
+		int type = oid_object_info(the_repository, &obj->oid, &size);
 		if (type <= 0)
 			die(_("did not receive expected object %s"),
 			      oid_to_hex(&obj->oid));
@@ -672,18 +673,18 @@ static void find_ofs_delta_children(off_t offset,
 	*last_index = last;
 }
 
-static int compare_ref_delta_bases(const unsigned char *sha1,
-				   const unsigned char *sha2,
+static int compare_ref_delta_bases(const struct object_id *oid1,
+				   const struct object_id *oid2,
 				   enum object_type type1,
 				   enum object_type type2)
 {
 	int cmp = type1 - type2;
 	if (cmp)
 		return cmp;
-	return hashcmp(sha1, sha2);
+	return oidcmp(oid1, oid2);
 }
 
-static int find_ref_delta(const unsigned char *sha1, enum object_type type)
+static int find_ref_delta(const struct object_id *oid, enum object_type type)
 {
 	int first = 0, last = nr_ref_deltas;
 
@@ -692,7 +693,7 @@ static int find_ref_delta(const unsigned char *sha1, enum object_type type)
 		struct ref_delta_entry *delta = &ref_deltas[next];
 		int cmp;
 
-		cmp = compare_ref_delta_bases(sha1, delta->sha1,
+		cmp = compare_ref_delta_bases(oid, &delta->oid,
 					      type, objects[delta->obj_no].type);
 		if (!cmp)
 			return next;
@@ -705,11 +706,11 @@ static int find_ref_delta(const unsigned char *sha1, enum object_type type)
 	return -first-1;
 }
 
-static void find_ref_delta_children(const unsigned char *sha1,
+static void find_ref_delta_children(const struct object_id *oid,
 				    int *first_index, int *last_index,
 				    enum object_type type)
 {
-	int first = find_ref_delta(sha1, type);
+	int first = find_ref_delta(oid, type);
 	int last = first;
 	int end = nr_ref_deltas - 1;
 
@@ -718,9 +719,9 @@ static void find_ref_delta_children(const unsigned char *sha1,
 		*last_index = -1;
 		return;
 	}
-	while (first > 0 && !hashcmp(ref_deltas[first - 1].sha1, sha1))
+	while (first > 0 && !oidcmp(&ref_deltas[first - 1].oid, oid))
 		--first;
-	while (last < end && !hashcmp(ref_deltas[last + 1].sha1, sha1))
+	while (last < end && !oidcmp(&ref_deltas[last + 1].oid, oid))
 		++last;
 	*first_index = first;
 	*last_index = last;
@@ -772,7 +773,7 @@ static int check_collison(struct object_entry *entry)
 
 	memset(&data, 0, sizeof(data));
 	data.entry = entry;
-	data.st = open_istream(entry->idx.oid.hash, &type, &size, NULL);
+	data.st = open_istream(&entry->idx.oid, &type, &size, NULL);
 	if (!data.st)
 		return -1;
 	if (size != entry->size || type != entry->type)
@@ -811,12 +812,12 @@ static void sha1_object(const void *data, struct object_entry *obj_entry,
 		enum object_type has_type;
 		unsigned long has_size;
 		read_lock();
-		has_type = sha1_object_info(oid->hash, &has_size);
+		has_type = oid_object_info(the_repository, oid, &has_size);
 		if (has_type < 0)
 			die(_("cannot read existing object info %s"), oid_to_hex(oid));
 		if (has_type != type || has_size != size)
 			die(_("SHA1 COLLISION FOUND WITH %s !"), oid_to_hex(oid));
-		has_data = read_sha1_file(oid->hash, &has_type, &has_size);
+		has_data = read_object_file(oid, &has_type, &has_size);
 		read_unlock();
 		if (!data)
 			data = new_data = get_data_from_pack(obj_entry);
@@ -868,7 +869,7 @@ static void sha1_object(const void *data, struct object_entry *obj_entry,
 			if (obj->type == OBJ_COMMIT) {
 				struct commit *commit = (struct commit *) obj;
 				if (detach_commit_buffer(commit, NULL) != data)
-					die("BUG: parse_object_buffer transmogrified our buffer");
+					BUG("parse_object_buffer transmogrified our buffer");
 			}
 			obj->flags |= FLAG_CHECKED;
 		}
@@ -995,7 +996,7 @@ static struct base_data *find_unresolved_deltas_1(struct base_data *base,
 						  struct base_data *prev_base)
 {
 	if (base->ref_last == -1 && base->ofs_last == -1) {
-		find_ref_delta_children(base->obj->idx.oid.hash,
+		find_ref_delta_children(&base->obj->idx.oid,
 					&base->ref_first, &base->ref_last,
 					OBJ_REF_DELTA);
 
@@ -1017,7 +1018,7 @@ static struct base_data *find_unresolved_deltas_1(struct base_data *base,
 
 		if (!compare_and_swap_type(&child->real_type, OBJ_REF_DELTA,
 					   base->obj->real_type))
-			die("BUG: child->real_type != OBJ_REF_DELTA");
+			BUG("child->real_type != OBJ_REF_DELTA");
 
 		resolve_delta(child, base, result);
 		if (base->ref_first == base->ref_last && base->ofs_last == -1)
@@ -1079,7 +1080,7 @@ static int compare_ref_delta_entry(const void *a, const void *b)
 	const struct ref_delta_entry *delta_a = a;
 	const struct ref_delta_entry *delta_b = b;
 
-	return hashcmp(delta_a->sha1, delta_b->sha1);
+	return oidcmp(&delta_a->oid, &delta_b->oid);
 }
 
 static void resolve_base(struct object_entry *obj)
@@ -1145,7 +1146,7 @@ static void parse_pack_objects(unsigned char *hash)
 			ofs_delta++;
 		} else if (obj->type == OBJ_REF_DELTA) {
 			ALLOC_GROW(ref_deltas, nr_ref_deltas + 1, ref_deltas_alloc);
-			hashcpy(ref_deltas[nr_ref_deltas].sha1, ref_delta_oid.hash);
+			oidcpy(&ref_deltas[nr_ref_deltas].oid, &ref_delta_oid);
 			ref_deltas[nr_ref_deltas].obj_no = i;
 			nr_ref_deltas++;
 		} else if (!data) {
@@ -1273,7 +1274,7 @@ static void conclude_pack(int fix_thin_pack, const char *curr_pack, unsigned cha
 			    nr_objects - nr_objects_initial);
 		stop_progress_msg(&progress, msg.buf);
 		strbuf_release(&msg);
-		hashclose(f, tail_hash, 0);
+		finalize_hashfile(f, tail_hash, 0);
 		hashcpy(read_hash, pack_hash);
 		fixup_pack_header_footer(output_fd, pack_hash,
 					 curr_pack, nr_objects,
@@ -1377,14 +1378,15 @@ static void fix_unresolved_deltas(struct hashfile *f)
 
 		if (objects[d->obj_no].real_type != OBJ_REF_DELTA)
 			continue;
-		base_obj->data = read_sha1_file(d->sha1, &type, &base_obj->size);
+		base_obj->data = read_object_file(&d->oid, &type,
+						  &base_obj->size);
 		if (!base_obj->data)
 			continue;
 
-		if (check_sha1_signature(d->sha1, base_obj->data,
+		if (check_object_signature(&d->oid, base_obj->data,
 				base_obj->size, type_name(type)))
-			die(_("local object %s is corrupt"), sha1_to_hex(d->sha1));
-		base_obj->obj = append_obj_to_pack(f, d->sha1,
+			die(_("local object %s is corrupt"), oid_to_hex(&d->oid));
+		base_obj->obj = append_obj_to_pack(f, d->oid.hash,
 					base_obj->data, base_obj->size, type);
 		find_unresolved_deltas(base_obj);
 		display_progress(progress, nr_resolved_deltas);
@@ -1480,8 +1482,12 @@ static void final(const char *final_pack_name, const char *curr_pack_name,
 	} else
 		chmod(final_index_name, 0444);
 
-	if (do_fsck_object)
-		add_packed_git(final_index_name, strlen(final_index_name), 0);
+	if (do_fsck_object) {
+		struct packed_git *p;
+		p = add_packed_git(final_index_name, strlen(final_index_name), 0);
+		if (p)
+			install_packed_git(the_repository, p);
+	}
 
 	if (!from_stdin) {
 		printf("%s\n", sha1_to_hex(hash));
@@ -1547,12 +1553,13 @@ static void read_v2_anomalous_offsets(struct packed_git *p,
 {
 	const uint32_t *idx1, *idx2;
 	uint32_t i;
+	const uint32_t hashwords = the_hash_algo->rawsz / sizeof(uint32_t);
 
 	/* The address of the 4-byte offset table */
 	idx1 = (((const uint32_t *)p->index_data)
 		+ 2 /* 8-byte header */
 		+ 256 /* fan out */
-		+ 5 * p->num_objects /* 20-byte SHA-1 table */
+		+ hashwords * p->num_objects /* object ID table */
 		+ p->num_objects /* CRC32 table */
 		);
 
@@ -1597,7 +1604,7 @@ static void read_idx_option(struct pack_idx_option *opts, const char *pack_name)
 	/*
 	 * Get rid of the idx file as we do not need it anymore.
 	 * NEEDSWORK: extract this bit from free_pack_by_name() in
-	 * sha1_file.c, perhaps?  It shouldn't matter very much as we
+	 * sha1-file.c, perhaps?  It shouldn't matter very much as we
 	 * know we haven't installed this pack (hence we never have
 	 * read anything from it).
 	 */

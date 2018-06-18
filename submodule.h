@@ -89,23 +89,24 @@ extern int submodule_uses_gitfile(const char *path);
 #define SUBMODULE_REMOVAL_IGNORE_UNTRACKED (1<<1)
 #define SUBMODULE_REMOVAL_IGNORE_IGNORED_UNTRACKED (1<<2)
 extern int bad_to_remove_submodule(const char *path, unsigned flags);
-extern int merge_submodule(struct object_id *result, const char *path,
-			   const struct object_id *base,
-			   const struct object_id *a,
-			   const struct object_id *b, int search);
 
-/* Checks if there are submodule changes in a..b. */
+int add_submodule_odb(const char *path);
+
+/*
+ * Checks if there are submodule changes in a..b. If a is the null OID,
+ * checks b and all its ancestors instead.
+ */
 extern int submodule_touches_in_range(struct object_id *a,
 				      struct object_id *b);
 extern int find_unpushed_submodules(struct oid_array *commits,
 				    const char *remotes_name,
 				    struct string_list *needs_pushing);
+struct refspec;
 extern int push_unpushed_submodules(struct oid_array *commits,
 				    const struct remote *remote,
-				    const char **refspec, int refspec_nr,
+				    const struct refspec *rs,
 				    const struct string_list *push_options,
 				    int dry_run);
-extern void connect_work_tree_and_git_dir(const char *work_tree, const char *git_dir);
 /*
  * Given a submodule path (as in the index), return the repository
  * path of that submodule in 'buf'. Return -1 on error or when the

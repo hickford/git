@@ -59,7 +59,7 @@ test_expect_success 'setup' '
 fuzz() {
 	file=$1 &&
 	sed "
-			s/$_x40/OBJECT_NAME/g
+			s/$OID_REGEX/OBJECT_NAME/g
 			s/$_x35/OBJID/g
 			s/^ \{6\}[CTa].*/      SUBJECT/g
 			s/^ \{8\}[^ ].*/        CONTINUATION/g
@@ -125,6 +125,11 @@ test_expect_success !MINGW 'shortlog can read --format=raw output' '
 	git log --format=raw HEAD >log &&
 	GIT_DIR=non-existing git shortlog -w <log >out &&
 	test_cmp expect out
+'
+
+test_expect_success 'shortlog from non-git directory refuses extra arguments' '
+	test_must_fail env GIT_DIR=non-existing git shortlog foo 2>out &&
+	test_i18ngrep "too many arguments" out
 '
 
 test_expect_success 'shortlog should add newline when input line matches wraplen' '

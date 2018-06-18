@@ -602,7 +602,7 @@ static struct cache_entry *read_one_ent(const char *which,
 	int size;
 	struct cache_entry *ce;
 
-	if (get_tree_entry(ent->hash, path, oid.hash, &mode)) {
+	if (get_tree_entry(ent, path, &oid, &mode)) {
 		if (which)
 			error("%s: not in %s branch.", path, which);
 		return NULL;
@@ -1069,6 +1069,7 @@ int cmd_update_index(int argc, const char **argv, const char *prefix)
 			break;
 		switch (parseopt_state) {
 		case PARSE_OPT_HELP:
+		case PARSE_OPT_ERROR:
 			exit(129);
 		case PARSE_OPT_NON_OPTION:
 		case PARSE_OPT_DONE:
@@ -1173,7 +1174,7 @@ int cmd_update_index(int argc, const char **argv, const char *prefix)
 		report(_("Untracked cache enabled for '%s'"), get_git_work_tree());
 		break;
 	default:
-		die("BUG: bad untracked_cache value: %d", untracked_cache);
+		BUG("bad untracked_cache value: %d", untracked_cache);
 	}
 
 	if (fsmonitor > 0) {

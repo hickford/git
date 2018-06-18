@@ -3,6 +3,7 @@
 #include "config.h"
 #include "dir.h"
 #include "string-list.h"
+#include "chdir-notify.h"
 
 static int inside_git_dir = -1;
 static int inside_work_tree = -1;
@@ -378,7 +379,7 @@ int is_inside_work_tree(void)
 
 void setup_work_tree(void)
 {
-	const char *work_tree, *git_dir;
+	const char *work_tree;
 	static int initialized = 0;
 
 	if (initialized)
@@ -388,10 +389,7 @@ void setup_work_tree(void)
 		die(_("unable to set up work tree using invalid config"));
 
 	work_tree = get_git_work_tree();
-	git_dir = get_git_dir();
-	if (!is_absolute_path(git_dir))
-		git_dir = real_path(get_git_dir());
-	if (!work_tree || chdir(work_tree))
+	if (!work_tree || chdir_notify(work_tree))
 		die(_("this operation must be run in a work tree"));
 
 	/*
@@ -401,7 +399,6 @@ void setup_work_tree(void)
 	if (getenv(GIT_WORK_TREE_ENVIRONMENT))
 		setenv(GIT_WORK_TREE_ENVIRONMENT, ".", 1);
 
-	set_git_dir(remove_leading_path(git_dir, work_tree));
 	initialized = 1;
 }
 
@@ -542,7 +539,7 @@ void read_gitfile_error_die(int error_code, const char *path, const char *dir)
 	case READ_GITFILE_ERR_NOT_A_REPO:
 		die(_("not a git repository: %s"), dir);
 	default:
-		die("BUG: unknown error code");
+		BUG("unknown error code");
 	}
 }
 
@@ -1089,7 +1086,7 @@ const char *setup_git_directory_gently(int *nongit_ok)
 		      "Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set)."),
 		    dir.buf);
 	default:
-		die("BUG: unhandled setup_git_directory_1() result");
+		BUG("unhandled setup_git_directory_1() result");
 	}
 
 	if (prefix)
@@ -1116,8 +1113,7 @@ const char *setup_git_directory_gently(int *nongit_ok)
 			const char *gitdir = getenv(GIT_DIR_ENVIRONMENT);
 			if (!gitdir)
 				gitdir = DEFAULT_GIT_DIR_ENVIRONMENT;
-			repo_set_gitdir(the_repository, gitdir);
-			setup_git_env();
+			setup_git_env(gitdir);
 		}
 		if (startup_info->have_repository)
 			repo_set_hash_algo(the_repository, repo_fmt.hash_algo);
