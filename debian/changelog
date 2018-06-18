@@ -1,3 +1,12 @@
+git (1:2.18.0~rc2-1) unstable; urgency=low
+
+  * new upstream release candidate (see RelNotes/2.18.0.txt).
+  * debian/README.emacs: describe removed emacs support.
+  * debian/control: package git-el: describe transitional
+    modules; Recommends: elpa-magit.
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 18 Jun 2018 09:19:59 -0700
+
 git (1:2.17.1-1) unstable; urgency=high
 
   * new upstream point release to fix CVE-2018-11235, arbitary code

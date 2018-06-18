@@ -273,6 +273,7 @@ Package: git-el
 Architecture: all
 Multi-Arch: foreign
 Depends: ${misc:Depends}, git (>= 1:1.7.4.1-2~), emacs | emacsen
+Recommends: elpa-magit
 Replaces: git (<< 1:1.7.4.1-2~)
 Breaks: git (<< 1:1.7.4.1-2~)
 Description: fast, scalable, distributed revision control system (emacs support)
@@ -285,26 +286,10 @@ Description: fast, scalable, distributed revision control system (emacs support)
  revision tracking capabilities, not dependent on network access or a
  central server.
  .
- This package provides two modules for integration with Emacs:
- .
-  * git.el:
- .
-    Status manager that displays the state of all the files of the
-    project and provides easy access to the most frequently used git
-    commands. The user interface is intended to be similar to the
-    pcl-cvs mode. It can be started with `M-x git-status'.
- .
-  * git-blame.el:
- .
-    Emacs implementation of incremental "git blame".  When you turn it
-    on while viewing a file, the editor buffer will be updated by
-    setting the background of individual lines to a color that reflects
-    which commit it comes from.
- .
- This package does not contain the VC-mode backend for git. That is
- part of standard Emacs distributions, starting with version 22.2.
- .
- For a more polished Emacs interface for Git, see the magit package.
+ This transitional package provides two modules that previously could be
+ used for integration with Emacs: git.el and git-blame.el. Now the
+ modules print an error message with instructions that users can use to
+ migrate to Emacs's VC-mode backend for Git or Magit.
 
 Package: gitweb
 Architecture: all

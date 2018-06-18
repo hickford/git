@@ -1,33 +1,24 @@
-The git-el package provides various modules for Emacs support.
-
-When the git-el package is installed, the modules will be automatically
-made available to installed Emacs versions.  The configuration
-can be overridden in /etc/emacs/site-start.d/50git-core.el.
-
-The following modules are available:
+The git-el package previously provided the following modules for Emacs
+support:
 
 * git.el:
 
-  Status manager that displays the state of all the files of the
-  project, and provides easy access to the most frequently used git
-  commands. The user interface is as far as possible compatible with
-  the pcl-cvs mode. It can be started with `M-x git-status'.
+  Status manager that displayed the state of all the files of the
+  project and provided access to the most frequently used Git
+  commands. Its interface was modeled after the pcl-cvs mode.
+
+  Modern alternatives include Magit, available from the elpa-magit
+  package, and the VC-mode backend for Git that is part of standard
+  Emacs distributions.
 
 * git-blame.el:
 
-  Emacs implementation of incremental git-blame.  When you turn it on
-  while viewing a file, the editor buffer will be updated by setting
-  the background of individual lines to a color that reflects which
-  commit it comes from.
+  A wrapper for "git blame" written before Emacs's own vc-annotate
+  mode, which can be invoked using C-x v g, learned to invoke
+  "git blame".
 
 * vc-git.el:
 
-  This file used to contain the VC-mode backend for git, but it is no
-  longer distributed with git. It is now maintained as part of Emacs
-  and included in standard Emacs distributions starting from version
-  22.2.
-
-  If you have an earlier Emacs version, upgrading to Emacs 22 is
-  recommended, since the VC mode in older Emacs is not generic enough
-  to be able to support git in a reasonable manner, and no attempt has
-  been made to backport vc-git.el.
+  This file used to contain the VC-mode backend for Git, but it is no
+  longer distributed with Git. It is now maintained as part of Emacs
+  and included in standard Emacs distributions.
