@@ -1,3 +1,11 @@
+git (1:2.18.0~rc2-2) unstable; urgency=low
+
+  * debian/control: Breaks: dgit (<< 5.1~) that lacks support
+    for working-tree-encoding attribute (thx Ian Jackson;
+    closes: #901897).
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Wed, 20 Jun 2018 10:22:51 -0700
+
 git (1:2.18.0~rc2-1) unstable; urgency=low
 
   * new upstream release candidate (see RelNotes/2.18.0.txt).

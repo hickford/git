@@ -37,6 +37,7 @@ Suggests: gettext-base, git-daemon-run | git-daemon-sysvinit,
 Replaces: gitweb (<< 1:1.7.4~rc1),
  git-core (<< 1:1.7.0.4-1.)
 Breaks: bash-completion (<< 1:1.90-1), gitweb (<< 1:1.7.4~rc1),
+ dgit (<< 5.1~),
  git-buildpackage (<< 0.6.5),
  cogito (<= 0.18.2+),
  openssh-client (<< 1:6.8),
