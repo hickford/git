@@ -1,3 +1,112 @@
+Version v2.18.0; changes since v2.18.0-rc2:
+-------------------------------------------
+
+Alexander Shopov (2):
+      l10n: bg.po: Updated Bulgarian translation (3608t)
+      l10n: bg.po: Updated Bulgarian translation (3608t)
+
+Andre Hinrichs (1):
+      l10n: de.po: fix typos
+
+Changwoo Ryu (1):
+      l10n: ko.po: Update Korean translation
+
+Christopher Diaz Riveros (3):
+      l10n: es.po: Spanish update for v2.18.0 round 1
+      l10n: es.po: Spanish update for v2.18.0 round 2
+      l10n: es.po: Spanish update for v2.18.0 round 3
+
+Eric Sunshine (1):
+      Makefile: make NO_ICONV really mean "no iconv"
+
+Jean-Noël Avila (2):
+      l10n: fr.po v2.18 round 1
+      l10n: fr.po v2.18.0 round 3
+
+Jeff King (2):
+      ewah_read_mmap: bounds-check mmap reads
+      ewah: adjust callers of ewah_read_mmap()
+
+Jeremy Linton (1):
+      packfile: correct zlib buffer handling
+
+Jiang Xin (4):
+      l10n: git.pot: v2.18.0 round 1 (108 new, 14 removed)
+      l10n: git.pot: v2.18.0 round 2 (144 new, 6 removed)
+      l10n: git.pot: v2.18.0 round 3 (1 new, 1 removed)
+      l10n: zh_CN: for git v2.18.0 l10n round 1 to 3
+
+Johannes Schindelin (1):
+      rebase --root: fix amending root commit messages
+
+Jordi Mas (1):
+      l10n: Update Catalan translation
+
+Junio C Hamano (3):
+      A bunch of micro-fixes before going 2.18 final
+      Almost 2.18 final
+      Git 2.18
+
+Kaartic Sivaraam (1):
+      t3200: clarify description of --set-upstream test
+
+Karthikeyan Singaravelan (1):
+      doc: fix typos in documentation and release notes
+
+Kyle Meyer (1):
+      gitworkflows: fix grammar in 'Merge upwards' rule
+
+Luke Diamand (6):
+      git-p4: disable-rebase: allow setting this via configuration
+      git-p4: add option to disable syncing of p4/master with p4
+      git-p4: better error reporting when p4 fails
+      git-p4: raise exceptions from p4CmdList based on error from p4 server
+      git-p4: narrow the scope of exceptions caught when parsing an int
+      git-p4: auto-size the block
+
+Meng-Sung Wu (1):
+      doc: update the order of the syntax `git merge --continue`
+
+Peter Krefting (2):
+      l10n: sv.po: Update Swedish translation (3470t0f0u)
+      l10n: sv.po: Update Swedish translation (3608t0f0u)
+
+Ralf Thielow (1):
+      l10n: TEAMS: remove inactive de team members
+
+René Scharfe (3):
+      merge-recursive: use xstrdup() instead of fixed buffer
+      blame: release string_list after use in parse_color_fields()
+      merge-recursive: use xstrdup() instead of fixed buffer
+
+Robert P. J. Day (3):
+      sha1-file.c: correct $GITDIR to $GIT_DIR in a comment
+      diff-options.txt: fix minor typos, font inconsistencies, in docs
+      Use hyphenated "remote-tracking branch" (docs and comments)
+
+Romain Merland (1):
+      git-p4: add options --commit and --disable-rebase
+
+SZEDER Gábor (2):
+      t7406-submodule-update: fix broken &&-chains
+      RelNotes 2.18: minor fix to entry about dynamically loading completions
+
+Stefan Beller (1):
+      t7400: encapsulate setup code in test_expect_success
+
+Todd Zullinger (2):
+      rebase --root: demonstrate a bug while amending root commit messages
+      t3404: check root commit in 'rebase -i --root reword root commit'
+
+Trần Ngọc Quân (3):
+      l10n: vi(3470t): Updated Vietnamese translation for v2.18.0
+      l10n: vi.po(3608t): Update Vietnamese translation for v2.18.0 round2
+      l10n: vi.po(3608t): Update Vietnamese translation for v2.18.0 round 3
+
+Ævar Arnfjörð Bjarmason (1):
+      git-credential-netrc: remove use of "autodie"
+
+
 Version v2.18.0-rc2; changes since v2.18.0-rc1:
 -----------------------------------------------
 
