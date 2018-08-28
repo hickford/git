@@ -1,9 +1,9 @@
-git (1:2.19.0~rc1-0.1) unstable; urgency=low
+git (1:2.19.0~rc1-1) unstable; urgency=low
 
   * new upstream release candidate (see RelNotes/2.19.0.txt).
   * debian/control: Standards-Version: 4.1.5.0.
 
- -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 28 Aug 2018 13:36:22 -0700
+ -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 28 Aug 2018 13:48:50 -0700
 
 git (1:2.18.0-1) unstable; urgency=low
 
