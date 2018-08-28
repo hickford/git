@@ -5,6 +5,8 @@
  */
 #include "cache.h"
 #include "config.h"
+#include "object-store.h"
+#include "repository.h"
 #include "commit.h"
 #include "tree.h"
 #include "builtin.h"
@@ -59,7 +61,8 @@ int cmd_commit_tree(int argc, const char **argv, const char *prefix)
 			if (get_oid_commit(argv[i], &oid))
 				die("Not a valid object name %s", argv[i]);
 			assert_oid_type(&oid, OBJ_COMMIT);
-			new_parent(lookup_commit(&oid), &parents);
+			new_parent(lookup_commit(the_repository, &oid),
+						 &parents);
 			continue;
 		}
 

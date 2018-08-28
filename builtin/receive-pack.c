@@ -25,6 +25,7 @@
 #include "tmp-objdir.h"
 #include "oidset.h"
 #include "packfile.h"
+#include "object-store.h"
 #include "protocol.h"
 
 static const char * const receive_pack_usage[] = {
@@ -629,8 +630,6 @@ static void prepare_push_cert_sha1(struct child_process *proc)
 		return;
 
 	if (!already_done) {
-		struct strbuf gpg_output = STRBUF_INIT;
-		struct strbuf gpg_status = STRBUF_INIT;
 		int bogs /* beginning_of_gpg_sig */;
 
 		already_done = 1;
@@ -639,22 +638,11 @@ static void prepare_push_cert_sha1(struct child_process *proc)
 			oidclr(&push_cert_oid);
 
 		memset(&sigcheck, '\0', sizeof(sigcheck));
-		sigcheck.result = 'N';
 
 		bogs = parse_signature(push_cert.buf, push_cert.len);
-		if (verify_signed_buffer(push_cert.buf, bogs,
-					 push_cert.buf + bogs, push_cert.len - bogs,
-					 &gpg_output, &gpg_status) < 0) {
-			; /* error running gpg */
-		} else {
-			sigcheck.payload = push_cert.buf;
-			sigcheck.gpg_output = gpg_output.buf;
-			sigcheck.gpg_status = gpg_status.buf;
-			parse_gpg_output(&sigcheck);
-		}
+		check_signature(push_cert.buf, bogs, push_cert.buf + bogs,
+				push_cert.len - bogs, &sigcheck);
 
-		strbuf_release(&gpg_output);
-		strbuf_release(&gpg_status);
 		nonce_status = check_nonce(push_cert.buf, bogs);
 	}
 	if (!is_null_oid(&push_cert_oid)) {
@@ -905,7 +893,7 @@ static int update_shallow_ref(struct command *cmd, struct shallow_info *si)
 	 * not lose these new roots..
 	 */
 	for (i = 0; i < extra.nr; i++)
-		register_shallow(&extra.oid[i]);
+		register_shallow(the_repository, &extra.oid[i]);
 
 	si->shallow_ref[cmd->index] = 0;
 	oid_array_clear(&extra);
@@ -1107,8 +1095,8 @@ static const char *update(struct command *cmd, struct shallow_info *si)
 		struct object *old_object, *new_object;
 		struct commit *old_commit, *new_commit;
 
-		old_object = parse_object(old_oid);
-		new_object = parse_object(new_oid);
+		old_object = parse_object(the_repository, old_oid);
+		new_object = parse_object(the_repository, new_oid);
 
 		if (!old_object || !new_object ||
 		    old_object->type != OBJ_COMMIT ||
@@ -1131,7 +1119,7 @@ static const char *update(struct command *cmd, struct shallow_info *si)
 
 	if (is_null_oid(new_oid)) {
 		struct strbuf err = STRBUF_INIT;
-		if (!parse_object(old_oid)) {
+		if (!parse_object(the_repository, old_oid)) {
 			old_oid = NULL;
 			if (ref_exists(name)) {
 				rp_warning("Allowing deletion of corrupt ref.");

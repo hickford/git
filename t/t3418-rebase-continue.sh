@@ -60,7 +60,7 @@ test_expect_success 'rebase --continue remembers merge strategy and options' '
 	EOF
 	chmod +x test-bin/git-merge-funny &&
 	(
-		PATH=./test-bin:$PATH
+		PATH=./test-bin:$PATH &&
 		test_must_fail git rebase -s funny -Xopt master topic
 	) &&
 	test -f funny.was.run &&
@@ -68,7 +68,39 @@ test_expect_success 'rebase --continue remembers merge strategy and options' '
 	echo "Resolved" >F2 &&
 	git add F2 &&
 	(
-		PATH=./test-bin:$PATH
+		PATH=./test-bin:$PATH &&
+		git rebase --continue
+	) &&
+	test -f funny.was.run
+'
+
+test_expect_success 'rebase -i --continue handles merge strategy and options' '
+	rm -fr .git/rebase-* &&
+	git reset --hard commit-new-file-F2-on-topic-branch &&
+	test_commit "commit-new-file-F3-on-topic-branch-for-dash-i" F3 32 &&
+	test_when_finished "rm -fr test-bin funny.was.run funny.args" &&
+	mkdir test-bin &&
+	cat >test-bin/git-merge-funny <<-EOF &&
+	#!$SHELL_PATH
+	echo "\$@" >>funny.args
+	case "\$1" in --opt) ;; *) exit 2 ;; esac
+	case "\$2" in --foo) ;; *) exit 2 ;; esac
+	case "\$4" in --) ;; *) exit 2 ;; esac
+	shift 2 &&
+	>funny.was.run &&
+	exec git merge-recursive "\$@"
+	EOF
+	chmod +x test-bin/git-merge-funny &&
+	(
+		PATH=./test-bin:$PATH &&
+		test_must_fail git rebase -i -s funny -Xopt -Xfoo master topic
+	) &&
+	test -f funny.was.run &&
+	rm funny.was.run &&
+	echo "Resolved" >F2 &&
+	git add F2 &&
+	(
+		PATH=./test-bin:$PATH &&
 		git rebase --continue
 	) &&
 	test -f funny.was.run
@@ -128,13 +160,15 @@ test_expect_success '--skip after failed fixup cleans commit message' '
 	: The first squash was skipped, therefore: &&
 	git show HEAD >out &&
 	test_i18ngrep "# This is a combination of 2 commits" out &&
+	test_i18ngrep "# This is the commit message #2:" out &&
 
 	(test_set_editor "$PWD/copy-editor.sh" && git rebase --skip) &&
 	git show HEAD >out &&
 	test_i18ngrep ! "# This is a combination" out &&
 
 	: Final squash failed, but there was still a squash &&
-	test_i18ngrep "# This is a combination of 2 commits" .git/copy.txt
+	test_i18ngrep "# This is a combination of 2 commits" .git/copy.txt &&
+	test_i18ngrep "# This is the commit message #2:" .git/copy.txt
 '
 
 test_expect_success 'setup rerere database' '

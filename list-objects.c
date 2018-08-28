@@ -10,6 +10,7 @@
 #include "list-objects-filter.h"
 #include "list-objects-filter-options.h"
 #include "packfile.h"
+#include "object-store.h"
 
 static void process_blob(struct rev_info *revs,
 			 struct blob *blob,
@@ -47,7 +48,7 @@ static void process_blob(struct rev_info *revs,
 
 	pathlen = path->len;
 	strbuf_addstr(path, name);
-	if (filter_fn)
+	if (!(obj->flags & USER_GIVEN) && filter_fn)
 		r = filter_fn(LOFS_BLOB, obj,
 			      path->buf, &path->buf[pathlen],
 			      filter_data);
@@ -132,7 +133,7 @@ static void process_tree(struct rev_info *revs,
 	}
 
 	strbuf_addstr(base, name);
-	if (filter_fn)
+	if (!(obj->flags & USER_GIVEN) && filter_fn)
 		r = filter_fn(LOFS_BEGIN_TREE, obj,
 			      base->buf, &base->buf[baselen],
 			      filter_data);
@@ -157,7 +158,7 @@ static void process_tree(struct rev_info *revs,
 
 		if (S_ISDIR(entry.mode))
 			process_tree(revs,
-				     lookup_tree(entry.oid),
+				     lookup_tree(the_repository, entry.oid),
 				     show, base, entry.path,
 				     cb_data, filter_fn, filter_data);
 		else if (S_ISGITLINK(entry.mode))
@@ -166,12 +167,12 @@ static void process_tree(struct rev_info *revs,
 					cb_data);
 		else
 			process_blob(revs,
-				     lookup_blob(entry.oid),
+				     lookup_blob(the_repository, entry.oid),
 				     show, base, entry.path,
 				     cb_data, filter_fn, filter_data);
 	}
 
-	if (filter_fn) {
+	if (!(obj->flags & USER_GIVEN) && filter_fn) {
 		r = filter_fn(LOFS_END_TREE, obj,
 			      base->buf, &base->buf[baselen],
 			      filter_data);

@@ -1,11 +1,13 @@
 #ifndef REVISION_H
 #define REVISION_H
 
+#include "commit.h"
 #include "parse-options.h"
 #include "grep.h"
 #include "notes.h"
 #include "pretty.h"
 #include "diff.h"
+#include "commit-slab-decl.h"
 
 /* Remember to update object flag allocation in object.h */
 #define SEEN		(1u<<0)
@@ -19,8 +21,9 @@
 #define SYMMETRIC_LEFT	(1u<<8)
 #define PATCHSAME	(1u<<9)
 #define BOTTOM		(1u<<10)
+#define USER_GIVEN	(1u<<25) /* given directly by the user */
 #define TRACK_LINEAR	(1u<<26)
-#define ALL_REV_FLAGS	(((1u<<11)-1) | TRACK_LINEAR)
+#define ALL_REV_FLAGS	(((1u<<11)-1) | USER_GIVEN | TRACK_LINEAR)
 
 #define DECORATE_SHORT_REFS	1
 #define DECORATE_FULL_REFS	2
@@ -29,6 +32,7 @@ struct rev_info;
 struct log_info;
 struct string_list;
 struct saved_parents;
+define_shared_commit_slab(revision_sources, char *);
 
 struct rev_cmdline_info {
 	unsigned int nr;
@@ -111,7 +115,6 @@ struct rev_info {
 			right_only:1,
 			rewrite_parents:1,
 			print_parents:1,
-			show_source:1,
 			show_decorations:1,
 			reverse:1,
 			reverse_output_stage:1,
@@ -224,9 +227,11 @@ struct rev_info {
 
 	struct commit_list *previous_parents;
 	const char *break_bar;
+
+	struct revision_sources *sources;
 };
 
-extern int ref_excluded(struct string_list *, const char *path);
+int ref_excluded(struct string_list *, const char *path);
 void clear_ref_exclusion(struct string_list **);
 void add_ref_exclusion(struct string_list **, const char *exclude);
 
@@ -248,39 +253,39 @@ struct setup_revision_opt {
 	unsigned revarg_opt;
 };
 
-extern void init_revisions(struct rev_info *revs, const char *prefix);
-extern int setup_revisions(int argc, const char **argv, struct rev_info *revs,
-			   struct setup_revision_opt *);
-extern void parse_revision_opt(struct rev_info *revs, struct parse_opt_ctx_t *ctx,
-			       const struct option *options,
-			       const char * const usagestr[]);
+void init_revisions(struct rev_info *revs, const char *prefix);
+int setup_revisions(int argc, const char **argv, struct rev_info *revs,
+		    struct setup_revision_opt *);
+void parse_revision_opt(struct rev_info *revs, struct parse_opt_ctx_t *ctx,
+			const struct option *options,
+			const char * const usagestr[]);
 #define REVARG_CANNOT_BE_FILENAME 01
 #define REVARG_COMMITTISH 02
-extern int handle_revision_arg(const char *arg, struct rev_info *revs,
-			       int flags, unsigned revarg_opt);
+int handle_revision_arg(const char *arg, struct rev_info *revs,
+			int flags, unsigned revarg_opt);
 
-extern void reset_revision_walk(void);
-extern int prepare_revision_walk(struct rev_info *revs);
-extern struct commit *get_revision(struct rev_info *revs);
-extern char *get_revision_mark(const struct rev_info *revs,
-			       const struct commit *commit);
-extern void put_revision_mark(const struct rev_info *revs,
-			      const struct commit *commit);
+void reset_revision_walk(void);
+int prepare_revision_walk(struct rev_info *revs);
+struct commit *get_revision(struct rev_info *revs);
+char *get_revision_mark(const struct rev_info *revs,
+			const struct commit *commit);
+void put_revision_mark(const struct rev_info *revs,
+		       const struct commit *commit);
 
-extern void mark_parents_uninteresting(struct commit *commit);
-extern void mark_tree_uninteresting(struct tree *tree);
+void mark_parents_uninteresting(struct commit *commit);
+void mark_tree_uninteresting(struct tree *tree);
 
-extern void show_object_with_name(FILE *, struct object *, const char *);
+void show_object_with_name(FILE *, struct object *, const char *);
 
-extern void add_pending_object(struct rev_info *revs,
-			       struct object *obj, const char *name);
-extern void add_pending_oid(struct rev_info *revs,
-			    const char *name, const struct object_id *oid,
-			    unsigned int flags);
+void add_pending_object(struct rev_info *revs,
+			struct object *obj, const char *name);
+void add_pending_oid(struct rev_info *revs,
+		     const char *name, const struct object_id *oid,
+		     unsigned int flags);
 
-extern void add_head_to_pending(struct rev_info *);
-extern void add_reflogs_to_pending(struct rev_info *, unsigned int flags);
-extern void add_index_objects_to_pending(struct rev_info *, unsigned int flags);
+void add_head_to_pending(struct rev_info *);
+void add_reflogs_to_pending(struct rev_info *, unsigned int flags);
+void add_index_objects_to_pending(struct rev_info *, unsigned int flags);
 
 enum commit_action {
 	commit_ignore,
@@ -288,10 +293,10 @@ enum commit_action {
 	commit_error
 };
 
-extern enum commit_action get_commit_action(struct rev_info *revs,
-					    struct commit *commit);
-extern enum commit_action simplify_commit(struct rev_info *revs,
-					  struct commit *commit);
+enum commit_action get_commit_action(struct rev_info *revs,
+				     struct commit *commit);
+enum commit_action simplify_commit(struct rev_info *revs,
+				   struct commit *commit);
 
 enum rewrite_result {
 	rewrite_one_ok,
@@ -301,8 +306,9 @@ enum rewrite_result {
 
 typedef enum rewrite_result (*rewrite_parent_fn_t)(struct rev_info *revs, struct commit **pp);
 
-extern int rewrite_parents(struct rev_info *revs, struct commit *commit,
-	rewrite_parent_fn_t rewrite_parent);
+int rewrite_parents(struct rev_info *revs,
+		    struct commit *commit,
+		    rewrite_parent_fn_t rewrite_parent);
 
 /*
  * The log machinery saves the original parent list so that
@@ -313,6 +319,6 @@ extern int rewrite_parents(struct rev_info *revs, struct commit *commit,
  * get_saved_parents() will transparently return commit->parents if
  * history simplification is off.
  */
-extern struct commit_list *get_saved_parents(struct rev_info *revs, const struct commit *commit);
+struct commit_list *get_saved_parents(struct rev_info *revs, const struct commit *commit);
 
 #endif

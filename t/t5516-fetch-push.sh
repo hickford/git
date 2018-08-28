@@ -923,7 +923,7 @@ test_expect_success 'push into aliased refs (consistent)' '
 	(
 		cd child1 &&
 		git branch foo &&
-		git symbolic-ref refs/heads/bar refs/heads/foo
+		git symbolic-ref refs/heads/bar refs/heads/foo &&
 		git config receive.denyCurrentBranch false
 	) &&
 	(
@@ -945,7 +945,7 @@ test_expect_success 'push into aliased refs (inconsistent)' '
 	(
 		cd child1 &&
 		git branch foo &&
-		git symbolic-ref refs/heads/bar refs/heads/foo
+		git symbolic-ref refs/heads/bar refs/heads/foo &&
 		git config receive.denyCurrentBranch false
 	) &&
 	(
@@ -965,26 +965,51 @@ test_expect_success 'push into aliased refs (inconsistent)' '
 	)
 '
 
-test_expect_success 'push requires --force to update lightweight tag' '
-	mk_test testrepo heads/master &&
-	mk_child testrepo child1 &&
-	mk_child testrepo child2 &&
-	(
-		cd child1 &&
-		git tag Tag &&
-		git push ../child2 Tag &&
-		git push ../child2 Tag &&
-		>file1 &&
-		git add file1 &&
-		git commit -m "file1" &&
-		git tag -f Tag &&
-		test_must_fail git push ../child2 Tag &&
-		git push --force ../child2 Tag &&
-		git tag -f Tag &&
-		test_must_fail git push ../child2 Tag HEAD~ &&
-		git push --force ../child2 Tag
-	)
-'
+test_force_push_tag () {
+	tag_type_description=$1
+	tag_args=$2
+
+	test_expect_success 'force pushing required to update lightweight tag' "
+		mk_test testrepo heads/master &&
+		mk_child testrepo child1 &&
+		mk_child testrepo child2 &&
+		(
+			cd child1 &&
+			git tag testTag &&
+			git push ../child2 testTag &&
+			>file1 &&
+			git add file1 &&
+			git commit -m 'file1' &&
+			git tag $tag_args testTag &&
+			test_must_fail git push ../child2 testTag &&
+			git push --force ../child2 testTag &&
+			git tag $tag_args testTag HEAD~ &&
+			test_must_fail git push ../child2 testTag &&
+			git push --force ../child2 testTag &&
+
+			# Clobbering without + in refspec needs --force
+			git tag -f testTag &&
+			test_must_fail git push ../child2 'refs/tags/*:refs/tags/*' &&
+			git push --force ../child2 'refs/tags/*:refs/tags/*' &&
+
+			# Clobbering with + in refspec does not need --force
+			git tag -f testTag HEAD~ &&
+			git push ../child2 '+refs/tags/*:refs/tags/*' &&
+
+			# Clobbering with --no-force still obeys + in refspec
+			git tag -f testTag &&
+			git push --no-force ../child2 '+refs/tags/*:refs/tags/*' &&
+
+			# Clobbering with/without --force and 'tag <name>' format
+			git tag -f testTag HEAD~ &&
+			test_must_fail git push ../child2 tag testTag &&
+			git push --force ../child2 tag testTag
+		)
+	"
+}
+
+test_force_push_tag "lightweight tag" "-f"
+test_force_push_tag "annotated tag" "-f -a -m'msg'"
 
 test_expect_success 'push --porcelain' '
 	mk_empty testrepo &&
@@ -1011,7 +1036,7 @@ test_expect_success 'push --porcelain rejected' '
 	mk_empty testrepo &&
 	git push testrepo refs/heads/master:refs/remotes/origin/master &&
 	(cd testrepo &&
-		git reset --hard origin/master^
+		git reset --hard origin/master^ &&
 		git config receive.denyCurrentBranch true) &&
 
 	echo >.git/foo  "To testrepo"  &&
@@ -1025,7 +1050,7 @@ test_expect_success 'push --porcelain --dry-run rejected' '
 	mk_empty testrepo &&
 	git push testrepo refs/heads/master:refs/remotes/origin/master &&
 	(cd testrepo &&
-		git reset --hard origin/master
+		git reset --hard origin/master &&
 		git config receive.denyCurrentBranch true) &&
 
 	echo >.git/foo  "To testrepo"  &&
@@ -1333,7 +1358,7 @@ test_expect_success 'push --follow-tag only pushes relevant tags' '
 		git commit --allow-empty -m "future commit" &&
 		git tag -m "future" future &&
 		git checkout master &&
-		git for-each-ref refs/heads/master refs/tags/tag >../expect
+		git for-each-ref refs/heads/master refs/tags/tag >../expect &&
 		git push --follow-tag ../dst master
 	) &&
 	(

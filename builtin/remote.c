@@ -8,6 +8,7 @@
 #include "run-command.h"
 #include "refs.h"
 #include "refspec.h"
+#include "object-store.h"
 #include "argv-array.h"
 
 static const char * const builtin_remote_usage[] = {
@@ -167,7 +168,7 @@ static int add(int argc, const char **argv)
 		OPT_STRING_LIST('t', "track", &track, N_("branch"),
 				N_("branch(es) to track")),
 		OPT_STRING('m', "master", &master, N_("branch"), N_("master branch")),
-		{ OPTION_CALLBACK, 0, "mirror", &mirror, N_("push|fetch"),
+		{ OPTION_CALLBACK, 0, "mirror", &mirror, "(push|fetch)",
 			N_("set up remote as a mirror to push to or fetch from"),
 			PARSE_OPT_OPTARG | PARSE_OPT_COMP_ARG, parse_mirror_opt },
 		OPT_END()
@@ -565,7 +566,7 @@ static int read_remote_branches(const char *refname,
 
 	strbuf_addf(&buf, "refs/remotes/%s/", rename->old_name);
 	if (starts_with(refname, buf.buf)) {
-		item = string_list_append(rename->remote_branches, xstrdup(refname));
+		item = string_list_append(rename->remote_branches, refname);
 		symref = resolve_ref_unsafe(refname, RESOLVE_REF_READING,
 					    NULL, &flag);
 		if (symref && (flag & REF_ISSYMREF))
@@ -611,7 +612,7 @@ static int mv(int argc, const char **argv)
 	struct remote *oldremote, *newremote;
 	struct strbuf buf = STRBUF_INIT, buf2 = STRBUF_INIT, buf3 = STRBUF_INIT,
 		old_remote_context = STRBUF_INIT;
-	struct string_list remote_branches = STRING_LIST_INIT_NODUP;
+	struct string_list remote_branches = STRING_LIST_INIT_DUP;
 	struct rename_info rename;
 	int i, refspec_updated = 0;
 
@@ -733,6 +734,7 @@ static int mv(int argc, const char **argv)
 		if (create_symref(buf.buf, buf2.buf, buf3.buf))
 			die(_("creating '%s' failed"), buf.buf);
 	}
+	string_list_clear(&remote_branches, 1);
 	return 0;
 }
 

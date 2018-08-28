@@ -630,7 +630,7 @@ const char *logmsg_reencode(const struct commit *commit,
 		 * the cached copy from get_commit_buffer, we need to duplicate it
 		 * to avoid munging the cached copy.
 		 */
-		if (msg == get_cached_commit_buffer(commit, NULL))
+		if (msg == get_cached_commit_buffer(the_repository, commit, NULL))
 			out = xstrdup(msg);
 		else
 			out = (char *)msg;
@@ -1146,7 +1146,7 @@ static size_t format_commit_one(struct strbuf *sb, /* in UTF-8 */
 
 	/* these depend on the commit */
 	if (!commit->object.parsed)
-		parse_object(&commit->object.oid);
+		parse_object(the_repository, &commit->object.oid);
 
 	switch (placeholder[0]) {
 	case 'H':		/* commit hash */
@@ -1538,7 +1538,7 @@ void format_commit_message(const struct commit *commit,
 	}
 
 	if (output_enc) {
-		int outsz;
+		size_t outsz;
 		char *out = reencode_string_len(sb->buf, sb->len,
 						output_enc, utf8, &outsz);
 		if (out)
@@ -1575,7 +1575,7 @@ static void pp_header(struct pretty_print_context *pp,
 		}
 
 		if (starts_with(line, "parent ")) {
-			if (linelen != 48)
+			if (linelen != the_hash_algo->hexsz + 8)
 				die("bad parent line in commit");
 			continue;
 		}
@@ -1583,7 +1583,7 @@ static void pp_header(struct pretty_print_context *pp,
 		if (!parents_shown) {
 			unsigned num = commit_list_count(commit->parents);
 			/* with enough slop */
-			strbuf_grow(sb, num * 50 + 20);
+			strbuf_grow(sb, num * (GIT_MAX_HEXSZ + 10) + 20);
 			add_merge_info(pp, sb, commit);
 			parents_shown = 1;
 		}

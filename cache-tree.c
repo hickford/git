@@ -3,6 +3,7 @@
 #include "tree.h"
 #include "tree-walk.h"
 #include "cache-tree.h"
+#include "object-store.h"
 
 #ifndef DEBUG
 #define DEBUG 0
@@ -651,11 +652,6 @@ out:
 	return ret;
 }
 
-int write_cache_as_tree(struct object_id *oid, int flags, const char *prefix)
-{
-	return write_index_as_tree(oid, &the_index, get_index_file(), flags, prefix);
-}
-
 static void prime_cache_tree_rec(struct cache_tree *it, struct tree *tree)
 {
 	struct tree_desc desc;
@@ -670,7 +666,8 @@ static void prime_cache_tree_rec(struct cache_tree *it, struct tree *tree)
 			cnt++;
 		else {
 			struct cache_tree_sub *sub;
-			struct tree *subtree = lookup_tree(entry.oid);
+			struct tree *subtree = lookup_tree(the_repository,
+							   entry.oid);
 			if (!subtree->object.parsed)
 				parse_tree(subtree);
 			sub = cache_tree_sub(it, entry.path);
@@ -720,11 +717,4 @@ int cache_tree_matches_traversal(struct cache_tree *root,
 	if (it && it->entry_count > 0 && !oidcmp(ent->oid, &it->oid))
 		return it->entry_count;
 	return 0;
-}
-
-int update_main_cache_tree(int flags)
-{
-	if (!the_index.cache_tree)
-		the_index.cache_tree = cache_tree();
-	return cache_tree_update(&the_index, flags);
 }

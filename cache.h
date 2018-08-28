@@ -15,6 +15,7 @@
 #include "path.h"
 #include "sha1-array.h"
 #include "repository.h"
+#include "mem-pool.h"
 
 #include <zlib.h>
 typedef struct git_zstream {
@@ -156,6 +157,7 @@ struct cache_entry {
 	struct stat_data ce_stat_data;
 	unsigned int ce_mode;
 	unsigned int ce_flags;
+	unsigned int mem_pool_allocated;
 	unsigned int ce_namelen;
 	unsigned int index;	/* for link extension */
 	struct object_id oid;
@@ -218,6 +220,7 @@ struct cache_entry {
 /* Forward structure decls */
 struct pathspec;
 struct child_process;
+struct tree;
 
 /*
  * Copy the sha1 and stat state of a cache entry from one to
@@ -227,6 +230,7 @@ static inline void copy_cache_entry(struct cache_entry *dst,
 				    const struct cache_entry *src)
 {
 	unsigned int state = dst->ce_flags & CE_HASHED;
+	int mem_pool_allocated = dst->mem_pool_allocated;
 
 	/* Don't copy hash chain and name */
 	memcpy(&dst->ce_stat_data, &src->ce_stat_data,
@@ -235,6 +239,9 @@ static inline void copy_cache_entry(struct cache_entry *dst,
 
 	/* Restore the hash state */
 	dst->ce_flags = (dst->ce_flags & ~CE_HASHED) | state;
+
+	/* Restore the mem_pool_allocated flag */
+	dst->mem_pool_allocated = mem_pool_allocated;
 }
 
 static inline unsigned create_ce_flags(unsigned stage)
@@ -328,6 +335,7 @@ struct index_state {
 	struct untracked_cache *untracked;
 	uint64_t fsmonitor_last_update;
 	struct ewah_bitmap *fsmonitor_dirty;
+	struct mem_pool *ce_mem_pool;
 };
 
 extern struct index_state the_index;
@@ -338,6 +346,60 @@ extern void add_name_hash(struct index_state *istate, struct cache_entry *ce);
 extern void remove_name_hash(struct index_state *istate, struct cache_entry *ce);
 extern void free_name_hash(struct index_state *istate);
 
+
+/* Cache entry creation and cleanup */
+
+/*
+ * Create cache_entry intended for use in the specified index. Caller
+ * is responsible for discarding the cache_entry with
+ * `discard_cache_entry`.
+ */
+struct cache_entry *make_cache_entry(struct index_state *istate,
+				     unsigned int mode,
+				     const struct object_id *oid,
+				     const char *path,
+				     int stage,
+				     unsigned int refresh_options);
+
+struct cache_entry *make_empty_cache_entry(struct index_state *istate,
+					   size_t name_len);
+
+/*
+ * Create a cache_entry that is not intended to be added to an index.
+ * Caller is responsible for discarding the cache_entry
+ * with `discard_cache_entry`.
+ */
+struct cache_entry *make_transient_cache_entry(unsigned int mode,
+					       const struct object_id *oid,
+					       const char *path,
+					       int stage);
+
+struct cache_entry *make_empty_transient_cache_entry(size_t name_len);
+
+/*
+ * Discard cache entry.
+ */
+void discard_cache_entry(struct cache_entry *ce);
+
+/*
+ * Check configuration if we should perform extra validation on cache
+ * entries.
+ */
+int should_validate_cache_entries(void);
+
+/*
+ * Duplicate a cache_entry. Allocate memory for the new entry from a
+ * memory_pool. Takes into account cache_entry fields that are meant
+ * for managing the underlying memory allocation of the cache_entry.
+ */
+struct cache_entry *dup_cache_entry(const struct cache_entry *ce, struct index_state *istate);
+
+/*
+ * Validate the cache entries in the index.  This is an internal
+ * consistency check that the cache_entry structs are allocated from
+ * the expected memory pool.
+ */
+void validate_cache_entries(const struct index_state *istate);
 
 #ifndef NO_THE_INDEX_COMPATIBILITY_MACROS
 #define active_cache (the_index.cache)
@@ -484,7 +546,7 @@ extern const char *get_git_dir(void);
 extern const char *get_git_common_dir(void);
 extern char *get_object_directory(void);
 extern char *get_index_file(void);
-extern char *get_graft_file(void);
+extern char *get_graft_file(struct repository *r);
 extern void set_git_dir(const char *path);
 extern int get_common_dir_noenv(struct strbuf *sb, const char *gitdir);
 extern int get_common_dir(struct strbuf *sb, const char *gitdir);
@@ -635,12 +697,15 @@ extern void move_index_extensions(struct index_state *dst, struct index_state *s
 extern int unmerged_index(const struct index_state *);
 
 /**
- * Returns 1 if the index differs from HEAD, 0 otherwise. When on an unborn
- * branch, returns 1 if there are entries in the index, 0 otherwise. If an
- * strbuf is provided, the space-separated list of files that differ will be
- * appended to it.
+ * Returns 1 if istate differs from tree, 0 otherwise.  If tree is NULL,
+ * compares istate to HEAD.  If tree is NULL and on an unborn branch,
+ * returns 1 if there are entries in istate, 0 otherwise.  If an strbuf is
+ * provided, the space-separated list of files that differ will be appended
+ * to it.
  */
-extern int index_has_changes(struct strbuf *sb);
+extern int index_has_changes(const struct index_state *istate,
+			     struct tree *tree,
+			     struct strbuf *sb);
 
 extern int verify_path(const char *path, unsigned mode);
 extern int strcmp_offset(const char *s1, const char *s2, size_t *first_change);
@@ -698,7 +763,6 @@ extern int remove_file_from_index(struct index_state *, const char *path);
 extern int add_to_index(struct index_state *, const char *path, struct stat *, int flags);
 extern int add_file_to_index(struct index_state *, const char *path, int flags);
 
-extern struct cache_entry *make_cache_entry(unsigned int mode, const unsigned char *sha1, const char *path, int stage, unsigned int refresh_options);
 extern int chmod_index_entry(struct index_state *, struct cache_entry *ce, char flip);
 extern int ce_same_name(const struct cache_entry *a, const struct cache_entry *b);
 extern void set_object_name_for_intent_to_add_entry(struct cache_entry *ce);
@@ -751,7 +815,7 @@ extern void fill_stat_cache_info(struct cache_entry *ce, struct stat *st);
 #define REFRESH_IGNORE_SUBMODULES	0x0010	/* ignore submodules */
 #define REFRESH_IN_PORCELAIN	0x0020	/* user friendly output, not "needs update" */
 extern int refresh_index(struct index_state *, unsigned int flags, const struct pathspec *pathspec, char *seen, const char *header_msg);
-extern struct cache_entry *refresh_cache_entry(struct cache_entry *, unsigned int);
+extern struct cache_entry *refresh_cache_entry(struct index_state *, struct cache_entry *, unsigned int);
 
 /*
  * Opportunistically update the index but do not complain if we can't.
@@ -804,16 +868,13 @@ void reset_shared_repository(void);
  * Do replace refs need to be checked this run?  This variable is
  * initialized to true unless --no-replace-object is used or
  * $GIT_NO_REPLACE_OBJECTS is set, but is set to false by some
- * commands that do not want replace references to be active.  As an
- * optimization it is also set to false if replace references have
- * been sought but there were none.
+ * commands that do not want replace references to be active.
  */
-extern int check_replace_refs;
+extern int read_replace_refs;
 extern char *git_replace_ref_base;
 
 extern int fsync_object_files;
 extern int core_preload_index;
-extern int core_commit_graph;
 extern int core_apply_sparse_checkout;
 extern int precomposed_unicode;
 extern int protect_hfs;
@@ -856,15 +917,6 @@ enum log_refs_config {
 };
 extern enum log_refs_config log_all_ref_updates;
 
-enum branch_track {
-	BRANCH_TRACK_UNSPECIFIED = -1,
-	BRANCH_TRACK_NEVER = 0,
-	BRANCH_TRACK_REMOTE,
-	BRANCH_TRACK_ALWAYS,
-	BRANCH_TRACK_EXPLICIT,
-	BRANCH_TRACK_OVERRIDE
-};
-
 enum rebase_setup_type {
 	AUTOREBASE_NEVER = 0,
 	AUTOREBASE_LOCAL,
@@ -881,7 +933,6 @@ enum push_default_type {
 	PUSH_DEFAULT_UNSPECIFIED
 };
 
-extern enum branch_track git_branch_track;
 extern enum rebase_setup_type autorebase;
 extern enum push_default_type push_default;
 
@@ -972,7 +1023,17 @@ extern const struct object_id null_oid;
 
 static inline int hashcmp(const unsigned char *sha1, const unsigned char *sha2)
 {
-	return memcmp(sha1, sha2, GIT_SHA1_RAWSZ);
+	/*
+	 * This is a temporary optimization hack. By asserting the size here,
+	 * we let the compiler know that it's always going to be 20, which lets
+	 * it turn this fixed-size memcmp into a few inline instructions.
+	 *
+	 * This will need to be extended or ripped out when we learn about
+	 * hashes of different sizes.
+	 */
+	if (the_hash_algo->rawsz != 20)
+		BUG("hash size not yet supported by hashcmp");
+	return memcmp(sha1, sha2, the_hash_algo->rawsz);
 }
 
 static inline int oidcmp(const struct object_id *oid1, const struct object_id *oid2)
@@ -992,7 +1053,7 @@ static inline int is_null_oid(const struct object_id *oid)
 
 static inline void hashcpy(unsigned char *sha_dst, const unsigned char *sha_src)
 {
-	memcpy(sha_dst, sha_src, GIT_SHA1_RAWSZ);
+	memcpy(sha_dst, sha_src, the_hash_algo->rawsz);
 }
 
 static inline void oidcpy(struct object_id *dst, const struct object_id *src)
@@ -1009,7 +1070,7 @@ static inline struct object_id *oiddup(const struct object_id *src)
 
 static inline void hashclr(unsigned char *hash)
 {
-	memset(hash, 0, GIT_SHA1_RAWSZ);
+	memset(hash, 0, the_hash_algo->rawsz);
 }
 
 static inline void oidclr(struct object_id *oid)
@@ -1192,32 +1253,6 @@ extern char *xdg_config_home(const char *filename);
  */
 extern char *xdg_cache_home(const char *filename);
 
-extern void *read_object_file_extended(const struct object_id *oid,
-				       enum object_type *type,
-				       unsigned long *size, int lookup_replace);
-static inline void *read_object_file(const struct object_id *oid, enum object_type *type, unsigned long *size)
-{
-	return read_object_file_extended(oid, type, size, 1);
-}
-
-/* Read and unpack an object file into memory, write memory to an object file */
-int oid_object_info(struct repository *r, const struct object_id *, unsigned long *);
-
-extern int hash_object_file(const void *buf, unsigned long len,
-			    const char *type, struct object_id *oid);
-
-extern int write_object_file(const void *buf, unsigned long len,
-			     const char *type, struct object_id *oid);
-
-extern int hash_object_file_literally(const void *buf, unsigned long len,
-				      const char *type, struct object_id *oid,
-				      unsigned flags);
-
-extern int pretend_object_file(void *, unsigned long, enum object_type,
-			       struct object_id *oid);
-
-extern int force_object_loose(const struct object_id *oid, time_t mtime);
-
 extern int git_open_cloexec(const char *name, int flags);
 #define git_open(name) git_open_cloexec(name, O_RDONLY)
 extern int unpack_sha1_header(git_zstream *stream, unsigned char *map, unsigned long mapsize, void *buffer, unsigned long bufsiz);
@@ -1226,43 +1261,6 @@ extern int parse_sha1_header(const char *hdr, unsigned long *sizep);
 extern int check_object_signature(const struct object_id *oid, void *buf, unsigned long size, const char *type);
 
 extern int finalize_object_file(const char *tmpfile, const char *filename);
-
-/*
- * Open the loose object at path, check its hash, and return the contents,
- * type, and size. If the object is a blob, then "contents" may return NULL,
- * to allow streaming of large blobs.
- *
- * Returns 0 on success, negative on error (details may be written to stderr).
- */
-int read_loose_object(const char *path,
-		      const struct object_id *expected_oid,
-		      enum object_type *type,
-		      unsigned long *size,
-		      void **contents);
-
-/*
- * Convenience for sha1_object_info_extended() with a NULL struct
- * object_info. OBJECT_INFO_SKIP_CACHED is automatically set; pass
- * nonzero flags to also set other flags.
- */
-extern int has_sha1_file_with_flags(const unsigned char *sha1, int flags);
-static inline int has_sha1_file(const unsigned char *sha1)
-{
-	return has_sha1_file_with_flags(sha1, 0);
-}
-
-/* Same as the above, except for struct object_id. */
-extern int has_object_file(const struct object_id *oid);
-extern int has_object_file_with_flags(const struct object_id *oid, int flags);
-
-/*
- * Return true iff an alternate object database has a loose object
- * with the specified name.  This function does not respect replace
- * references.
- */
-extern int has_loose_object_nonlocal(const struct object_id *oid);
-
-extern void assert_oid_type(const struct object_id *oid, enum object_type expect);
 
 /* Helper to check and "touch" a file */
 extern int check_and_freshen_file(const char *fn, int freshen);
@@ -1425,18 +1423,20 @@ extern void *read_object_with_reference(const struct object_id *oid,
 extern struct object *peel_to_type(const char *name, int namelen,
 				   struct object *o, enum object_type);
 
+enum date_mode_type {
+	DATE_NORMAL = 0,
+	DATE_RELATIVE,
+	DATE_SHORT,
+	DATE_ISO8601,
+	DATE_ISO8601_STRICT,
+	DATE_RFC2822,
+	DATE_STRFTIME,
+	DATE_RAW,
+	DATE_UNIX
+};
+
 struct date_mode {
-	enum date_mode_type {
-		DATE_NORMAL = 0,
-		DATE_RELATIVE,
-		DATE_SHORT,
-		DATE_ISO8601,
-		DATE_ISO8601_STRICT,
-		DATE_RFC2822,
-		DATE_STRFTIME,
-		DATE_RAW,
-		DATE_UNIX
-	} type;
+	enum date_mode_type type;
 	const char *strftime_fmt;
 	int local;
 };
@@ -1576,116 +1576,6 @@ extern int odb_mkstemp(struct strbuf *temp_filename, const char *pattern);
 extern int odb_pack_keep(const char *name);
 
 /*
- * Iterate over the files in the loose-object parts of the object
- * directory "path", triggering the following callbacks:
- *
- *  - loose_object is called for each loose object we find.
- *
- *  - loose_cruft is called for any files that do not appear to be
- *    loose objects. Note that we only look in the loose object
- *    directories "objects/[0-9a-f]{2}/", so we will not report
- *    "objects/foobar" as cruft.
- *
- *  - loose_subdir is called for each top-level hashed subdirectory
- *    of the object directory (e.g., "$OBJDIR/f0"). It is called
- *    after the objects in the directory are processed.
- *
- * Any callback that is NULL will be ignored. Callbacks returning non-zero
- * will end the iteration.
- *
- * In the "buf" variant, "path" is a strbuf which will also be used as a
- * scratch buffer, but restored to its original contents before
- * the function returns.
- */
-typedef int each_loose_object_fn(const struct object_id *oid,
-				 const char *path,
-				 void *data);
-typedef int each_loose_cruft_fn(const char *basename,
-				const char *path,
-				void *data);
-typedef int each_loose_subdir_fn(unsigned int nr,
-				 const char *path,
-				 void *data);
-int for_each_file_in_obj_subdir(unsigned int subdir_nr,
-				struct strbuf *path,
-				each_loose_object_fn obj_cb,
-				each_loose_cruft_fn cruft_cb,
-				each_loose_subdir_fn subdir_cb,
-				void *data);
-int for_each_loose_file_in_objdir(const char *path,
-				  each_loose_object_fn obj_cb,
-				  each_loose_cruft_fn cruft_cb,
-				  each_loose_subdir_fn subdir_cb,
-				  void *data);
-int for_each_loose_file_in_objdir_buf(struct strbuf *path,
-				      each_loose_object_fn obj_cb,
-				      each_loose_cruft_fn cruft_cb,
-				      each_loose_subdir_fn subdir_cb,
-				      void *data);
-
-/*
- * Iterate over loose objects in both the local
- * repository and any alternates repositories (unless the
- * LOCAL_ONLY flag is set).
- */
-#define FOR_EACH_OBJECT_LOCAL_ONLY 0x1
-extern int for_each_loose_object(each_loose_object_fn, void *, unsigned flags);
-
-struct object_info {
-	/* Request */
-	enum object_type *typep;
-	unsigned long *sizep;
-	off_t *disk_sizep;
-	unsigned char *delta_base_sha1;
-	struct strbuf *type_name;
-	void **contentp;
-
-	/* Response */
-	enum {
-		OI_CACHED,
-		OI_LOOSE,
-		OI_PACKED,
-		OI_DBCACHED
-	} whence;
-	union {
-		/*
-		 * struct {
-		 * 	... Nothing to expose in this case
-		 * } cached;
-		 * struct {
-		 * 	... Nothing to expose in this case
-		 * } loose;
-		 */
-		struct {
-			struct packed_git *pack;
-			off_t offset;
-			unsigned int is_delta;
-		} packed;
-	} u;
-};
-
-/*
- * Initializer for a "struct object_info" that wants no items. You may
- * also memset() the memory to all-zeroes.
- */
-#define OBJECT_INFO_INIT {NULL}
-
-/* Invoke lookup_replace_object() on the given hash */
-#define OBJECT_INFO_LOOKUP_REPLACE 1
-/* Allow reading from a loose object file of unknown/bogus type */
-#define OBJECT_INFO_ALLOW_UNKNOWN_TYPE 2
-/* Do not check cached storage */
-#define OBJECT_INFO_SKIP_CACHED 4
-/* Do not retry packed storage after checking packed and loose storage */
-#define OBJECT_INFO_QUICK 8
-/* Do not check loose object */
-#define OBJECT_INFO_IGNORE_LOOSE 16
-
-int oid_object_info_extended(struct repository *r,
-			     const struct object_id *,
-			     struct object_info *, unsigned flags);
-
-/*
  * Set this to 0 to prevent sha1_object_info_extended() from fetching missing
  * blobs. This has a difference only if extensions.partialClone is set.
  *
@@ -1769,15 +1659,6 @@ extern const char *excludes_file;
 /* base85 */
 int decode_85(char *dst, const char *line, int linelen);
 void encode_85(char *buf, const unsigned char *data, int bytes);
-
-/* alloc.c */
-extern void *alloc_blob_node(void);
-extern void *alloc_tree_node(void);
-extern void *alloc_commit_node(void);
-extern void *alloc_tag_node(void);
-extern void *alloc_object_node(void);
-extern void alloc_report(void);
-extern unsigned int alloc_commit_index(void);
 
 /* pkt-line.c */
 void packet_trace_identity(const char *prog);

@@ -1,11 +1,14 @@
 #ifndef UNPACK_TREES_H
 #define UNPACK_TREES_H
 
-#include "tree-walk.h"
+#include "cache.h"
 #include "argv-array.h"
+#include "string-list.h"
+#include "tree-walk.h"
 
 #define MAX_UNPACK_TREES 8
 
+struct cache_entry;
 struct unpack_trees_options;
 struct exclude_list;
 
@@ -82,8 +85,8 @@ struct unpack_trees_options {
 	struct exclude_list *el; /* for internal use */
 };
 
-extern int unpack_trees(unsigned n, struct tree_desc *t,
-		struct unpack_trees_options *options);
+int unpack_trees(unsigned n, struct tree_desc *t,
+		 struct unpack_trees_options *options);
 
 int verify_uptodate(const struct cache_entry *ce,
 		    struct unpack_trees_options *o);

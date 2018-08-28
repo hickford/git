@@ -1,6 +1,8 @@
 #include "cache.h"
 #include "config.h"
 #include "diff.h"
+#include "object-store.h"
+#include "repository.h"
 #include "commit.h"
 #include "tag.h"
 #include "graph.h"
@@ -12,6 +14,7 @@
 #include "gpg-interface.h"
 #include "sequencer.h"
 #include "line-log.h"
+#include "help.h"
 
 static struct decoration name_decoration = { "object names" };
 static int decoration_loaded;
@@ -27,6 +30,15 @@ static char decoration_colors[][COLOR_MAXLEN] = {
 	GIT_COLOR_BOLD_BLUE,	/* GRAFTED */
 };
 
+static const char *color_decorate_slots[] = {
+	[DECORATION_REF_LOCAL]	= "branch",
+	[DECORATION_REF_REMOTE] = "remoteBranch",
+	[DECORATION_REF_TAG]	= "tag",
+	[DECORATION_REF_STASH]	= "stash",
+	[DECORATION_REF_HEAD]	= "HEAD",
+	[DECORATION_GRAFTED]	= "grafted",
+};
+
 static const char *decorate_get_color(int decorate_use_color, enum decoration_type ix)
 {
 	if (want_color(decorate_use_color))
@@ -34,34 +46,11 @@ static const char *decorate_get_color(int decorate_use_color, enum decoration_ty
 	return "";
 }
 
-static int parse_decorate_color_slot(const char *slot)
-{
-	/*
-	 * We're comparing with 'ignore-case' on
-	 * (because config.c sets them all tolower),
-	 * but let's match the letters in the literal
-	 * string values here with how they are
-	 * documented in Documentation/config.txt, for
-	 * consistency.
-	 *
-	 * We love being consistent, don't we?
-	 */
-	if (!strcasecmp(slot, "branch"))
-		return DECORATION_REF_LOCAL;
-	if (!strcasecmp(slot, "remoteBranch"))
-		return DECORATION_REF_REMOTE;
-	if (!strcasecmp(slot, "tag"))
-		return DECORATION_REF_TAG;
-	if (!strcasecmp(slot, "stash"))
-		return DECORATION_REF_STASH;
-	if (!strcasecmp(slot, "HEAD"))
-		return DECORATION_REF_HEAD;
-	return -1;
-}
+define_list_config_array(color_decorate_slots);
 
 int parse_decorate_color_config(const char *var, const char *slot_name, const char *value)
 {
-	int slot = parse_decorate_color_slot(slot_name);
+	int slot = LOOKUP_CONFIG(color_decorate_slots, slot_name);
 	if (slot < 0)
 		return 0;
 	if (!value)
@@ -103,20 +92,20 @@ static int add_ref_decoration(const char *refname, const struct object_id *oid,
 
 	if (starts_with(refname, git_replace_ref_base)) {
 		struct object_id original_oid;
-		if (!check_replace_refs)
+		if (!read_replace_refs)
 			return 0;
 		if (get_oid_hex(refname + strlen(git_replace_ref_base),
 				&original_oid)) {
 			warning("invalid replace ref %s", refname);
 			return 0;
 		}
-		obj = parse_object(&original_oid);
+		obj = parse_object(the_repository, &original_oid);
 		if (obj)
 			add_name_decoration(DECORATION_GRAFTED, "replaced", obj);
 		return 0;
 	}
 
-	obj = parse_object(oid);
+	obj = parse_object(the_repository, oid);
 	if (!obj)
 		return 0;
 
@@ -137,7 +126,7 @@ static int add_ref_decoration(const char *refname, const struct object_id *oid,
 		if (!obj)
 			break;
 		if (!obj->parsed)
-			parse_object(&obj->oid);
+			parse_object(the_repository, &obj->oid);
 		add_name_decoration(DECORATION_REF_TAG, refname, obj);
 	}
 	return 0;
@@ -145,7 +134,7 @@ static int add_ref_decoration(const char *refname, const struct object_id *oid,
 
 static int add_graft_decoration(const struct commit_graft *graft, void *cb_data)
 {
-	struct commit *commit = lookup_commit(&graft->oid);
+	struct commit *commit = lookup_commit(the_repository, &graft->oid);
 	if (!commit)
 		return 0;
 	add_name_decoration(DECORATION_GRAFTED, "grafted", &commit->object);
@@ -295,8 +284,12 @@ void show_decorations(struct rev_info *opt, struct commit *commit)
 {
 	struct strbuf sb = STRBUF_INIT;
 
-	if (opt->show_source && commit->util)
-		fprintf(opt->diffopt.file, "\t%s", (char *) commit->util);
+	if (opt->sources) {
+		char **slot = revision_sources_peek(opt->sources, commit);
+
+		if (slot && *slot)
+			fprintf(opt->diffopt.file, "\t%s", *slot);
+	}
 	if (!opt->show_decorations)
 		return;
 	format_decorations(&sb, commit, opt->diffopt.use_color);
@@ -505,12 +498,12 @@ static int show_one_mergetag(struct commit *commit,
 	size_t payload_size, gpg_message_offset;
 
 	hash_object_file(extra->value, extra->len, type_name(OBJ_TAG), &oid);
-	tag = lookup_tag(&oid);
+	tag = lookup_tag(the_repository, &oid);
 	if (!tag)
 		return -1; /* error message already given */
 
 	strbuf_init(&verify_message, 256);
-	if (parse_tag_buffer(tag, extra->value, extra->len))
+	if (parse_tag_buffer(the_repository, tag, extra->value, extra->len))
 		strbuf_addstr(&verify_message, "malformed mergetag\n");
 	else if (is_common_merge(commit) &&
 		 !oidcmp(&tag->tagged->oid,
@@ -554,7 +547,7 @@ void show_log(struct rev_info *opt)
 	struct strbuf msgbuf = STRBUF_INIT;
 	struct log_info *log = opt->loginfo;
 	struct commit *commit = log->commit, *parent = log->parent;
-	int abbrev_commit = opt->abbrev_commit ? opt->abbrev : GIT_SHA1_HEXSZ;
+	int abbrev_commit = opt->abbrev_commit ? opt->abbrev : the_hash_algo->hexsz;
 	const char *extra_headers = opt->extra_headers;
 	struct pretty_print_context ctx = {0};
 

@@ -32,6 +32,7 @@
 #include "column.h"
 #include "sequencer.h"
 #include "mailmap.h"
+#include "help.h"
 
 static const char * const builtin_commit_usage[] = {
 	N_("git commit [<options>] [--] <pathspec>..."),
@@ -65,6 +66,18 @@ N_("If you wish to skip this commit, use:\n"
 "\n"
 "Then \"git cherry-pick --continue\" will resume cherry-picking\n"
 "the remaining commits.\n");
+
+static const char *color_status_slots[] = {
+	[WT_STATUS_HEADER]	  = "header",
+	[WT_STATUS_UPDATED]	  = "updated",
+	[WT_STATUS_CHANGED]	  = "changed",
+	[WT_STATUS_UNTRACKED]	  = "untracked",
+	[WT_STATUS_NOBRANCH]	  = "noBranch",
+	[WT_STATUS_UNMERGED]	  = "unmerged",
+	[WT_STATUS_LOCAL_BRANCH]  = "localBranch",
+	[WT_STATUS_REMOTE_BRANCH] = "remoteBranch",
+	[WT_STATUS_ONBRANCH]	  = "branch",
+};
 
 static const char *use_message_buffer;
 static struct lock_file index_lock; /* real index */
@@ -155,9 +168,9 @@ static int opt_parse_rename_score(const struct option *opt, const char *arg, int
 
 static void determine_whence(struct wt_status *s)
 {
-	if (file_exists(git_path_merge_head()))
+	if (file_exists(git_path_merge_head(the_repository)))
 		whence = FROM_MERGE;
-	else if (file_exists(git_path_cherry_pick_head())) {
+	else if (file_exists(git_path_cherry_pick_head(the_repository))) {
 		whence = FROM_CHERRY_PICK;
 		if (file_exists(git_path_seq_dir()))
 			sequencer_in_use = 1;
@@ -238,7 +251,7 @@ static int list_paths(struct string_list *list, const char *with_tree,
 
 		if (ce->ce_flags & CE_UPDATE)
 			continue;
-		if (!ce_path_match(ce, pattern, m))
+		if (!ce_path_match(&the_index, ce, pattern, m))
 			continue;
 		item = string_list_insert(list, ce->name);
 		if (ce_skip_worktree(ce))
@@ -705,21 +718,21 @@ static int prepare_to_commit(const char *index_file, const char *prefix,
 		if (have_option_m)
 			strbuf_addbuf(&sb, &message);
 		hook_arg1 = "message";
-	} else if (!stat(git_path_merge_msg(), &statbuf)) {
+	} else if (!stat(git_path_merge_msg(the_repository), &statbuf)) {
 		/*
 		 * prepend SQUASH_MSG here if it exists and a
 		 * "merge --squash" was originally performed
 		 */
-		if (!stat(git_path_squash_msg(), &statbuf)) {
-			if (strbuf_read_file(&sb, git_path_squash_msg(), 0) < 0)
+		if (!stat(git_path_squash_msg(the_repository), &statbuf)) {
+			if (strbuf_read_file(&sb, git_path_squash_msg(the_repository), 0) < 0)
 				die_errno(_("could not read SQUASH_MSG"));
 			hook_arg1 = "squash";
 		} else
 			hook_arg1 = "merge";
-		if (strbuf_read_file(&sb, git_path_merge_msg(), 0) < 0)
+		if (strbuf_read_file(&sb, git_path_merge_msg(the_repository), 0) < 0)
 			die_errno(_("could not read MERGE_MSG"));
-	} else if (!stat(git_path_squash_msg(), &statbuf)) {
-		if (strbuf_read_file(&sb, git_path_squash_msg(), 0) < 0)
+	} else if (!stat(git_path_squash_msg(the_repository), &statbuf)) {
+		if (strbuf_read_file(&sb, git_path_squash_msg(the_repository), 0) < 0)
 			die_errno(_("could not read SQUASH_MSG"));
 		hook_arg1 = "squash";
 	} else if (template_file) {
@@ -800,8 +813,8 @@ static int prepare_to_commit(const char *index_file, const char *prefix,
 					"	%s\n"
 					"and try again.\n"),
 				whence == FROM_MERGE ?
-					git_path_merge_head() :
-					git_path_cherry_pick_head());
+					git_path_merge_head(the_repository) :
+					git_path_cherry_pick_head(the_repository));
 		}
 
 		fprintf(s->fp, "\n");
@@ -1183,27 +1196,14 @@ static int dry_run_commit(int argc, const char **argv, const char *prefix,
 	return commitable ? 0 : 1;
 }
 
+define_list_config_array_extra(color_status_slots, {"added"});
+
 static int parse_status_slot(const char *slot)
 {
-	if (!strcasecmp(slot, "header"))
-		return WT_STATUS_HEADER;
-	if (!strcasecmp(slot, "branch"))
-		return WT_STATUS_ONBRANCH;
-	if (!strcasecmp(slot, "updated") || !strcasecmp(slot, "added"))
+	if (!strcasecmp(slot, "added"))
 		return WT_STATUS_UPDATED;
-	if (!strcasecmp(slot, "changed"))
-		return WT_STATUS_CHANGED;
-	if (!strcasecmp(slot, "untracked"))
-		return WT_STATUS_UNTRACKED;
-	if (!strcasecmp(slot, "nobranch"))
-		return WT_STATUS_NOBRANCH;
-	if (!strcasecmp(slot, "unmerged"))
-		return WT_STATUS_UNMERGED;
-	if (!strcasecmp(slot, "localBranch"))
-		return WT_STATUS_LOCAL_BRANCH;
-	if (!strcasecmp(slot, "remoteBranch"))
-		return WT_STATUS_REMOTE_BRANCH;
-	return -1;
+
+	return LOOKUP_CONFIG(color_status_slots, slot);
 }
 
 static int git_status_config(const char *k, const char *v, void *cb)
@@ -1564,7 +1564,7 @@ int cmd_commit(int argc, const char **argv, const char *prefix)
 		if (!reflog_msg)
 			reflog_msg = "commit (merge)";
 		pptr = commit_list_append(current_head, pptr);
-		fp = xfopen(git_path_merge_head(), "r");
+		fp = xfopen(git_path_merge_head(the_repository), "r");
 		while (strbuf_getline_lf(&m, fp) != EOF) {
 			struct commit *parent;
 
@@ -1575,8 +1575,8 @@ int cmd_commit(int argc, const char **argv, const char *prefix)
 		}
 		fclose(fp);
 		strbuf_release(&m);
-		if (!stat(git_path_merge_mode(), &statbuf)) {
-			if (strbuf_read_file(&sb, git_path_merge_mode(), 0) < 0)
+		if (!stat(git_path_merge_mode(the_repository), &statbuf)) {
+			if (strbuf_read_file(&sb, git_path_merge_mode(the_repository), 0) < 0)
 				die_errno(_("could not read MERGE_MODE"));
 			if (!strcmp(sb.buf, "no-ff"))
 				allow_fast_forward = 0;
@@ -1639,17 +1639,17 @@ int cmd_commit(int argc, const char **argv, const char *prefix)
 		die("%s", err.buf);
 	}
 
-	unlink(git_path_cherry_pick_head());
-	unlink(git_path_revert_head());
-	unlink(git_path_merge_head());
-	unlink(git_path_merge_msg());
-	unlink(git_path_merge_mode());
-	unlink(git_path_squash_msg());
+	unlink(git_path_cherry_pick_head(the_repository));
+	unlink(git_path_revert_head(the_repository));
+	unlink(git_path_merge_head(the_repository));
+	unlink(git_path_merge_msg(the_repository));
+	unlink(git_path_merge_mode(the_repository));
+	unlink(git_path_squash_msg(the_repository));
 
 	if (commit_index_files())
-		die (_("Repository has been updated, but unable to write\n"
-		     "new_index file. Check that disk is not full and quota is\n"
-		     "not exceeded, and then \"git reset HEAD\" to recover."));
+		die(_("repository has been updated, but unable to write\n"
+		      "new_index file. Check that disk is not full and quota is\n"
+		      "not exceeded, and then \"git reset HEAD\" to recover."));
 
 	rerere(0);
 	run_command_v_opt(argv_gc_auto, RUN_GIT_CMD);

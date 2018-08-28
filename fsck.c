@@ -1,4 +1,6 @@
 #include "cache.h"
+#include "object-store.h"
+#include "repository.h"
 #include "object.h"
 #include "blob.h"
 #include "tree.h"
@@ -14,6 +16,7 @@
 #include "packfile.h"
 #include "submodule-config.h"
 #include "config.h"
+#include "help.h"
 
 static struct oidset gitmodules_found = OIDSET_INIT;
 static struct oidset gitmodules_done = OIDSET_INIT;
@@ -61,7 +64,7 @@ static struct oidset gitmodules_done = OIDSET_INIT;
 	FUNC(ZERO_PADDED_DATE, ERROR) \
 	FUNC(GITMODULES_MISSING, ERROR) \
 	FUNC(GITMODULES_BLOB, ERROR) \
-	FUNC(GITMODULES_PARSE, ERROR) \
+	FUNC(GITMODULES_LARGE, ERROR) \
 	FUNC(GITMODULES_NAME, ERROR) \
 	FUNC(GITMODULES_SYMLINK, ERROR) \
 	/* warnings */ \
@@ -75,6 +78,7 @@ static struct oidset gitmodules_done = OIDSET_INIT;
 	FUNC(ZERO_PADDED_FILEMODE, WARN) \
 	FUNC(NUL_IN_COMMIT, WARN) \
 	/* infos (reported as warnings, but ignored by default) */ \
+	FUNC(GITMODULES_PARSE, INFO) \
 	FUNC(BAD_TAG_NAME, INFO) \
 	FUNC(MISSING_TAGGER_ENTRY, INFO)
 
@@ -86,43 +90,76 @@ enum fsck_msg_id {
 #undef MSG_ID
 
 #define STR(x) #x
-#define MSG_ID(id, msg_type) { STR(id), NULL, FSCK_##msg_type },
+#define MSG_ID(id, msg_type) { STR(id), NULL, NULL, FSCK_##msg_type },
 static struct {
 	const char *id_string;
 	const char *downcased;
+	const char *camelcased;
 	int msg_type;
 } msg_id_info[FSCK_MSG_MAX + 1] = {
 	FOREACH_MSG_ID(MSG_ID)
-	{ NULL, NULL, -1 }
+	{ NULL, NULL, NULL, -1 }
 };
 #undef MSG_ID
+
+static void prepare_msg_ids(void)
+{
+	int i;
+
+	if (msg_id_info[0].downcased)
+		return;
+
+	/* convert id_string to lower case, without underscores. */
+	for (i = 0; i < FSCK_MSG_MAX; i++) {
+		const char *p = msg_id_info[i].id_string;
+		int len = strlen(p);
+		char *q = xmalloc(len);
+
+		msg_id_info[i].downcased = q;
+		while (*p)
+			if (*p == '_')
+				p++;
+			else
+				*(q)++ = tolower(*(p)++);
+		*q = '\0';
+
+		p = msg_id_info[i].id_string;
+		q = xmalloc(len);
+		msg_id_info[i].camelcased = q;
+		while (*p) {
+			if (*p == '_') {
+				p++;
+				if (*p)
+					*q++ = *p++;
+			} else {
+				*q++ = tolower(*p++);
+			}
+		}
+		*q = '\0';
+	}
+}
 
 static int parse_msg_id(const char *text)
 {
 	int i;
 
-	if (!msg_id_info[0].downcased) {
-		/* convert id_string to lower case, without underscores. */
-		for (i = 0; i < FSCK_MSG_MAX; i++) {
-			const char *p = msg_id_info[i].id_string;
-			int len = strlen(p);
-			char *q = xmalloc(len);
-
-			msg_id_info[i].downcased = q;
-			while (*p)
-				if (*p == '_')
-					p++;
-				else
-					*(q)++ = tolower(*(p)++);
-			*q = '\0';
-		}
-	}
+	prepare_msg_ids();
 
 	for (i = 0; i < FSCK_MSG_MAX; i++)
 		if (!strcmp(text, msg_id_info[i].downcased))
 			return i;
 
 	return -1;
+}
+
+void list_config_fsck_msg_ids(struct string_list *list, const char *prefix)
+{
+	int i;
+
+	prepare_msg_ids();
+
+	for (i = 0; i < FSCK_MSG_MAX; i++)
+		list_config_item(list, prefix, msg_id_info[i].camelcased);
 }
 
 static int fsck_msg_type(enum fsck_msg_id msg_id,
@@ -281,6 +318,13 @@ static void append_msg_id(struct strbuf *sb, const char *msg_id)
 	strbuf_addstr(sb, ": ");
 }
 
+static int object_on_skiplist(struct fsck_options *opts, struct object *obj)
+{
+	if (opts && opts->skiplist && obj)
+		return oid_array_lookup(opts->skiplist, &obj->oid) >= 0;
+	return 0;
+}
+
 __attribute__((format (printf, 4, 5)))
 static int report(struct fsck_options *options, struct object *object,
 	enum fsck_msg_id id, const char *fmt, ...)
@@ -292,8 +336,7 @@ static int report(struct fsck_options *options, struct object *object,
 	if (msg_type == FSCK_IGNORE)
 		return 0;
 
-	if (options->skiplist && object &&
-			oid_array_lookup(options->skiplist, &object->oid) >= 0)
+	if (object_on_skiplist(options, object))
 		return 0;
 
 	if (msg_type == FSCK_FATAL)
@@ -371,14 +414,14 @@ static int fsck_walk_tree(struct tree *tree, void *data, struct fsck_options *op
 			continue;
 
 		if (S_ISDIR(entry.mode)) {
-			obj = (struct object *)lookup_tree(entry.oid);
+			obj = (struct object *)lookup_tree(the_repository, entry.oid);
 			if (name && obj)
 				put_object_name(options, obj, "%s%s/", name,
 					entry.path);
 			result = options->walk(obj, OBJ_TREE, data, options);
 		}
 		else if (S_ISREG(entry.mode) || S_ISLNK(entry.mode)) {
-			obj = (struct object *)lookup_blob(entry.oid);
+			obj = (struct object *)lookup_blob(the_repository, entry.oid);
 			if (name && obj)
 				put_object_name(options, obj, "%s%s", name,
 					entry.path);
@@ -476,7 +519,7 @@ int fsck_walk(struct object *obj, void *data, struct fsck_options *options)
 		return -1;
 
 	if (obj->type == OBJ_NONE)
-		parse_object(&obj->oid);
+		parse_object(the_repository, &obj->oid);
 
 	switch (obj->type) {
 	case OBJ_BLOB:
@@ -761,7 +804,7 @@ static int fsck_commit_buffer(struct commit *commit, const char *buffer,
 		buffer = p + 1;
 		parent_line_count++;
 	}
-	graft = lookup_commit_graft(&commit->object.oid);
+	graft = lookup_commit_graft(the_repository, &commit->object.oid);
 	parent_count = commit_list_count(commit->parents);
 	if (graft) {
 		if (graft->nr_parent == -1 && !parent_count)
@@ -958,10 +1001,14 @@ static int fsck_blob(struct blob *blob, const char *buf,
 		     unsigned long size, struct fsck_options *options)
 {
 	struct fsck_gitmodules_data data;
+	struct config_options config_opts = { 0 };
 
 	if (!oidset_contains(&gitmodules_found, &blob->object.oid))
 		return 0;
 	oidset_insert(&gitmodules_done, &blob->object.oid);
+
+	if (object_on_skiplist(options, &blob->object))
+		return 0;
 
 	if (!buf) {
 		/*
@@ -970,15 +1017,16 @@ static int fsck_blob(struct blob *blob, const char *buf,
 		 * that an error.
 		 */
 		return report(options, &blob->object,
-			      FSCK_MSG_GITMODULES_PARSE,
+			      FSCK_MSG_GITMODULES_LARGE,
 			      ".gitmodules too large to parse");
 	}
 
 	data.obj = &blob->object;
 	data.options = options;
 	data.ret = 0;
+	config_opts.error_action = CONFIG_ERROR_SILENT;
 	if (git_config_from_mem(fsck_gitmodules_fn, CONFIG_ORIGIN_BLOB,
-				".gitmodules", buf, size, &data))
+				".gitmodules", buf, size, &data, &config_opts))
 		data.ret |= report(options, &blob->object,
 				   FSCK_MSG_GITMODULES_PARSE,
 				   "could not parse gitmodules blob");
@@ -1034,7 +1082,7 @@ int fsck_finish(struct fsck_options *options)
 		if (oidset_contains(&gitmodules_done, oid))
 			continue;
 
-		blob = lookup_blob(oid);
+		blob = lookup_blob(the_repository, oid);
 		if (!blob) {
 			struct object *obj = lookup_unknown_object(oid->hash);
 			ret |= report(options, obj,

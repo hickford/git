@@ -252,6 +252,11 @@ test_expect_success 'add -B' '
 	test_cmp_rev master^ poodle
 '
 
+test_expect_success 'add --quiet' '
+	git worktree add --quiet another-worktree master 2>actual &&
+	test_must_be_empty actual
+'
+
 test_expect_success 'local clone from linked checkout' '
 	git clone --local here here-clone &&
 	( cd here-clone && git fsck )
@@ -394,6 +399,26 @@ test_expect_success '"add" <path> <branch> dwims' '
 	(
 		cd repo_dwim &&
 		git worktree add ../foo foo
+	) &&
+	(
+		cd foo &&
+		test_branch_upstream foo repo_upstream foo &&
+		test_cmp_rev refs/remotes/repo_upstream/foo refs/heads/foo
+	)
+'
+
+test_expect_success '"add" <path> <branch> dwims with checkout.defaultRemote' '
+	test_when_finished rm -rf repo_upstream repo_dwim foo &&
+	setup_remote_repo repo_upstream repo_dwim &&
+	git init repo_dwim &&
+	(
+		cd repo_dwim &&
+		git remote add repo_upstream2 ../repo_upstream &&
+		git fetch repo_upstream2 &&
+		test_must_fail git worktree add ../foo foo &&
+		git -c checkout.defaultRemote=repo_upstream worktree add ../foo foo &&
+		git status -uno --porcelain >status.actual &&
+		test_must_be_empty status.actual
 	) &&
 	(
 		cd foo &&

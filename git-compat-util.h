@@ -220,7 +220,7 @@
 #endif
 #ifdef NO_INTPTR_T
 /*
- * On I16LP32, ILP32 and LP64 "long" is the save bet, however
+ * On I16LP32, ILP32 and LP64 "long" is the safe bet, however
  * on LLP86, IL33LLP64 and P64 it needs to be "long long",
  * while on IP16 and IP16L32 it is "int" (resp. "short")
  * Size needs to match (or exceed) 'sizeof(void *)'.
@@ -1238,5 +1238,11 @@ extern void unleak_memory(const void *ptr, size_t len);
 #else
 #define UNLEAK(var) do {} while (0)
 #endif
+
+/*
+ * This include must come after system headers, since it introduces macros that
+ * replace system names.
+ */
+#include "banned.h"
 
 #endif

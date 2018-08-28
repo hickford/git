@@ -9,6 +9,7 @@
 #include "ll-merge.h"
 #include "attr.h"
 #include "pathspec.h"
+#include "object-store.h"
 #include "sha1-lookup.h"
 
 #define RESOLVED 0
@@ -200,7 +201,7 @@ static struct rerere_id *new_rerere_id(unsigned char *sha1)
 static void read_rr(struct string_list *rr)
 {
 	struct strbuf buf = STRBUF_INIT;
-	FILE *in = fopen_or_warn(git_path_merge_rr(), "r");
+	FILE *in = fopen_or_warn(git_path_merge_rr(the_repository), "r");
 
 	if (!in)
 		return;
@@ -895,7 +896,8 @@ int setup_rerere(struct string_list *merge_rr, int flags)
 	if (flags & RERERE_READONLY)
 		fd = 0;
 	else
-		fd = hold_lock_file_for_update(&write_lock, git_path_merge_rr(),
+		fd = hold_lock_file_for_update(&write_lock,
+					       git_path_merge_rr(the_repository),
 					       LOCK_DIE_ON_ERROR);
 	read_rr(merge_rr);
 	return fd;
@@ -1118,7 +1120,7 @@ int rerere_forget(struct pathspec *pathspec)
 	find_conflict(&conflict);
 	for (i = 0; i < conflict.nr; i++) {
 		struct string_list_item *it = &conflict.items[i];
-		if (!match_pathspec(pathspec, it->string,
+		if (!match_pathspec(&the_index, pathspec, it->string,
 				    strlen(it->string), 0, NULL, 0))
 			continue;
 		rerere_forget_one_path(it->string, &merge_rr);
@@ -1245,6 +1247,6 @@ void rerere_clear(struct string_list *merge_rr)
 			rmdir(rerere_path(id, NULL));
 		}
 	}
-	unlink_or_warn(git_path_merge_rr());
+	unlink_or_warn(git_path_merge_rr(the_repository));
 	rollback_lock_file(&write_lock);
 }

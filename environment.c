@@ -8,6 +8,7 @@
  * are.
  */
 #include "cache.h"
+#include "branch.h"
 #include "repository.h"
 #include "config.h"
 #include "refs.h"
@@ -51,7 +52,7 @@ const char *editor_program;
 const char *askpass_program;
 const char *excludes_file;
 enum auto_crlf auto_crlf = AUTO_CRLF_FALSE;
-int check_replace_refs = 1; /* NEEDSWORK: rename to read_replace_refs */
+int read_replace_refs = 1;
 char *git_replace_ref_base;
 enum eol core_eol = EOL_UNSET;
 int global_conv_flags_eol = CONV_EOL_RNDTRP_WARN;
@@ -66,7 +67,6 @@ enum push_default_type push_default = PUSH_DEFAULT_UNSPECIFIED;
 enum object_creation_mode object_creation_mode = OBJECT_CREATION_MODE;
 char *notes_ref_name;
 int grafts_replace_parents = 1;
-int core_commit_graph;
 int core_apply_sparse_checkout;
 int merge_log_config = -1;
 int precomposed_unicode = -1; /* see probe_utf8_pathname_composition() */
@@ -147,7 +147,7 @@ static char *expand_namespace(const char *raw_namespace)
 			strbuf_addf(&buf, "refs/namespaces/%s", (*c)->buf);
 	strbuf_list_free(components);
 	if (check_refname_format(buf.buf, 0))
-		die("bad git namespace path \"%s\"", raw_namespace);
+		die(_("bad git namespace path \"%s\""), raw_namespace);
 	strbuf_addch(&buf, '/');
 	return strbuf_detach(&buf, NULL);
 }
@@ -183,7 +183,7 @@ void setup_git_env(const char *git_dir)
 	argv_array_clear(&to_free);
 
 	if (getenv(NO_REPLACE_OBJECTS_ENVIRONMENT))
-		check_replace_refs = 0;
+		read_replace_refs = 0;
 	replace_ref_base = getenv(GIT_REPLACE_REF_BASE_ENVIRONMENT);
 	free(git_replace_ref_base);
 	git_replace_ref_base = xstrdup(replace_ref_base ? replace_ref_base
@@ -192,7 +192,7 @@ void setup_git_env(const char *git_dir)
 	git_namespace = expand_namespace(getenv(GIT_NAMESPACE_ENVIRONMENT));
 	shallow_file = getenv(GIT_SHALLOW_FILE_ENVIRONMENT);
 	if (shallow_file)
-		set_alternate_shallow_file(shallow_file, 0);
+		set_alternate_shallow_file(the_repository, shallow_file, 0);
 }
 
 int is_bare_repository(void)
@@ -319,17 +319,17 @@ char *get_index_file(void)
 	return the_repository->index_file;
 }
 
-char *get_graft_file(void)
+char *get_graft_file(struct repository *r)
 {
-	if (!the_repository->graft_file)
+	if (!r->graft_file)
 		BUG("git environment hasn't been setup");
-	return the_repository->graft_file;
+	return r->graft_file;
 }
 
 static void set_git_dir_1(const char *path)
 {
 	if (setenv(GIT_DIR_ENVIRONMENT, path, 1))
-		die("could not set GIT_DIR to '%s'", path);
+		die(_("could not set GIT_DIR to '%s'"), path);
 	setup_git_env(path);
 }
 

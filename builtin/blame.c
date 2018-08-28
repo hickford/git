@@ -9,6 +9,7 @@
 #include "config.h"
 #include "color.h"
 #include "builtin.h"
+#include "repository.h"
 #include "commit.h"
 #include "diff.h"
 #include "revision.h"
@@ -23,6 +24,7 @@
 #include "line-log.h"
 #include "dir.h"
 #include "progress.h"
+#include "object-store.h"
 #include "blame.h"
 #include "string-list.h"
 
@@ -408,7 +410,7 @@ static void parse_color_fields(const char *s)
 	}
 
 	if (next == EXPECT_COLOR)
-		die (_("must end with a color"));
+		die(_("must end with a color"));
 
 	colorfield[colorfield_nr].hop = TIME_MAX;
 	string_list_clear(&l, 0);
@@ -543,7 +545,7 @@ static void output(struct blame_scoreboard *sb, int option)
 			struct commit *commit = ent->suspect->commit;
 			if (commit->object.flags & MORE_THAN_ONE_PATH)
 				continue;
-			for (suspect = commit->util; suspect; suspect = suspect->next) {
+			for (suspect = get_blame_suspects(commit); suspect; suspect = suspect->next) {
 				if (suspect->guilty && count++) {
 					commit->object.flags |= MORE_THAN_ONE_PATH;
 					break;
@@ -576,7 +578,7 @@ static int read_ancestry(const char *graft_file)
 		/* The format is just "Commit Parent1 Parent2 ...\n" */
 		struct commit_graft *graft = read_graft_line(&buf);
 		if (graft)
-			register_commit_graft(graft, 0);
+			register_commit_graft(the_repository, graft, 0);
 	}
 	fclose(fp);
 	strbuf_release(&buf);
@@ -986,6 +988,7 @@ parse_done:
 	sb.revs = &revs;
 	sb.contents_from = contents_from;
 	sb.reverse = reverse;
+	sb.repo = the_repository;
 	setup_scoreboard(&sb, path, &o);
 	lno = sb.num_lines;
 
@@ -1000,13 +1003,13 @@ parse_done:
 				    nth_line_cb, &sb, lno, anchor,
 				    &bottom, &top, sb.path))
 			usage(blame_usage);
-		if (lno < top || ((lno || bottom) && lno < bottom))
+		if ((!lno && (top || bottom)) || lno < bottom)
 			die(Q_("file %s has only %lu line",
 			       "file %s has only %lu lines",
 			       lno), path, lno);
 		if (bottom < 1)
 			bottom = 1;
-		if (top < 1)
+		if (top < 1 || lno < top)
 			top = lno;
 		bottom--;
 		range_set_append_unsafe(&ranges, bottom, top);
@@ -1069,7 +1072,9 @@ parse_done:
 		find_alignment(&sb, &output_option);
 		if (!*repeated_meta_color &&
 		    (output_option & OUTPUT_COLOR_LINE))
-			strcpy(repeated_meta_color, GIT_COLOR_CYAN);
+			xsnprintf(repeated_meta_color,
+				  sizeof(repeated_meta_color),
+				  "%s", GIT_COLOR_CYAN);
 	}
 	if (output_option & OUTPUT_ANNOTATE_COMPAT)
 		output_option &= ~(OUTPUT_COLOR_LINE | OUTPUT_SHOW_AGE_WITH_COLOR);

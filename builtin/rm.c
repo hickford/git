@@ -278,14 +278,14 @@ int cmd_rm(int argc, const char **argv, const char *prefix)
 
 	for (i = 0; i < active_nr; i++) {
 		const struct cache_entry *ce = active_cache[i];
-		if (!ce_path_match(ce, &pathspec, seen))
+		if (!ce_path_match(&the_index, ce, &pathspec, seen))
 			continue;
 		ALLOC_GROW(list.entry, list.nr + 1, list.alloc);
 		list.entry[list.nr].name = xstrdup(ce->name);
 		list.entry[list.nr].is_submodule = S_ISGITLINK(ce->ce_mode);
 		if (list.entry[list.nr++].is_submodule &&
 		    !is_staging_gitmodules_ok(&the_index))
-			die (_("Please stage your changes to .gitmodules or stash them to proceed"));
+			die(_("please stage your changes to .gitmodules or stash them to proceed"));
 	}
 
 	if (pathspec.nr) {

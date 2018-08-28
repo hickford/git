@@ -3,6 +3,8 @@
 #include "refs.h"
 #include "pkt-line.h"
 #include "sideband.h"
+#include "repository.h"
+#include "object-store.h"
 #include "tag.h"
 #include "object.h"
 #include "commit.h"
@@ -64,6 +66,7 @@ static const char *pack_objects_hook;
 
 static int filter_capability_requested;
 static int allow_filter;
+static int allow_ref_in_want;
 static struct list_objects_filter_options filter_options;
 
 static void reset_timeout(void)
@@ -310,7 +313,7 @@ static int got_oid(const char *hex, struct object_id *oid)
 	if (!has_object_file(oid))
 		return -1;
 
-	o = parse_object(oid);
+	o = parse_object(the_repository, oid);
 	if (!o)
 		die("oops (%s)", oid_to_hex(oid));
 	if (o->type == OBJ_COMMIT) {
@@ -348,7 +351,7 @@ static int reachable(struct commit *want)
 			break;
 		}
 		if (!commit->object.parsed)
-			parse_object(&commit->object.oid);
+			parse_object(the_repository, &commit->object.oid);
 		if (commit->object.flags & REACHABLE)
 			continue;
 		commit->object.flags |= REACHABLE;
@@ -378,7 +381,7 @@ static int ok_to_give_up(void)
 
 		if (want->flags & COMMON_KNOWN)
 			continue;
-		want = deref_tag(want, "a want line", 0);
+		want = deref_tag(the_repository, want, "a want line", 0);
 		if (!want || want->type != OBJ_COMMIT) {
 			/* no way to tell if this is reachable by
 			 * looking at the ancestry chain alone, so
@@ -568,7 +571,7 @@ static int get_reachable_list(struct object_array *src,
 		if (parse_oid_hex(namebuf, &sha1, &p) || *p != '\n')
 			break;
 
-		o = lookup_object(sha1.hash);
+		o = lookup_object(the_repository, sha1.hash);
 		if (o && o->type == OBJ_COMMIT) {
 			o->flags &= ~TMP_MARK;
 		}
@@ -658,7 +661,7 @@ static void send_shallow(struct commit_list *result)
 		if (!(object->flags & (CLIENT_SHALLOW|NOT_SHALLOW))) {
 			packet_write_fmt(1, "shallow %s",
 					 oid_to_hex(&object->oid));
-			register_shallow(&object->oid);
+			register_shallow(the_repository, &object->oid);
 			shallow_nr++;
 		}
 		result = result->next;
@@ -695,14 +698,14 @@ static void send_unshallow(const struct object_array *shallows)
 			add_object_array(object, NULL, &extra_edge_obj);
 		}
 		/* make sure commit traversal conforms to client */
-		register_shallow(&object->oid);
+		register_shallow(the_repository, &object->oid);
 	}
 }
 
 static void deepen(int depth, int deepen_relative,
 		   struct object_array *shallows)
 {
-	if (depth == INFINITE_DEPTH && !is_repository_shallow()) {
+	if (depth == INFINITE_DEPTH && !is_repository_shallow(the_repository)) {
 		int i;
 
 		for (i = 0; i < shallows->nr; i++) {
@@ -782,7 +785,8 @@ static int send_shallow_list(int depth, int deepen_rev_list,
 		if (shallows->nr > 0) {
 			int i;
 			for (i = 0; i < shallows->nr; i++)
-				register_shallow(&shallows->objects[i].item->oid);
+				register_shallow(the_repository,
+						 &shallows->objects[i].item->oid);
 		}
 	}
 
@@ -798,7 +802,7 @@ static int process_shallow(const char *line, struct object_array *shallows)
 		struct object *object;
 		if (get_oid_hex(arg, &oid))
 			die("invalid shallow line: %s", line);
-		object = parse_object(&oid);
+		object = parse_object(the_repository, &oid);
 		if (!object)
 			return 1;
 		if (object->type != OBJ_COMMIT)
@@ -924,7 +928,7 @@ static void receive_needs(void)
 		if (allow_filter && parse_feature_request(features, "filter"))
 			filter_capability_requested = 1;
 
-		o = parse_object(&oid_buf);
+		o = parse_object(the_repository, &oid_buf);
 		if (!o) {
 			packet_write_fmt(1,
 					 "ERR upload-pack: not our ref %s",
@@ -1075,6 +1079,8 @@ static int upload_pack_config(const char *var, const char *value, void *unused)
 			return git_config_string(&pack_objects_hook, var, value);
 	} else if (!strcmp("uploadpack.allowfilter", var)) {
 		allow_filter = git_config_bool(var, value);
+	} else if (!strcmp("uploadpack.allowrefinwant", var)) {
+		allow_ref_in_want = git_config_bool(var, value);
 	}
 	return parse_hide_refs_config(var, value, "uploadpack");
 }
@@ -1114,6 +1120,7 @@ void upload_pack(struct upload_pack_options *options)
 
 struct upload_pack_data {
 	struct object_array wants;
+	struct string_list wanted_refs;
 	struct oid_array haves;
 
 	struct object_array shallows;
@@ -1135,12 +1142,14 @@ struct upload_pack_data {
 static void upload_pack_data_init(struct upload_pack_data *data)
 {
 	struct object_array wants = OBJECT_ARRAY_INIT;
+	struct string_list wanted_refs = STRING_LIST_INIT_DUP;
 	struct oid_array haves = OID_ARRAY_INIT;
 	struct object_array shallows = OBJECT_ARRAY_INIT;
 	struct string_list deepen_not = STRING_LIST_INIT_DUP;
 
 	memset(data, 0, sizeof(*data));
 	data->wants = wants;
+	data->wanted_refs = wanted_refs;
 	data->haves = haves;
 	data->shallows = shallows;
 	data->deepen_not = deepen_not;
@@ -1149,6 +1158,7 @@ static void upload_pack_data_init(struct upload_pack_data *data)
 static void upload_pack_data_clear(struct upload_pack_data *data)
 {
 	object_array_clear(&data->wants);
+	string_list_clear(&data->wanted_refs, 1);
 	oid_array_clear(&data->haves);
 	object_array_clear(&data->shallows);
 	string_list_clear(&data->deepen_not, 0);
@@ -1165,7 +1175,7 @@ static int parse_want(const char *line)
 			die("git upload-pack: protocol error, "
 			    "expected to get oid, not '%s'", line);
 
-		o = parse_object(&oid);
+		o = parse_object(the_repository, &oid);
 		if (!o) {
 			packet_write_fmt(1,
 					 "ERR upload-pack: not our ref %s",
@@ -1174,6 +1184,34 @@ static int parse_want(const char *line)
 			    oid_to_hex(&oid));
 		}
 
+		if (!(o->flags & WANTED)) {
+			o->flags |= WANTED;
+			add_object_array(o, NULL, &want_obj);
+		}
+
+		return 1;
+	}
+
+	return 0;
+}
+
+static int parse_want_ref(const char *line, struct string_list *wanted_refs)
+{
+	const char *arg;
+	if (skip_prefix(line, "want-ref ", &arg)) {
+		struct object_id oid;
+		struct string_list_item *item;
+		struct object *o;
+
+		if (read_ref(arg, &oid)) {
+			packet_write_fmt(1, "ERR unknown ref %s", arg);
+			die("unknown ref %s", arg);
+		}
+
+		item = string_list_append(wanted_refs, arg);
+		item->util = oiddup(&oid);
+
+		o = parse_object_or_die(&oid, arg);
 		if (!(o->flags & WANTED)) {
 			o->flags |= WANTED;
 			add_object_array(o, NULL, &want_obj);
@@ -1209,6 +1247,8 @@ static void process_args(struct packet_reader *request,
 
 		/* process want */
 		if (parse_want(arg))
+			continue;
+		if (allow_ref_in_want && parse_want_ref(arg, &data->wanted_refs))
 			continue;
 		/* process have line */
 		if (parse_have(arg, &data->haves))
@@ -1277,7 +1317,7 @@ static int process_haves(struct oid_array *haves, struct oid_array *common)
 
 		oid_array_append(common, oid);
 
-		o = parse_object(oid);
+		o = parse_object(the_repository, oid);
 		if (!o)
 			die("oops (%s)", oid_to_hex(oid));
 		if (o->type == OBJ_COMMIT) {
@@ -1352,18 +1392,37 @@ static int process_haves_and_send_acks(struct upload_pack_data *data)
 	return ret;
 }
 
+static void send_wanted_ref_info(struct upload_pack_data *data)
+{
+	const struct string_list_item *item;
+
+	if (!data->wanted_refs.nr)
+		return;
+
+	packet_write_fmt(1, "wanted-refs\n");
+
+	for_each_string_list_item(item, &data->wanted_refs) {
+		packet_write_fmt(1, "%s %s\n",
+				 oid_to_hex(item->util),
+				 item->string);
+	}
+
+	packet_delim(1);
+}
+
 static void send_shallow_info(struct upload_pack_data *data)
 {
 	/* No shallow info needs to be sent */
 	if (!data->depth && !data->deepen_rev_list && !data->shallows.nr &&
-	    !is_repository_shallow())
+	    !is_repository_shallow(the_repository))
 		return;
 
 	packet_write_fmt(1, "shallow-info\n");
 
 	if (!send_shallow_list(data->depth, data->deepen_rev_list,
 			       data->deepen_since, &data->deepen_not,
-			       &data->shallows) && is_repository_shallow())
+			       &data->shallows) &&
+	    is_repository_shallow(the_repository))
 		deepen(INFINITE_DEPTH, data->deepen_relative, &data->shallows);
 
 	packet_delim(1);
@@ -1418,6 +1477,7 @@ int upload_pack_v2(struct repository *r, struct argv_array *keys,
 				state = FETCH_DONE;
 			break;
 		case FETCH_SEND_PACK:
+			send_wanted_ref_info(&data);
 			send_shallow_info(&data);
 
 			packet_write_fmt(1, "packfile\n");
@@ -1438,12 +1498,22 @@ int upload_pack_advertise(struct repository *r,
 {
 	if (value) {
 		int allow_filter_value;
+		int allow_ref_in_want;
+
 		strbuf_addstr(value, "shallow");
+
 		if (!repo_config_get_bool(the_repository,
 					 "uploadpack.allowfilter",
 					 &allow_filter_value) &&
 		    allow_filter_value)
 			strbuf_addstr(value, " filter");
+
+		if (!repo_config_get_bool(the_repository,
+					 "uploadpack.allowrefinwant",
+					 &allow_ref_in_want) &&
+		    allow_ref_in_want)
+			strbuf_addstr(value, " ref-in-want");
 	}
+
 	return 1;
 }

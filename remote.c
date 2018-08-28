@@ -3,6 +3,7 @@
 #include "remote.h"
 #include "refs.h"
 #include "refspec.h"
+#include "object-store.h"
 #include "commit.h"
 #include "diff.h"
 #include "revision.h"
@@ -1148,7 +1149,7 @@ static void add_to_tips(struct tips *tips, const struct object_id *oid)
 
 	if (is_null_oid(oid))
 		return;
-	commit = lookup_commit_reference_gently(oid, 1);
+	commit = lookup_commit_reference_gently(the_repository, oid, 1);
 	if (!commit || (commit->object.flags & TMP_MARK))
 		return;
 	commit->object.flags |= TMP_MARK;
@@ -1210,7 +1211,8 @@ static void add_missing_tags(struct ref *src, struct ref **dst, struct ref ***ds
 
 			if (is_null_oid(&ref->new_oid))
 				continue;
-			commit = lookup_commit_reference_gently(&ref->new_oid,
+			commit = lookup_commit_reference_gently(the_repository,
+								&ref->new_oid,
 								1);
 			if (!commit)
 				/* not pushing a commit, which is not an error */
@@ -1434,8 +1436,8 @@ void set_ref_status_for_push(struct ref *remote_refs, int send_mirror,
 				reject_reason = REF_STATUS_REJECT_ALREADY_EXISTS;
 			else if (!has_object_file(&ref->old_oid))
 				reject_reason = REF_STATUS_REJECT_FETCH_FIRST;
-			else if (!lookup_commit_reference_gently(&ref->old_oid, 1) ||
-				 !lookup_commit_reference_gently(&ref->new_oid, 1))
+			else if (!lookup_commit_reference_gently(the_repository, &ref->old_oid, 1) ||
+				 !lookup_commit_reference_gently(the_repository, &ref->new_oid, 1))
 				reject_reason = REF_STATUS_REJECT_NEEDS_FORCE;
 			else if (!ref_newer(&ref->new_oid, &ref->old_oid))
 				reject_reason = REF_STATUS_REJECT_NONFASTFORWARD;
@@ -1687,11 +1689,18 @@ static struct ref *get_expanded_map(const struct ref *remote_refs,
 static const struct ref *find_ref_by_name_abbrev(const struct ref *refs, const char *name)
 {
 	const struct ref *ref;
+	const struct ref *best_match = NULL;
+	int best_score = 0;
+
 	for (ref = refs; ref; ref = ref->next) {
-		if (refname_match(name, ref->name))
-			return ref;
+		int score = refname_match(name, ref->name);
+
+		if (best_score < score) {
+			best_match = ref;
+			best_score = score;
+		}
 	}
-	return NULL;
+	return best_match;
 }
 
 struct ref *get_remote_ref(const struct ref *remote_refs, const char *name)
@@ -1735,6 +1744,7 @@ int get_fetch_map(const struct ref *remote_refs,
 		if (refspec->exact_sha1) {
 			ref_map = alloc_ref(name);
 			get_oid_hex(name, &ref_map->old_oid);
+			ref_map->exact_oid = 1;
 		} else {
 			ref_map = get_remote_ref(remote_refs, name);
 		}
@@ -1800,12 +1810,14 @@ int ref_newer(const struct object_id *new_oid, const struct object_id *old_oid)
 	 * Both new_commit and old_commit must be commit-ish and new_commit is descendant of
 	 * old_commit.  Otherwise we require --force.
 	 */
-	o = deref_tag(parse_object(old_oid), NULL, 0);
+	o = deref_tag(the_repository, parse_object(the_repository, old_oid),
+		      NULL, 0);
 	if (!o || o->type != OBJ_COMMIT)
 		return 0;
 	old_commit = (struct commit *) o;
 
-	o = deref_tag(parse_object(new_oid), NULL, 0);
+	o = deref_tag(the_repository, parse_object(the_repository, new_oid),
+		      NULL, 0);
 	if (!o || o->type != OBJ_COMMIT)
 		return 0;
 	new_commit = (struct commit *) o;
@@ -1863,13 +1875,13 @@ int stat_tracking_info(struct branch *branch, int *num_ours, int *num_theirs,
 	/* Cannot stat if what we used to build on no longer exists */
 	if (read_ref(base, &oid))
 		return -1;
-	theirs = lookup_commit_reference(&oid);
+	theirs = lookup_commit_reference(the_repository, &oid);
 	if (!theirs)
 		return -1;
 
 	if (read_ref(branch->refname, &oid))
 		return -1;
-	ours = lookup_commit_reference(&oid);
+	ours = lookup_commit_reference(the_repository, &oid);
 	if (!ours)
 		return -1;
 

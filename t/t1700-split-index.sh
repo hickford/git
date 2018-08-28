@@ -143,9 +143,7 @@ test_expect_success 'remove file not in base index' '
 test_expect_success 'remove file in base index' '
 	git update-index --force-remove one &&
 	git ls-files --stage >ls-files.actual &&
-	cat >ls-files.expect <<-EOF &&
-	EOF
-	test_cmp ls-files.expect ls-files.actual &&
+	test_must_be_empty ls-files.actual &&
 
 	test-tool dump-split-index .git/index | sed "/^own/d" >actual &&
 	cat >expect <<-EOF &&
@@ -435,7 +433,7 @@ test_expect_success 'writing split index with null sha1 does not write cache tre
 	commit=$(git commit-tree $tree -p HEAD <msg) &&
 	git update-ref HEAD "$commit" &&
 	GIT_ALLOW_NULL_SHA1=1 git reset --hard &&
-	(test-tool dump-cache-tree >cache-tree.out || true) &&
+	test_might_fail test-tool dump-cache-tree >cache-tree.out &&
 	test_line_count = 0 cache-tree.out
 '
 

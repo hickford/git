@@ -8,6 +8,7 @@
 #include "config.h"
 #include "refs.h"
 #include "refspec.h"
+#include "object-store.h"
 #include "commit.h"
 #include "object.h"
 #include "tag.h"
@@ -22,6 +23,7 @@
 #include "quote.h"
 #include "remote.h"
 #include "blob.h"
+#include "commit-slab.h"
 
 static const char *fast_export_usage[] = {
 	N_("git fast-export [rev-list-opts]"),
@@ -38,6 +40,7 @@ static int full_tree;
 static struct string_list extra_refs = STRING_LIST_INIT_NODUP;
 static struct refspec refspecs = REFSPEC_INIT_FETCH;
 static int anonymize;
+static struct revision_sources revision_sources;
 
 static int parse_opt_signed_tag_mode(const struct option *opt,
 				     const char *arg, int unset)
@@ -227,21 +230,22 @@ static void export_blob(const struct object_id *oid)
 	if (is_null_oid(oid))
 		return;
 
-	object = lookup_object(oid->hash);
+	object = lookup_object(the_repository, oid->hash);
 	if (object && object->flags & SHOWN)
 		return;
 
 	if (anonymize) {
 		buf = anonymize_blob(&size);
-		object = (struct object *)lookup_blob(oid);
+		object = (struct object *)lookup_blob(the_repository, oid);
 		eaten = 0;
 	} else {
 		buf = read_object_file(oid, &type, &size);
 		if (!buf)
-			die ("Could not read blob %s", oid_to_hex(oid));
+			die("could not read blob %s", oid_to_hex(oid));
 		if (check_object_signature(oid, buf, size, type_name(type)) < 0)
 			die("sha1 mismatch in blob %s", oid_to_hex(oid));
-		object = parse_object_buffer(oid, type, size, buf, &eaten);
+		object = parse_object_buffer(the_repository, oid, type,
+					     size, buf, &eaten);
 	}
 
 	if (!object)
@@ -251,7 +255,7 @@ static void export_blob(const struct object_id *oid)
 
 	printf("blob\nmark :%"PRIu32"\ndata %lu\n", last_idnum, size);
 	if (size && fwrite(buf, size, 1, stdout) != 1)
-		die_errno ("Could not write blob '%s'", oid_to_hex(oid));
+		die_errno("could not write blob '%s'", oid_to_hex(oid));
 	printf("\n");
 
 	show_progress();
@@ -399,7 +403,8 @@ static void show_filemodify(struct diff_queue_struct *q,
 						   anonymize_sha1(&spec->oid) :
 						   spec->oid.hash));
 			else {
-				struct object *object = lookup_object(spec->oid.hash);
+				struct object *object = lookup_object(the_repository,
+								      spec->oid.hash);
 				printf("M %06o :%d ", spec->mode,
 				       get_object_mark(object));
 			}
@@ -558,14 +563,14 @@ static void handle_commit(struct commit *commit, struct rev_info *rev,
 	commit_buffer = get_commit_buffer(commit, NULL);
 	author = strstr(commit_buffer, "\nauthor ");
 	if (!author)
-		die ("Could not find author in commit %s",
-		     oid_to_hex(&commit->object.oid));
+		die("could not find author in commit %s",
+		    oid_to_hex(&commit->object.oid));
 	author++;
 	author_end = strchrnul(author, '\n');
 	committer = strstr(author_end, "\ncommitter ");
 	if (!committer)
-		die ("Could not find committer in commit %s",
-		     oid_to_hex(&commit->object.oid));
+		die("could not find committer in commit %s",
+		    oid_to_hex(&commit->object.oid));
 	committer++;
 	committer_end = strchrnul(committer, '\n');
 	message = strstr(committer_end, "\n\n");
@@ -589,7 +594,7 @@ static void handle_commit(struct commit *commit, struct rev_info *rev,
 		if (!S_ISGITLINK(diff_queued_diff.queue[i]->two->mode))
 			export_blob(&diff_queued_diff.queue[i]->two->oid);
 
-	refname = commit->util;
+	refname = *revision_sources_at(&revision_sources, commit);
 	if (anonymize) {
 		refname = anonymize_refname(refname);
 		anonymize_ident_line(&committer, &committer_end);
@@ -686,7 +691,7 @@ static void handle_tag(const char *name, struct tag *tag)
 
 	buf = read_object_file(&tag->object.oid, &type, &size);
 	if (!buf)
-		die ("Could not read tag %s", oid_to_hex(&tag->object.oid));
+		die("could not read tag %s", oid_to_hex(&tag->object.oid));
 	message = memmem(buf, size, "\n\n", 2);
 	if (message) {
 		message += 2;
@@ -723,18 +728,18 @@ static void handle_tag(const char *name, struct tag *tag)
 		if (signature)
 			switch(signed_tag_mode) {
 			case ABORT:
-				die ("Encountered signed tag %s; use "
-				     "--signed-tags=<mode> to handle it.",
-				     oid_to_hex(&tag->object.oid));
+				die("encountered signed tag %s; use "
+				    "--signed-tags=<mode> to handle it",
+				    oid_to_hex(&tag->object.oid));
 			case WARN:
-				warning ("Exporting signed tag %s",
-					 oid_to_hex(&tag->object.oid));
+				warning("exporting signed tag %s",
+					oid_to_hex(&tag->object.oid));
 				/* fallthru */
 			case VERBATIM:
 				break;
 			case WARN_STRIP:
-				warning ("Stripping signature from tag %s",
-					 oid_to_hex(&tag->object.oid));
+				warning("stripping signature from tag %s",
+					oid_to_hex(&tag->object.oid));
 				/* fallthru */
 			case STRIP:
 				message_size = signature + 1 - message;
@@ -748,18 +753,18 @@ static void handle_tag(const char *name, struct tag *tag)
 	if (!tagged_mark) {
 		switch(tag_of_filtered_mode) {
 		case ABORT:
-			die ("Tag %s tags unexported object; use "
-			     "--tag-of-filtered-object=<mode> to handle it.",
-			     oid_to_hex(&tag->object.oid));
+			die("tag %s tags unexported object; use "
+			    "--tag-of-filtered-object=<mode> to handle it",
+			    oid_to_hex(&tag->object.oid));
 		case DROP:
 			/* Ignore this tag altogether */
 			free(buf);
 			return;
 		case REWRITE:
 			if (tagged->type != OBJ_COMMIT) {
-				die ("Tag %s tags unexported %s!",
-				     oid_to_hex(&tag->object.oid),
-				     type_name(tagged->type));
+				die("tag %s tags unexported %s!",
+				    oid_to_hex(&tag->object.oid),
+				    type_name(tagged->type));
 			}
 			p = (struct commit *)tagged;
 			for (;;) {
@@ -770,7 +775,7 @@ static void handle_tag(const char *name, struct tag *tag)
 				if (!(p->object.flags & TREESAME))
 					break;
 				if (!p->parents)
-					die ("Can't find replacement commit for tag %s\n",
+					die("can't find replacement commit for tag %s",
 					     oid_to_hex(&tag->object.oid));
 				p = p->parents->item;
 			}
@@ -798,7 +803,7 @@ static struct commit *get_commit(struct rev_cmdline_entry *e, char *full_name)
 
 		/* handle nested tags */
 		while (tag && tag->object.type == OBJ_TAG) {
-			parse_object(&tag->object.oid);
+			parse_object(the_repository, &tag->object.oid);
 			string_list_append(&extra_refs, full_name)->util = tag;
 			tag = (struct tag *)tag->tagged;
 		}
@@ -861,10 +866,11 @@ static void get_tags_and_duplicates(struct rev_cmdline_info *info)
 		 * This ref will not be updated through a commit, lets make
 		 * sure it gets properly updated eventually.
 		 */
-		if (commit->util || commit->object.flags & SHOWN)
+		if (*revision_sources_at(&revision_sources, commit) ||
+		    commit->object.flags & SHOWN)
 			string_list_append(&extra_refs, full_name)->util = commit;
-		if (!commit->util)
-			commit->util = full_name;
+		if (!*revision_sources_at(&revision_sources, commit))
+			*revision_sources_at(&revision_sources, commit) = full_name;
 	}
 }
 
@@ -957,7 +963,7 @@ static void import_marks(char *input_file)
 			/* only commits */
 			continue;
 
-		commit = lookup_commit(&oid);
+		commit = lookup_commit(the_repository, &oid);
 		if (!commit)
 			die("not a commit? can't happen: %s", oid_to_hex(&oid));
 
@@ -1028,8 +1034,9 @@ int cmd_fast_export(int argc, const char **argv, const char *prefix)
 	git_config(git_default_config, NULL);
 
 	init_revisions(&revs, prefix);
+	init_revision_sources(&revision_sources);
 	revs.topo_order = 1;
-	revs.show_source = 1;
+	revs.sources = &revision_sources;
 	revs.rewrite_parents = 1;
 	argc = parse_options(argc, argv, prefix, options, fast_export_usage,
 			PARSE_OPT_KEEP_ARGV0 | PARSE_OPT_KEEP_UNKNOWN);

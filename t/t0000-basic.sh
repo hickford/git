@@ -116,7 +116,7 @@ check_sub_test_lib_test () {
 	name="$1" # stdin is the expected output from the test
 	(
 		cd "$name" &&
-		! test -s err &&
+		test_must_be_empty err &&
 		sed -e 's/^> //' -e 's/Z$//' >expect &&
 		test_cmp expect out
 	)
@@ -1081,7 +1081,7 @@ test_expect_success 'very long name in the index handled sanely' '
 	(
 		git ls-files -s path4 |
 		sed -e "s/	.*/	/" |
-		tr -d "\012"
+		tr -d "\012" &&
 		echo "$a"
 	) | git update-index --index-info &&
 	len=$(git ls-files "a*" | wc -c) &&

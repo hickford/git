@@ -113,12 +113,14 @@
 /git-pull
 /git-push
 /git-quiltimport
+/git-range-diff
 /git-read-tree
 /git-rebase
 /git-rebase--am
 /git-rebase--helper
 /git-rebase--interactive
 /git-rebase--merge
+/git-rebase--preserve-merges
 /git-receive-pack
 /git-reflog
 /git-remote
@@ -206,6 +208,7 @@
 /config.mak.autogen
 /config.mak.append
 /configure
+/.vscode/
 /tags
 /TAGS
 /cscope*

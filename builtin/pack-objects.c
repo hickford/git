@@ -140,7 +140,7 @@ static void *get_delta(struct object_entry *entry)
 
 	buf = read_object_file(&entry->idx.oid, &type, &size);
 	if (!buf)
-		die("unable to read %s", oid_to_hex(&entry->idx.oid));
+		die(_("unable to read %s"), oid_to_hex(&entry->idx.oid));
 	base_buf = read_object_file(&DELTA(entry)->idx.oid, &type,
 				    &base_size);
 	if (!base_buf)
@@ -148,8 +148,13 @@ static void *get_delta(struct object_entry *entry)
 		    oid_to_hex(&DELTA(entry)->idx.oid));
 	delta_buf = diff_delta(base_buf, base_size,
 			       buf, size, &delta_size, 0);
+	/*
+	 * We succesfully computed this delta once but dropped it for
+	 * memory reasons. Something is very wrong if this time we
+	 * recompute and create a different delta.
+	 */
 	if (!delta_buf || delta_size != DELTA_SIZE(entry))
-		die("delta size changed");
+		BUG("delta size changed");
 	free(buf);
 	free(base_buf);
 	return delta_buf;
@@ -406,7 +411,7 @@ static off_t write_reuse_object(struct hashfile *f, struct object_entry *entry,
 	datalen = revidx[1].offset - offset;
 	if (!pack_to_stdout && p->index_version > 1 &&
 	    check_pack_crc(p, &w_curs, offset, datalen, revidx->nr)) {
-		error("bad packed object CRC for %s",
+		error(_("bad packed object CRC for %s"),
 		      oid_to_hex(&entry->idx.oid));
 		unuse_pack(&w_curs);
 		return write_no_reuse_object(f, entry, limit, usable_delta);
@@ -417,7 +422,7 @@ static off_t write_reuse_object(struct hashfile *f, struct object_entry *entry,
 
 	if (!pack_to_stdout && p->index_version == 1 &&
 	    check_pack_inflate(p, &w_curs, offset, datalen, entry_size)) {
-		error("corrupt packed object for %s",
+		error(_("corrupt packed object for %s"),
 		      oid_to_hex(&entry->idx.oid));
 		unuse_pack(&w_curs);
 		return write_no_reuse_object(f, entry, limit, usable_delta);
@@ -548,7 +553,7 @@ static enum write_one_status write_one(struct hashfile *f,
 	 */
 	recursing = (e->idx.offset == 1);
 	if (recursing) {
-		warning("recursive delta detected for object %s",
+		warning(_("recursive delta detected for object %s"),
 			oid_to_hex(&e->idx.oid));
 		return WRITE_ONE_RECURSIVE;
 	} else if (e->idx.offset || e->preferred_base) {
@@ -582,7 +587,7 @@ static enum write_one_status write_one(struct hashfile *f,
 
 	/* make sure off_t is sufficiently large not to wrap */
 	if (signed_add_overflows(*offset, size))
-		die("pack too large for current definition of off_t");
+		die(_("pack too large for current definition of off_t"));
 	*offset += size;
 	return WRITE_ONE_WRITTEN;
 }
@@ -748,7 +753,8 @@ static struct object_entry **compute_write_order(void)
 	}
 
 	if (wo_end != to_pack.nr_objects)
-		die("ordered %u objects, expected %"PRIu32, wo_end, to_pack.nr_objects);
+		die(_("ordered %u objects, expected %"PRIu32),
+		    wo_end, to_pack.nr_objects);
 
 	return wo;
 }
@@ -760,15 +766,15 @@ static off_t write_reused_pack(struct hashfile *f)
 	int fd;
 
 	if (!is_pack_valid(reuse_packfile))
-		die("packfile is invalid: %s", reuse_packfile->pack_name);
+		die(_("packfile is invalid: %s"), reuse_packfile->pack_name);
 
 	fd = git_open(reuse_packfile->pack_name);
 	if (fd < 0)
-		die_errno("unable to open packfile for reuse: %s",
+		die_errno(_("unable to open packfile for reuse: %s"),
 			  reuse_packfile->pack_name);
 
 	if (lseek(fd, sizeof(struct pack_header), SEEK_SET) == -1)
-		die_errno("unable to seek in reused packfile");
+		die_errno(_("unable to seek in reused packfile"));
 
 	if (reuse_packfile_offset < 0)
 		reuse_packfile_offset = reuse_packfile->pack_size - the_hash_algo->rawsz;
@@ -779,7 +785,7 @@ static off_t write_reused_pack(struct hashfile *f)
 		int read_pack = xread(fd, buffer, sizeof(buffer));
 
 		if (read_pack <= 0)
-			die_errno("unable to read from reused packfile");
+			die_errno(_("unable to read from reused packfile"));
 
 		if (read_pack > to_write)
 			read_pack = to_write;
@@ -882,7 +888,7 @@ static void write_pack_file(void)
 			 * to preserve this property.
 			 */
 			if (stat(pack_tmp_name, &st) < 0) {
-				warning_errno("failed to stat %s", pack_tmp_name);
+				warning_errno(_("failed to stat %s"), pack_tmp_name);
 			} else if (!last_mtime) {
 				last_mtime = st.st_mtime;
 			} else {
@@ -890,7 +896,7 @@ static void write_pack_file(void)
 				utb.actime = st.st_atime;
 				utb.modtime = --last_mtime;
 				if (utime(pack_tmp_name, &utb) < 0)
-					warning_errno("failed utime() on %s", pack_tmp_name);
+					warning_errno(_("failed utime() on %s"), pack_tmp_name);
 			}
 
 			strbuf_addf(&tmpname, "%s-", base_name);
@@ -935,8 +941,8 @@ static void write_pack_file(void)
 	free(write_order);
 	stop_progress(&progress_state);
 	if (written != nr_result)
-		die("wrote %"PRIu32" objects while expecting %"PRIu32,
-			written, nr_result);
+		die(_("wrote %"PRIu32" objects while expecting %"PRIu32),
+		    written, nr_result);
 }
 
 static int no_try_delta(const char *path)
@@ -945,7 +951,7 @@ static int no_try_delta(const char *path)
 
 	if (!check)
 		check = attr_check_initl("delta", NULL);
-	if (git_check_attr(path, check))
+	if (git_check_attr(&the_index, path, check))
 		return 0;
 	if (ATTR_FALSE(check->items[0].value))
 		return 1;
@@ -1480,7 +1486,7 @@ static void check_object(struct object_entry *entry)
 			while (c & 128) {
 				ofs += 1;
 				if (!ofs || MSB(ofs, 7)) {
-					error("delta base offset overflow in pack for %s",
+					error(_("delta base offset overflow in pack for %s"),
 					      oid_to_hex(&entry->idx.oid));
 					goto give_up;
 				}
@@ -1489,7 +1495,7 @@ static void check_object(struct object_entry *entry)
 			}
 			ofs = entry->in_pack_offset - ofs;
 			if (ofs <= 0 || ofs >= entry->in_pack_offset) {
-				error("delta base offset out of bound for %s",
+				error(_("delta base offset out of bound for %s"),
 				      oid_to_hex(&entry->idx.oid));
 				goto give_up;
 			}
@@ -1852,18 +1858,30 @@ static int delta_cacheable(unsigned long src_size, unsigned long trg_size,
 
 #ifndef NO_PTHREADS
 
+/* Protect access to object database */
 static pthread_mutex_t read_mutex;
 #define read_lock()		pthread_mutex_lock(&read_mutex)
 #define read_unlock()		pthread_mutex_unlock(&read_mutex)
 
+/* Protect delta_cache_size */
 static pthread_mutex_t cache_mutex;
 #define cache_lock()		pthread_mutex_lock(&cache_mutex)
 #define cache_unlock()		pthread_mutex_unlock(&cache_mutex)
 
+/*
+ * Protect object list partitioning (e.g. struct thread_param) and
+ * progress_state
+ */
 static pthread_mutex_t progress_mutex;
 #define progress_lock()		pthread_mutex_lock(&progress_mutex)
 #define progress_unlock()	pthread_mutex_unlock(&progress_mutex)
 
+/*
+ * Access to struct object_entry is unprotected since each thread owns
+ * a portion of the main object list. Just don't access object entries
+ * ahead in the list because they can be stolen and would need
+ * progress_mutex for protection.
+ */
 #else
 
 #define read_lock()		(void)0
@@ -1974,10 +1992,10 @@ static int try_delta(struct unpacked *trg, struct unpacked *src,
 		trg->data = read_object_file(&trg_entry->idx.oid, &type, &sz);
 		read_unlock();
 		if (!trg->data)
-			die("object %s cannot be read",
+			die(_("object %s cannot be read"),
 			    oid_to_hex(&trg_entry->idx.oid));
 		if (sz != trg_size)
-			die("object %s inconsistent object length (%lu vs %lu)",
+			die(_("object %s inconsistent object length (%lu vs %lu)"),
 			    oid_to_hex(&trg_entry->idx.oid), sz,
 			    trg_size);
 		*mem_usage += sz;
@@ -1990,7 +2008,7 @@ static int try_delta(struct unpacked *trg, struct unpacked *src,
 			if (src_entry->preferred_base) {
 				static int warned = 0;
 				if (!warned++)
-					warning("object %s cannot be read",
+					warning(_("object %s cannot be read"),
 						oid_to_hex(&src_entry->idx.oid));
 				/*
 				 * Those objects are not included in the
@@ -2000,11 +2018,11 @@ static int try_delta(struct unpacked *trg, struct unpacked *src,
 				 */
 				return 0;
 			}
-			die("object %s cannot be read",
+			die(_("object %s cannot be read"),
 			    oid_to_hex(&src_entry->idx.oid));
 		}
 		if (sz != src_size)
-			die("object %s inconsistent object length (%lu vs %lu)",
+			die(_("object %s inconsistent object length (%lu vs %lu)"),
 			    oid_to_hex(&src_entry->idx.oid), sz,
 			    src_size);
 		*mem_usage += sz;
@@ -2014,7 +2032,7 @@ static int try_delta(struct unpacked *trg, struct unpacked *src,
 		if (!src->index) {
 			static int warned = 0;
 			if (!warned++)
-				warning("suboptimal pack - out of memory");
+				warning(_("suboptimal pack - out of memory"));
 			return 0;
 		}
 		*mem_usage += sizeof_delta_index(src->index);
@@ -2023,10 +2041,6 @@ static int try_delta(struct unpacked *trg, struct unpacked *src,
 	delta_buf = create_delta(src->index, trg->data, trg_size, &delta_size, max_size);
 	if (!delta_buf)
 		return 0;
-	if (delta_size >= (1U << OE_DELTA_SIZE_BITS)) {
-		free(delta_buf);
-		return 0;
-	}
 
 	if (DELTA(trg_entry)) {
 		/* Prefer only shallower same-sized deltas. */
@@ -2245,12 +2259,19 @@ static void try_to_free_from_threads(size_t size)
 static try_to_free_t old_try_to_free_routine;
 
 /*
+ * The main object list is split into smaller lists, each is handed to
+ * one worker.
+ *
  * The main thread waits on the condition that (at least) one of the workers
  * has stopped working (which is indicated in the .working member of
  * struct thread_params).
+ *
  * When a work thread has completed its work, it sets .working to 0 and
  * signals the main thread and waits on the condition that .data_ready
  * becomes 1.
+ *
+ * The main thread steals half of the work from the worker that has
+ * most work left to hand it to the idle worker.
  */
 
 struct thread_params {
@@ -2278,6 +2299,7 @@ static void init_threaded_search(void)
 	pthread_mutex_init(&cache_mutex, NULL);
 	pthread_mutex_init(&progress_mutex, NULL);
 	pthread_cond_init(&progress_cond, NULL);
+	pthread_mutex_init(&to_pack.lock, NULL);
 	old_try_to_free_routine = set_try_to_free_routine(try_to_free_from_threads);
 }
 
@@ -2341,8 +2363,8 @@ static void ll_find_deltas(struct object_entry **list, unsigned list_size,
 		return;
 	}
 	if (progress > pack_to_stdout)
-		fprintf(stderr, "Delta compression using up to %d threads.\n",
-				delta_search_threads);
+		fprintf_ln(stderr, _("Delta compression using up to %d threads"),
+			   delta_search_threads);
 	p = xcalloc(delta_search_threads, sizeof(*p));
 
 	/* Partition the work amongst work threads. */
@@ -2382,7 +2404,7 @@ static void ll_find_deltas(struct object_entry **list, unsigned list_size,
 		ret = pthread_create(&p[i].thread, NULL,
 				     threaded_find_deltas, &p[i]);
 		if (ret)
-			die("unable to create thread: %s", strerror(ret));
+			die(_("unable to create thread: %s"), strerror(ret));
 		active_threads++;
 	}
 
@@ -2474,10 +2496,10 @@ static void add_tag_chain(const struct object_id *oid)
 	if (packlist_find(&to_pack, oid->hash, NULL))
 		return;
 
-	tag = lookup_tag(oid);
+	tag = lookup_tag(the_repository, oid);
 	while (1) {
 		if (!tag || parse_tag(tag) || !tag->tagged)
-			die("unable to pack objects reachable from tag %s",
+			die(_("unable to pack objects reachable from tag %s"),
 			    oid_to_hex(oid));
 
 		add_object_entry(&tag->object.oid, OBJ_TAG, NULL, 0);
@@ -2543,7 +2565,7 @@ static void prepare_pack(int window, int depth)
 		if (!entry->preferred_base) {
 			nr_deltas++;
 			if (oe_type(entry) < 0)
-				die("unable to get type of object %s",
+				die(_("unable to get type of object %s"),
 				    oid_to_hex(&entry->idx.oid));
 		} else {
 			if (oe_type(entry) < 0) {
@@ -2567,7 +2589,7 @@ static void prepare_pack(int window, int depth)
 		ll_find_deltas(delta_list, n, window+1, depth, &nr_done);
 		stop_progress(&progress_state);
 		if (nr_done != nr_deltas)
-			die("inconsistency with delta count");
+			die(_("inconsistency with delta count"));
 	}
 	free(delta_list);
 }
@@ -2607,11 +2629,11 @@ static int git_pack_config(const char *k, const char *v, void *cb)
 	if (!strcmp(k, "pack.threads")) {
 		delta_search_threads = git_config_int(k, v);
 		if (delta_search_threads < 0)
-			die("invalid number of threads specified (%d)",
+			die(_("invalid number of threads specified (%d)"),
 			    delta_search_threads);
 #ifdef NO_PTHREADS
 		if (delta_search_threads != 1) {
-			warning("no threads support, ignoring %s", k);
+			warning(_("no threads support, ignoring %s"), k);
 			delta_search_threads = 0;
 		}
 #endif
@@ -2620,7 +2642,7 @@ static int git_pack_config(const char *k, const char *v, void *cb)
 	if (!strcmp(k, "pack.indexversion")) {
 		pack_idx_opts.version = git_config_int(k, v);
 		if (pack_idx_opts.version > 2)
-			die("bad pack.indexversion=%"PRIu32,
+			die(_("bad pack.indexversion=%"PRIu32),
 			    pack_idx_opts.version);
 		return 0;
 	}
@@ -2638,7 +2660,7 @@ static void read_object_list_from_stdin(void)
 			if (feof(stdin))
 				break;
 			if (!ferror(stdin))
-				die("fgets returned NULL, not EOF, not error!");
+				die("BUG: fgets returned NULL, not EOF, not error!");
 			if (errno != EINTR)
 				die_errno("fgets");
 			clearerr(stdin);
@@ -2646,13 +2668,13 @@ static void read_object_list_from_stdin(void)
 		}
 		if (line[0] == '-') {
 			if (get_oid_hex(line+1, &oid))
-				die("expected edge object ID, got garbage:\n %s",
+				die(_("expected edge object ID, got garbage:\n %s"),
 				    line);
 			add_preferred_base(&oid);
 			continue;
 		}
 		if (parse_oid_hex(line, &oid, &p))
-			die("expected object ID, got garbage:\n %s", line);
+			die(_("expected object ID, got garbage:\n %s"), line);
 
 		add_preferred_base_object(p + 1);
 		add_object_entry(&oid, OBJ_NONE, p + 1, 0);
@@ -2791,7 +2813,7 @@ static void add_objects_in_unpacked_packs(struct rev_info *revs)
 		if (!p->pack_local || p->pack_keep || p->pack_keep_in_core)
 			continue;
 		if (open_pack_index(p))
-			die("cannot open pack index");
+			die(_("cannot open pack index"));
 
 		ALLOC_GROW(in_pack.array,
 			   in_pack.nr + p->num_objects,
@@ -2822,7 +2844,7 @@ static int add_loose_object(const struct object_id *oid, const char *path,
 	enum object_type type = oid_object_info(the_repository, oid, NULL);
 
 	if (type < 0) {
-		warning("loose object at %s could not be examined", path);
+		warning(_("loose object at %s could not be examined"), path);
 		return 0;
 	}
 
@@ -2899,7 +2921,7 @@ static void loosen_unused_packed_objects(struct rev_info *revs)
 			continue;
 
 		if (open_pack_index(p))
-			die("cannot open pack index");
+			die(_("cannot open pack index"));
 
 		for (i = 0; i < p->num_objects; i++) {
 			nth_packed_object_oid(&oid, p, i);
@@ -2907,7 +2929,7 @@ static void loosen_unused_packed_objects(struct rev_info *revs)
 			    !has_sha1_pack_kept_or_nonlocal(&oid) &&
 			    !loosened_object_can_be_discarded(&oid, p->mtime))
 				if (force_object_loose(&oid, p->mtime))
-					die("unable to force loose object");
+					die(_("unable to force loose object"));
 		}
 	}
 }
@@ -2929,11 +2951,13 @@ static int pack_options_allow_reuse(void)
 
 static int get_object_list_from_bitmap(struct rev_info *revs)
 {
-	if (prepare_bitmap_walk(revs) < 0)
+	struct bitmap_index *bitmap_git;
+	if (!(bitmap_git = prepare_bitmap_walk(revs)))
 		return -1;
 
 	if (pack_options_allow_reuse() &&
 	    !reuse_partial_packfile_from_bitmap(
+			bitmap_git,
 			&reuse_packfile,
 			&reuse_packfile_objects,
 			&reuse_packfile_offset)) {
@@ -2942,7 +2966,8 @@ static int get_object_list_from_bitmap(struct rev_info *revs)
 		display_progress(progress_state, nr_result);
 	}
 
-	traverse_bitmap_commit_list(&add_object_entry_from_bitmap);
+	traverse_bitmap_commit_list(bitmap_git, &add_object_entry_from_bitmap);
+	free_bitmap_index(bitmap_git);
 	return 0;
 }
 
@@ -2969,7 +2994,7 @@ static void get_object_list(int ac, const char **av)
 	setup_revisions(ac, av, &revs, NULL);
 
 	/* make sure shallows are read */
-	is_repository_shallow();
+	is_repository_shallow(the_repository);
 
 	while (fgets(line, sizeof(line), stdin) != NULL) {
 		int len = strlen(line);
@@ -2987,21 +3012,21 @@ static void get_object_list(int ac, const char **av)
 				struct object_id oid;
 				if (get_oid_hex(line + 10, &oid))
 					die("not an SHA-1 '%s'", line + 10);
-				register_shallow(&oid);
+				register_shallow(the_repository, &oid);
 				use_bitmap_index = 0;
 				continue;
 			}
-			die("not a rev '%s'", line);
+			die(_("not a rev '%s'"), line);
 		}
 		if (handle_revision_arg(line, &revs, flags, REVARG_CANNOT_BE_FILENAME))
-			die("bad revision '%s'", line);
+			die(_("bad revision '%s'"), line);
 	}
 
 	if (use_bitmap_index && !get_object_list_from_bitmap(&revs))
 		return;
 
 	if (prepare_revision_walk(&revs))
-		die("revision walk setup failed");
+		die(_("revision walk setup failed"));
 	mark_edges_uninteresting(&revs, show_edge);
 
 	if (!fn_show_object)
@@ -3014,9 +3039,9 @@ static void get_object_list(int ac, const char **av)
 		revs.ignore_missing_links = 1;
 		if (add_unseen_recent_objects_to_traversal(&revs,
 				unpack_unreachable_expiration))
-			die("unable to add recent objects");
+			die(_("unable to add recent objects"));
 		if (prepare_revision_walk(&revs))
-			die("revision walk setup failed");
+			die(_("revision walk setup failed"));
 		traverse_commit_list(&revs, record_recent_commit,
 				     record_recent_object, NULL);
 	}
@@ -3107,7 +3132,7 @@ int cmd_pack_objects(int argc, const char **argv, const char *prefix)
 		OPT_BOOL(0, "all-progress-implied",
 			 &all_progress_implied,
 			 N_("similar to --all-progress when progress meter is shown")),
-		{ OPTION_CALLBACK, 0, "index-version", NULL, N_("version[,offset]"),
+		{ OPTION_CALLBACK, 0, "index-version", NULL, N_("<version>[,<offset>]"),
 		  N_("write the pack index file in the specified idx format version"),
 		  0, option_parse_index_version },
 		OPT_MAGNITUDE(0, "max-pack-size", &pack_size_limit,
@@ -3185,7 +3210,7 @@ int cmd_pack_objects(int argc, const char **argv, const char *prefix)
 	if (DFS_NUM_STATES > (1 << OE_DFS_STATE_BITS))
 		BUG("too many dfs states, increase OE_DFS_STATE_BITS");
 
-	check_replace_refs = 0;
+	read_replace_refs = 0;
 
 	reset_pack_idx_option(&pack_idx_opts);
 	git_config(git_pack_config, NULL);
@@ -3251,35 +3276,35 @@ int cmd_pack_objects(int argc, const char **argv, const char *prefix)
 	if (pack_compression_level == -1)
 		pack_compression_level = Z_DEFAULT_COMPRESSION;
 	else if (pack_compression_level < 0 || pack_compression_level > Z_BEST_COMPRESSION)
-		die("bad pack compression level %d", pack_compression_level);
+		die(_("bad pack compression level %d"), pack_compression_level);
 
 	if (!delta_search_threads)	/* --threads=0 means autodetect */
 		delta_search_threads = online_cpus();
 
 #ifdef NO_PTHREADS
 	if (delta_search_threads != 1)
-		warning("no threads support, ignoring --threads");
+		warning(_("no threads support, ignoring --threads"));
 #endif
 	if (!pack_to_stdout && !pack_size_limit)
 		pack_size_limit = pack_size_limit_cfg;
 	if (pack_to_stdout && pack_size_limit)
-		die("--max-pack-size cannot be used to build a pack for transfer.");
+		die(_("--max-pack-size cannot be used to build a pack for transfer"));
 	if (pack_size_limit && pack_size_limit < 1024*1024) {
-		warning("minimum pack size limit is 1 MiB");
+		warning(_("minimum pack size limit is 1 MiB"));
 		pack_size_limit = 1024*1024;
 	}
 
 	if (!pack_to_stdout && thin)
-		die("--thin cannot be used to build an indexable pack.");
+		die(_("--thin cannot be used to build an indexable pack"));
 
 	if (keep_unreachable && unpack_unreachable)
-		die("--keep-unreachable and --unpack-unreachable are incompatible.");
+		die(_("--keep-unreachable and --unpack-unreachable are incompatible"));
 	if (!rev_list_all || !rev_list_reflog || !rev_list_index)
 		unpack_unreachable_expiration = 0;
 
 	if (filter_options.choice) {
 		if (!pack_to_stdout)
-			die("cannot use --filter without --stdout.");
+			die(_("cannot use --filter without --stdout"));
 		use_bitmap_index = 0;
 	}
 
@@ -3299,7 +3324,7 @@ int cmd_pack_objects(int argc, const char **argv, const char *prefix)
 		use_bitmap_index = use_bitmap_index_default;
 
 	/* "hard" reasons not to use bitmaps; these just won't work at all */
-	if (!use_internal_rev_list || (!pack_to_stdout && write_bitmap_index) || is_repository_shallow())
+	if (!use_internal_rev_list || (!pack_to_stdout && write_bitmap_index) || is_repository_shallow(the_repository))
 		use_bitmap_index = 0;
 
 	if (pack_to_stdout || !rev_list_all)
@@ -3353,8 +3378,9 @@ int cmd_pack_objects(int argc, const char **argv, const char *prefix)
 		prepare_pack(window, depth);
 	write_pack_file();
 	if (progress)
-		fprintf(stderr, "Total %"PRIu32" (delta %"PRIu32"),"
-			" reused %"PRIu32" (delta %"PRIu32")\n",
-			written, written_delta, reused, reused_delta);
+		fprintf_ln(stderr,
+			   _("Total %"PRIu32" (delta %"PRIu32"),"
+			     " reused %"PRIu32" (delta %"PRIu32")"),
+			   written, written_delta, reused, reused_delta);
 	return 0;
 }

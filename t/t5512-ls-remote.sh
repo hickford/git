@@ -15,7 +15,7 @@ test_expect_success setup '
 	git tag mark1.10 &&
 	git show-ref --tags -d | sed -e "s/ /	/" >expected.tag &&
 	(
-		echo "$(git rev-parse HEAD)	HEAD"
+		echo "$(git rev-parse HEAD)	HEAD" &&
 		git show-ref -d	| sed -e "s/ /	/"
 	) >expected.all &&
 
@@ -105,7 +105,7 @@ test_expect_success 'use branch.<name>.remote if possible' '
 	git clone . other.git &&
 	(
 		cd other.git &&
-		echo "$(git rev-parse HEAD)	HEAD"
+		echo "$(git rev-parse HEAD)	HEAD" &&
 		git show-ref	| sed -e "s/ /	/"
 	) >exp &&
 
@@ -155,14 +155,12 @@ test_expect_success 'die with non-2 for wrong repository even with --exit-code' 
 
 test_expect_success 'Report success even when nothing matches' '
 	git ls-remote other.git "refs/nsn/*" >actual &&
-	>expect &&
-	test_cmp expect actual
+	test_must_be_empty actual
 '
 
 test_expect_success 'Report no-match with --exit-code' '
 	test_expect_code 2 git ls-remote --exit-code other.git "refs/nsn/*" >actual &&
-	>expect &&
-	test_cmp expect actual
+	test_must_be_empty actual
 '
 
 test_expect_success 'Report match with --exit-code' '

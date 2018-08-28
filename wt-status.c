@@ -647,7 +647,7 @@ static void wt_status_collect_changes_initial(struct wt_status *s)
 		struct wt_status_change_data *d;
 		const struct cache_entry *ce = active_cache[i];
 
-		if (!ce_path_match(ce, &s->pathspec, NULL))
+		if (!ce_path_match(&the_index, ce, &s->pathspec, NULL))
 			continue;
 		if (ce_intent_to_add(ce))
 			continue;
@@ -703,7 +703,7 @@ static void wt_status_collect_untracked(struct wt_status *s)
 	for (i = 0; i < dir.nr; i++) {
 		struct dir_entry *ent = dir.entries[i];
 		if (cache_name_is_other(ent->name, ent->len) &&
-		    dir_path_match(ent, &s->pathspec, 0, NULL))
+		    dir_path_match(&the_index, ent, &s->pathspec, 0, NULL))
 			string_list_insert(&s->untracked, ent->name);
 		free(ent);
 	}
@@ -711,7 +711,7 @@ static void wt_status_collect_untracked(struct wt_status *s)
 	for (i = 0; i < dir.ignored_nr; i++) {
 		struct dir_entry *ent = dir.ignored[i];
 		if (cache_name_is_other(ent->name, ent->len) &&
-		    dir_path_match(ent, &s->pathspec, 0, NULL))
+		    dir_path_match(&the_index, ent, &s->pathspec, 0, NULL))
 			string_list_insert(&s->ignored, ent->name);
 		free(ent);
 	}
@@ -1317,7 +1317,7 @@ static void show_rebase_in_progress(struct wt_status *s,
 			status_printf_ln(s, color,
 				_("  (use \"git rebase --abort\" to check out the original branch)"));
 		}
-	} else if (state->rebase_in_progress || !stat(git_path_merge_msg(), &st)) {
+	} else if (state->rebase_in_progress || !stat(git_path_merge_msg(the_repository), &st)) {
 		print_rebase_state(s, state, color);
 		if (s->hints)
 			status_printf_ln(s, color,
@@ -1489,7 +1489,7 @@ static void wt_status_get_detached_from(struct wt_status_state *state)
 	    /* sha1 is a commit? match without further lookup */
 	    (!oidcmp(&cb.noid, &oid) ||
 	     /* perhaps sha1 is a tag, try to dereference to a commit */
-	     ((commit = lookup_commit_reference_gently(&oid, 1)) != NULL &&
+	     ((commit = lookup_commit_reference_gently(the_repository, &oid, 1)) != NULL &&
 	      !oidcmp(&cb.noid, &commit->object.oid)))) {
 		const char *from = ref;
 		if (!skip_prefix(from, "refs/tags/", &from))
@@ -1552,17 +1552,17 @@ void wt_status_get_state(struct wt_status_state *state,
 	struct stat st;
 	struct object_id oid;
 
-	if (!stat(git_path_merge_head(), &st)) {
+	if (!stat(git_path_merge_head(the_repository), &st)) {
 		state->merge_in_progress = 1;
 	} else if (wt_status_check_rebase(NULL, state)) {
 		;		/* all set */
-	} else if (!stat(git_path_cherry_pick_head(), &st) &&
+	} else if (!stat(git_path_cherry_pick_head(the_repository), &st) &&
 			!get_oid("CHERRY_PICK_HEAD", &oid)) {
 		state->cherry_pick_in_progress = 1;
 		oidcpy(&state->cherry_pick_head_oid, &oid);
 	}
 	wt_status_check_bisect(NULL, state);
-	if (!stat(git_path_revert_head(), &st) &&
+	if (!stat(git_path_revert_head(the_repository), &st) &&
 	    !get_oid("REVERT_HEAD", &oid)) {
 		state->revert_in_progress = 1;
 		oidcpy(&state->revert_head_oid, &oid);
@@ -2340,7 +2340,17 @@ int has_uncommitted_changes(int ignore_submodules)
 	if (ignore_submodules)
 		rev_info.diffopt.flags.ignore_submodules = 1;
 	rev_info.diffopt.flags.quick = 1;
+
 	add_head_to_pending(&rev_info);
+	if (!rev_info.pending.nr) {
+		/*
+		 * We have no head (or it's corrupt); use the empty tree,
+		 * which will complain if the index is non-empty.
+		 */
+		struct tree *tree = lookup_tree(the_repository, the_hash_algo->empty_tree);
+		add_pending_object(&rev_info, &tree->object, "");
+	}
+
 	diff_setup_done(&rev_info.diffopt);
 	result = run_diff_index(&rev_info, 1);
 	return diff_result_code(&rev_info.diffopt, result);

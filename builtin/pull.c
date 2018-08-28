@@ -48,11 +48,11 @@ static enum rebase_type parse_config_rebase(const char *key, const char *value,
 		return REBASE_FALSE;
 	else if (v > 0)
 		return REBASE_TRUE;
-	else if (!strcmp(value, "preserve"))
+	else if (!strcmp(value, "preserve") || !strcmp(value, "p"))
 		return REBASE_PRESERVE;
-	else if (!strcmp(value, "merges"))
+	else if (!strcmp(value, "merges") || !strcmp(value, "m"))
 		return REBASE_MERGES;
-	else if (!strcmp(value, "interactive"))
+	else if (!strcmp(value, "interactive") || !strcmp(value, "i"))
 		return REBASE_INTERACTIVE;
 
 	if (fatal)
@@ -135,7 +135,7 @@ static struct option pull_options[] = {
 	/* Options passed to git-merge or git-rebase */
 	OPT_GROUP(N_("Options related to merging")),
 	{ OPTION_CALLBACK, 'r', "rebase", &opt_rebase,
-	  "false|true|merges|preserve|interactive",
+	  "(false|true|merges|preserve|interactive)",
 	  N_("incorporate changes by rebasing rather than merging"),
 	  PARSE_OPT_OPTARG, parse_opt_rebase },
 	OPT_PASSTHRU('n', NULL, &opt_diffstat, NULL,
@@ -356,7 +356,7 @@ static int git_pull_config(const char *var, const char *value, void *cb)
  */
 static void get_merge_heads(struct oid_array *merge_heads)
 {
-	const char *filename = git_path_fetch_head();
+	const char *filename = git_path_fetch_head(the_repository);
 	FILE *fp;
 	struct strbuf sb = STRBUF_INIT;
 	struct object_id oid;
@@ -684,7 +684,7 @@ static const char *get_tracking_branch(const char *remote, const char *refspec)
 	const char *spec_src;
 	const char *merge_branch;
 
-	refspec_item_init(&spec, refspec, REFSPEC_FETCH);
+	refspec_item_init_or_die(&spec, refspec, REFSPEC_FETCH);
 	spec_src = spec.src;
 	if (!*spec_src || !strcmp(spec_src, "HEAD"))
 		spec_src = "HEAD";
@@ -765,10 +765,13 @@ static int get_octopus_merge_base(struct object_id *merge_base,
 {
 	struct commit_list *revs = NULL, *result;
 
-	commit_list_insert(lookup_commit_reference(curr_head), &revs);
-	commit_list_insert(lookup_commit_reference(merge_head), &revs);
+	commit_list_insert(lookup_commit_reference(the_repository, curr_head),
+			   &revs);
+	commit_list_insert(lookup_commit_reference(the_repository, merge_head),
+			   &revs);
 	if (!is_null_oid(fork_point))
-		commit_list_insert(lookup_commit_reference(fork_point), &revs);
+		commit_list_insert(lookup_commit_reference(the_repository, fork_point),
+				   &revs);
 
 	result = get_octopus_merge_bases(revs);
 	free_commit_list(revs);
@@ -864,7 +867,7 @@ int cmd_pull(int argc, const char **argv, const char *prefix)
 	if (read_cache_unmerged())
 		die_resolve_conflict("pull");
 
-	if (file_exists(git_path_merge_head()))
+	if (file_exists(git_path_merge_head(the_repository)))
 		die_conclude_merge();
 
 	if (get_oid("HEAD", &orig_head))
@@ -944,9 +947,11 @@ int cmd_pull(int argc, const char **argv, const char *prefix)
 			struct commit_list *list = NULL;
 			struct commit *merge_head, *head;
 
-			head = lookup_commit_reference(&orig_head);
+			head = lookup_commit_reference(the_repository,
+						       &orig_head);
 			commit_list_insert(head, &list);
-			merge_head = lookup_commit_reference(&merge_heads.oid[0]);
+			merge_head = lookup_commit_reference(the_repository,
+							     &merge_heads.oid[0]);
 			if (is_descendant_of(merge_head, list)) {
 				/* we can fast-forward this without invoking rebase */
 				opt_ff = "--ff-only";

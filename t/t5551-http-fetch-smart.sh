@@ -103,13 +103,7 @@ GET  /smart/repo.git/info/refs?service=git-upload-pack HTTP/1.1 200
 POST /smart/repo.git/git-upload-pack HTTP/1.1 200
 EOF
 test_expect_success 'used upload-pack service' '
-	sed -e "
-		s/^.* \"//
-		s/\"//
-		s/ [1-9][0-9]*\$//
-		s/^GET /GET  /
-	" >act <"$HTTPD_ROOT_PATH"/access.log &&
-	test_cmp exp act
+	check_access_log exp
 '
 
 test_expect_success 'follow redirects (301)' '
@@ -367,6 +361,24 @@ test_expect_success 'custom http headers' '
 	git -c http.extraheader="x-magic-one: abra" \
 	    -c http.extraheader="x-magic-two: cadabra" \
 		submodule update sub
+'
+
+test_expect_success 'using fetch command in remote-curl updates refs' '
+	SERVER="$HTTPD_DOCUMENT_ROOT_PATH/twobranch" &&
+	rm -rf "$SERVER" client &&
+
+	git init "$SERVER" &&
+	test_commit -C "$SERVER" foo &&
+	git -C "$SERVER" update-ref refs/heads/anotherbranch foo &&
+
+	git clone $HTTPD_URL/smart/twobranch client &&
+
+	test_commit -C "$SERVER" bar &&
+	git -C client -c protocol.version=0 fetch &&
+
+	git -C "$SERVER" rev-parse master >expect &&
+	git -C client rev-parse origin/master >actual &&
+	test_cmp expect actual
 '
 
 test_expect_success 'GIT_REDACT_COOKIES redacts cookies' '

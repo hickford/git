@@ -2,10 +2,13 @@
 #include "cache.h"
 #include "cache-tree.h"
 #include "tree.h"
+#include "object-store.h"
 #include "blob.h"
 #include "commit.h"
 #include "tag.h"
+#include "alloc.h"
 #include "tree-walk.h"
+#include "repository.h"
 
 const char *tree_type = "tree";
 
@@ -16,15 +19,13 @@ static int read_one_entry_opt(struct index_state *istate,
 			      unsigned mode, int stage, int opt)
 {
 	int len;
-	unsigned int size;
 	struct cache_entry *ce;
 
 	if (S_ISDIR(mode))
 		return READ_TREE_RECURSIVE;
 
 	len = strlen(pathname);
-	size = cache_entry_size(baselen + len);
-	ce = xcalloc(1, size);
+	ce = make_empty_cache_entry(istate, baselen + len);
 
 	ce->ce_mode = create_ce_mode(mode);
 	ce->ce_flags = create_ce_flags(stage);
@@ -98,7 +99,7 @@ static int read_tree_1(struct tree *tree, struct strbuf *base,
 		else if (S_ISGITLINK(entry.mode)) {
 			struct commit *commit;
 
-			commit = lookup_commit(entry.oid);
+			commit = lookup_commit(the_repository, entry.oid);
 			if (!commit)
 				die("Commit %s in submodule path %s%s not found",
 				    oid_to_hex(entry.oid),
@@ -117,7 +118,7 @@ static int read_tree_1(struct tree *tree, struct strbuf *base,
 		len = tree_entry_len(&entry);
 		strbuf_add(base, entry.path, len);
 		strbuf_addch(base, '/');
-		retval = read_tree_1(lookup_tree(&oid),
+		retval = read_tree_1(lookup_tree(the_repository, &oid),
 				     base, stage, pathspec,
 				     fn, context);
 		strbuf_setlen(base, oldlen);
@@ -192,12 +193,13 @@ int read_tree(struct tree *tree, int stage, struct pathspec *match,
 	return 0;
 }
 
-struct tree *lookup_tree(const struct object_id *oid)
+struct tree *lookup_tree(struct repository *r, const struct object_id *oid)
 {
-	struct object *obj = lookup_object(oid->hash);
+	struct object *obj = lookup_object(r, oid->hash);
 	if (!obj)
-		return create_object(oid->hash, alloc_tree_node());
-	return object_as_type(obj, OBJ_TREE, 0);
+		return create_object(r, oid->hash,
+				     alloc_tree_node(r));
+	return object_as_type(r, obj, OBJ_TREE, 0);
 }
 
 int parse_tree_buffer(struct tree *item, void *buffer, unsigned long size)
@@ -241,7 +243,7 @@ void free_tree_buffer(struct tree *tree)
 
 struct tree *parse_tree_indirect(const struct object_id *oid)
 {
-	struct object *obj = parse_object(oid);
+	struct object *obj = parse_object(the_repository, oid);
 	do {
 		if (!obj)
 			return NULL;
@@ -254,6 +256,6 @@ struct tree *parse_tree_indirect(const struct object_id *oid)
 		else
 			return NULL;
 		if (!obj->parsed)
-			parse_object(&obj->oid);
+			parse_object(the_repository, &obj->oid);
 	} while (1);
 }

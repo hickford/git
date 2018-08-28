@@ -501,6 +501,42 @@ test_expect_success '__gitcomp - suffix' '
 	EOF
 '
 
+test_expect_success '__gitcomp - ignore optional negative options' '
+	test_gitcomp "--" "--abc --def --no-one -- --no-two" <<-\EOF
+	--abc Z
+	--def Z
+	--no-one Z
+	--no-... Z
+	EOF
+'
+
+test_expect_success '__gitcomp - ignore/narrow optional negative options' '
+	test_gitcomp "--a" "--abc --abcdef --no-one -- --no-two" <<-\EOF
+	--abc Z
+	--abcdef Z
+	EOF
+'
+
+test_expect_success '__gitcomp - ignore/narrow optional negative options' '
+	test_gitcomp "--n" "--abc --def --no-one -- --no-two" <<-\EOF
+	--no-one Z
+	--no-... Z
+	EOF
+'
+
+test_expect_success '__gitcomp - expand all negative options' '
+	test_gitcomp "--no-" "--abc --def --no-one -- --no-two" <<-\EOF
+	--no-one Z
+	--no-two Z
+	EOF
+'
+
+test_expect_success '__gitcomp - expand/narrow all negative options' '
+	test_gitcomp "--no-o" "--abc --def --no-one -- --no-two" <<-\EOF
+	--no-one Z
+	EOF
+'
+
 test_expect_success '__gitcomp - doesnt fail because of invalid variable name' '
 	__gitcomp "$invalid_variable_name"
 '
@@ -1067,7 +1103,7 @@ test_expect_success '__git_complete_refs - remote' '
 	master-in-other Z
 	EOF
 	(
-		cur=
+		cur= &&
 		__git_complete_refs --remote=other &&
 		print_comp
 	) &&
@@ -1086,7 +1122,7 @@ test_expect_success '__git_complete_refs - track' '
 	master-in-other Z
 	EOF
 	(
-		cur=
+		cur= &&
 		__git_complete_refs --track &&
 		print_comp
 	) &&
@@ -1242,7 +1278,7 @@ test_expect_success 'setup for path completion tests' '
 	   touch BS\\dir/DQ\"file \
 		 '$'separators\034in\035dir/sep\036in\037file''
 	then
-		test_set_prereq FUNNYNAMES
+		test_set_prereq FUNNIERNAMES
 	else
 		rm -rf BS\\dir '$'separators\034in\035dir''
 	fi
@@ -1284,7 +1320,7 @@ test_expect_success '__git_complete_index_file - UTF-8 in ls-files output' '
 	test_path_completion árvíztűrő/С "árvíztűrő/Сайн яваарай"
 '
 
-test_expect_success FUNNYNAMES \
+test_expect_success FUNNIERNAMES \
     '__git_complete_index_file - C-style escapes in ls-files output' '
 	test_path_completion BS \
 			     BS\\dir &&
@@ -1296,7 +1332,7 @@ test_expect_success FUNNYNAMES \
 			     BS\\dir/DQ\"file
 '
 
-test_expect_success FUNNYNAMES \
+test_expect_success FUNNIERNAMES \
     '__git_complete_index_file - \nnn-escaped characters in ls-files output' '
 	test_path_completion sep '$'separators\034in\035dir'' &&
 	test_path_completion '$'separators\034i'' \
@@ -1398,8 +1434,8 @@ test_expect_success 'double dash "git checkout"' '
 	--ignore-other-worktrees Z
 	--recurse-submodules Z
 	--progress Z
-	--no-track Z
-	--no-recurse-submodules Z
+	--no-quiet Z
+	--no-... Z
 	EOF
 '
 
@@ -1607,6 +1643,7 @@ test_expect_success 'completion used <cmd> completion for alias: !f() { : git <c
 test_expect_success 'completion without explicit _git_xxx function' '
 	test_completion "git version --" <<-\EOF
 	--build-options Z
+	--no-build-options Z
 	EOF
 '
 

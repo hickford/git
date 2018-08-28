@@ -1,6 +1,8 @@
 #ifndef REPOSITORY_H
 #define REPOSITORY_H
 
+#include "path.h"
+
 struct config_set;
 struct git_hash_algo;
 struct index_state;
@@ -26,8 +28,22 @@ struct repository {
 	 */
 	struct raw_object_store *objects;
 
+	/*
+	 * All objects in this repository that have been parsed. This structure
+	 * owns all objects it references, so users of "struct object *"
+	 * generally do not need to free them; instead, when a repository is no
+	 * longer used, call parsed_object_pool_clear() on this structure, which
+	 * is called by the repositories repo_clear on its desconstruction.
+	 */
+	struct parsed_object_pool *parsed_objects;
+
 	/* The store in which the refs are held. */
 	struct ref_store *refs;
+
+	/*
+	 * Contains path to often used file names.
+	 */
+	struct path_cache cached_paths;
 
 	/*
 	 * Path to the repository's graft file.
@@ -94,19 +110,16 @@ struct set_gitdir_args {
 	const char *alternate_db;
 };
 
-extern void repo_set_gitdir(struct repository *repo,
-			    const char *root,
-			    const struct set_gitdir_args *extra_args);
-extern void repo_set_worktree(struct repository *repo, const char *path);
-extern void repo_set_hash_algo(struct repository *repo, int algo);
-extern void initialize_the_repository(void);
-extern int repo_init(struct repository *r,
-		     const char *gitdir,
-		     const char *worktree);
-extern int repo_submodule_init(struct repository *submodule,
-			       struct repository *superproject,
-			       const char *path);
-extern void repo_clear(struct repository *repo);
+void repo_set_gitdir(struct repository *repo, const char *root,
+		     const struct set_gitdir_args *extra_args);
+void repo_set_worktree(struct repository *repo, const char *path);
+void repo_set_hash_algo(struct repository *repo, int algo);
+void initialize_the_repository(void);
+int repo_init(struct repository *r, const char *gitdir, const char *worktree);
+int repo_submodule_init(struct repository *submodule,
+			struct repository *superproject,
+			const char *path);
+void repo_clear(struct repository *repo);
 
 /*
  * Populates the repository's index from its index_file, an index struct will
@@ -116,6 +129,6 @@ extern void repo_clear(struct repository *repo);
  * than zero if an error occured.  If the repository's index has already been
  * populated then the number of entries will simply be returned.
  */
-extern int repo_read_index(struct repository *repo);
+int repo_read_index(struct repository *repo);
 
 #endif /* REPOSITORY_H */

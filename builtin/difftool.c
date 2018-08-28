@@ -20,6 +20,7 @@
 #include "argv-array.h"
 #include "strbuf.h"
 #include "lockfile.h"
+#include "object-store.h"
 #include "dir.h"
 
 static char *diff_gui_tool;
@@ -321,10 +322,10 @@ static int checkout_path(unsigned mode, struct object_id *oid,
 	struct cache_entry *ce;
 	int ret;
 
-	ce = make_cache_entry(mode, oid->hash, path, 0, 0);
+	ce = make_transient_cache_entry(mode, oid, path, 0);
 	ret = checkout_entry(ce, state, NULL);
 
-	free(ce);
+	discard_cache_entry(ce);
 	return ret;
 }
 
@@ -488,7 +489,7 @@ static int run_dir_diff(const char *extcmd, int symlinks, const char *prefix,
 				 * index.
 				 */
 				struct cache_entry *ce2 =
-					make_cache_entry(rmode, roid.hash,
+					make_cache_entry(&wtindex, rmode, &roid,
 							 dst_path, 0, 0);
 
 				add_index_entry(&wtindex, ce2,
@@ -702,7 +703,7 @@ int cmd_difftool(int argc, const char **argv, const char *prefix)
 			1, PARSE_OPT_NONEG | PARSE_OPT_HIDDEN),
 		OPT_BOOL(0, "symlinks", &symlinks,
 			 N_("use symlinks in dir-diff mode")),
-		OPT_STRING('t', "tool", &difftool_cmd, N_("<tool>"),
+		OPT_STRING('t', "tool", &difftool_cmd, N_("tool"),
 			   N_("use the specified diff tool")),
 		OPT_BOOL(0, "tool-help", &tool_help,
 			 N_("print a list of diff tools that may be used with "
@@ -710,7 +711,7 @@ int cmd_difftool(int argc, const char **argv, const char *prefix)
 		OPT_BOOL(0, "trust-exit-code", &trust_exit_code,
 			 N_("make 'git-difftool' exit when an invoked diff "
 			    "tool returns a non - zero exit code")),
-		OPT_STRING('x', "extcmd", &extcmd, N_("<command>"),
+		OPT_STRING('x', "extcmd", &extcmd, N_("command"),
 			   N_("specify a custom command for viewing diffs")),
 		OPT_END()
 	};
