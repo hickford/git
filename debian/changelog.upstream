@@ -1,3 +1,36 @@
+Version v2.19.0-rc2; changes since v2.19.0-rc1:
+-----------------------------------------------
+
+Derrick Stolee (1):
+      commit: don't use generation numbers if not needed
+
+Elijah Newren (3):
+      t3401: add another directory rename testcase for rebase and am
+      merge-recursive: add ability to turn off directory rename detection
+      am: avoid directory rename detection when calling recursive merge machinery
+
+Eric Sunshine (2):
+      chainlint: match "quoted" here-doc tags
+      config.mak.uname: resolve FreeBSD iconv-related compilation warning
+
+Junio C Hamano (1):
+      Git 2.19-rc2
+
+Phillip Wood (2):
+      sequencer: handle errors from read_author_ident()
+      sequencer: fix quoting in write_author_script
+
+Ævar Arnfjörð Bjarmason (8):
+      tests: fix and add lint for non-portable head -c N
+      tests: fix and add lint for non-portable seq
+      tests: fix comment syntax in chainlint.sed for AIX sed
+      tests: use shorter labels in chainlint.sed for AIX sed
+      tests: fix version-specific portability issue in Perl JSON
+      tests: fix and add lint for non-portable grep --file
+      tests: fix non-portable "${var:-"str"}" construct
+      tests: fix non-portable iconv invocation
+
+
 Version v2.19.0-rc1; changes since v2.19.0-rc0:
 -----------------------------------------------
 
