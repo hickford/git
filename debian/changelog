@@ -1,3 +1,16 @@
+git (1:2.19.0~rc2-2) unstable; urgency=low
+
+  * debian/patches:
+    * 0001-http-backend-allow-empty-CONTENT_LENGTH: new from
+      upstream: http-backend: treat empty CONTENT_LENGTH as absent
+      (closes: #907587).
+    * 0002-Revert-Merge-branch-sb-submodule-core-worktree.diff: new
+      from upstream: stop setting and unsetting core.worktree in
+      submodules, since the code to do so does not handle submodules
+      with an embedded .git directory (thx Allan Sandfeld Jensen).
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Sun, 09 Sep 2018 19:08:55 -0700
+
 git (1:2.19.0~rc2-1) unstable; urgency=low
 
   * new upstream release candidate.

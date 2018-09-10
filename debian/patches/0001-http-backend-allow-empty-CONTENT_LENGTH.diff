@@ -1,0 +1,65 @@
+From 46e5466d0b34ce8391b899fa402f700823afcf97 Mon Sep 17 00:00:00 2001
+From: Max Kirillov <max@max630.net>
+Date: Fri, 7 Sep 2018 06:36:07 +0300
+Subject: http-backend: allow empty CONTENT_LENGTH
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit 574c513e8dda5598e9e08e8ca2a048bf120a5709 upstream.
+
+According to RFC3875, empty environment variable is equivalent to unset,
+and for CONTENT_LENGTH it should mean zero body to read.
+
+However, unset CONTENT_LENGTH is also used for chunked encoding to indicate
+reading until EOF. At least, the test "large fetch-pack requests can be split
+across POSTs" from t5551 starts faliing, if unset or empty CONTENT_LENGTH is
+treated as zero length body. So keep the existing behavior as much as possible.
+
+Add a test for the case.
+
+Reported-By: Jelmer Vernooĳ <jelmer@jelmer.uk>
+Signed-off-by: Max Kirillov <max@max630.net>
+Signed-off-by: Junio C Hamano <gitster@pobox.com>
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+---
+ http-backend.c                         |  2 +-
+ t/t5562-http-backend-content-length.sh | 11 +++++++++++
+ 2 files changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/http-backend.c b/http-backend.c
+index 88c38c834b..458642ef72 100644
+--- a/http-backend.c
++++ b/http-backend.c
+@@ -353,7 +353,7 @@ static ssize_t get_content_length(void)
+ 	ssize_t val = -1;
+ 	const char *str = getenv("CONTENT_LENGTH");
+ 
+-	if (str && !git_parse_ssize_t(str, &val))
++	if (str && *str && !git_parse_ssize_t(str, &val))
+ 		die("failed to parse CONTENT_LENGTH: %s", str);
+ 	return val;
+ }
+diff --git a/t/t5562-http-backend-content-length.sh b/t/t5562-http-backend-content-length.sh
+index 43570ce120..f94d01f69e 100755
+--- a/t/t5562-http-backend-content-length.sh
++++ b/t/t5562-http-backend-content-length.sh
+@@ -153,4 +153,15 @@ test_expect_success 'CONTENT_LENGTH overflow ssite_t' '
+ 	grep "fatal:.*CONTENT_LENGTH" err
+ '
+ 
++test_expect_success 'empty CONTENT_LENGTH' '
++	env \
++		QUERY_STRING=/repo.git/HEAD \
++		PATH_TRANSLATED="$PWD"/.git/HEAD \
++		GIT_HTTP_EXPORT_ALL=TRUE \
++		REQUEST_METHOD=GET \
++		CONTENT_LENGTH="" \
++		git http-backend <empty_body >act.out 2>act.err &&
++	verify_http_result "200 OK"
++'
++
+ test_done
+-- 
+2.19.0.rc2.392.g5ba43deb5a
+
