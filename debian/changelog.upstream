@@ -1,3 +1,48 @@
+Version v2.19.0; changes since v2.19.0-rc2:
+-------------------------------------------
+
+Alexander Shopov (1):
+      l10n: bg.po: Updated Bulgarian translation (3958t)
+
+Christopher Díaz Riveros (1):
+      l10n: es.po v2.19.0 round 2
+
+Dimitriy Ryazantcev (1):
+      l10n: ru.po: update Russian translation
+
+Jean-Noël Avila (2):
+      l10n: fr.po v2.19.0 rnd 1
+      l10n: fr.po v2.19.0 rnd 2
+
+Jiang Xin (4):
+      l10n: zh_CN: review for git 2.18.0
+      l10n: git.pot: v2.19.0 round 1 (382 new, 30 removed)
+      l10n: git.pot: v2.19.0 round 2 (3 new, 5 removed)
+      l10n: zh_CN: for git v2.19.0 l10n round 1 to 2
+
+Jonathan Nieder (1):
+      Revert "Merge branch 'sb/submodule-core-worktree'"
+
+Junio C Hamano (1):
+      Git 2.19
+
+Max Kirillov (1):
+      http-backend: allow empty CONTENT_LENGTH
+
+Peter Krefting (2):
+      l10n: sv.po: Update Swedish translation(3608t0f0u)
+      l10n: sv.po: Update Swedish translation (3958t0f0u)
+
+Ralf Thielow (1):
+      l10n: de.po: translate 108 new messages
+
+Raphaël Hertzog (1):
+      l10n: fr: fix a message seen in git bisect
+
+Trần Ngọc Quân (1):
+      l10n: vi.po(3958t): updated Vietnamese translation v2.19.0 round 2
+
+
 Version v2.19.0-rc2; changes since v2.19.0-rc1:
 -----------------------------------------------
 

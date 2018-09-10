@@ -1,3 +1,10 @@
+git (1:2.19.0-1) unstable; urgency=low
+
+  * new upstream release (see RelNotes/2.19.0.txt).
+  * debian/patches/0001-*, 0002-*: remove; applied upstream.
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 10 Sep 2018 13:33:45 -0700
+
 git (1:2.19.0~rc2-2) unstable; urgency=low
 
   * debian/patches:
