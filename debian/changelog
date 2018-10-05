@@ -1,3 +1,10 @@
+git (1:2.19.1-1) unstable; urgency=high
+
+  * new upstream point release (see RelNotes/2.19.1.txt,
+    CVE-2018-17456).
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Fri, 05 Oct 2018 10:10:45 -0700
+
 git (1:2.19.0-1) unstable; urgency=low
 
   * new upstream release (see RelNotes/2.19.0.txt).

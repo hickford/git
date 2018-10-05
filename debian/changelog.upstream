@@ -1,3 +1,22 @@
+Version v2.19.1; changes since v2.19.0:
+---------------------------------------
+
+Jeff King (5):
+      submodule--helper: use "--" to signal end of clone options
+      submodule-config: ban submodule urls that start with dash
+      submodule-config: ban submodule paths that start with a dash
+      fsck: detect submodule urls starting with dash
+      fsck: detect submodule paths starting with dash
+
+Junio C Hamano (6):
+      Git 2.14.5
+      Git 2.15.3
+      Git 2.16.5
+      Git 2.17.2
+      Git 2.18.1
+      Git 2.19.1
+
+
 Version v2.19.0; changes since v2.19.0-rc2:
 -------------------------------------------
 
