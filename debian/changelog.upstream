@@ -1,3 +1,189 @@
+Version v2.19.2; changes since v2.19.1:
+---------------------------------------
+
+Alexander Pyhalov (1):
+      t7005-editor: quote filename to fix whitespace-issue
+
+Andreas Heiduk (6):
+      doc: clarify boundaries of 'git worktree list --porcelain'
+      doc: fix ASCII art tab spacing
+      doc: fix inappropriate monospace formatting
+      doc: fix descripion for 'git tag --format'
+      doc: fix indentation of listing blocks in gitweb.conf.txt
+      doc: fix formatting in git-update-ref
+
+Ben Peart (1):
+      git-mv: allow submodules and fsmonitor to work together
+
+Brandon Williams (1):
+      config: document value 2 for protocol.version
+
+Daniels Umanovskis (3):
+      doc: move git-rev-parse from porcelain to plumbing
+      doc: move git-get-tar-commit-id to plumbing
+      doc: move git-cherry to plumbing
+
+David Zych (1):
+      doc: clarify gitcredentials path component matching
+
+Derrick Stolee (6):
+      commit-graph: update design document
+      test-repository: properly init repo
+      commit-graph: not compatible with replace objects
+      commit-graph: not compatible with grafts
+      commit-graph: not compatible with uninitialized repo
+      commit-graph: close_commit_graph before shallow walk
+
+Elijah Newren (7):
+      Remove superfluous trailing semicolons
+      t4200: demonstrate rerere segfault on specially crafted merge
+      rerere: avoid buffer overrun
+      update-ref: fix type of update_flags variable to match its usage
+      update-ref: allow --no-deref with --stdin
+      sequencer: fix --allow-empty-message behavior, make it smarter
+      commit: fix erroneous BUG, 'multiple renames on the same target? how?'
+
+Frederick Eaton (3):
+      git-archimport.1: specify what kind of Arch we're talking about
+      git-column.1: clarify initial description, provide examples
+      git-describe.1: clarify that "human readable" is also git-readable
+
+Jeff Hostetler (2):
+      t0051: test GIT_TRACE to a windows named pipe
+      mingw: fix mingw_open_append to work with named pipes
+
+Jeff King (16):
+      trailer: use size_t for string offsets
+      trailer: use size_t for iterating trailer list
+      trailer: pass process_trailer_opts to trailer_info_get()
+      interpret-trailers: tighten check for "---" patch boundary
+      interpret-trailers: allow suppressing "---" divider
+      pretty, ref-filter: format %(trailers) with no_divider option
+      sequencer: ignore "---" divider when parsing trailers
+      append_signoff: use size_t for string offsets
+      reopen_tempfile(): truncate opened file
+      config.mak.dev: add -Wformat-security
+      receive-pack: update comment with check_everything_connected
+      run-command: mark path lookup errors with ENOENT
+      upload-pack: fix broken if/else chain in config callback
+      t1450: check large blob in trailing-garbage test
+      check_stream_sha1(): handle input underflow
+      cat-file: handle streaming failures consistently
+
+Johannes Schindelin (8):
+      rebase -i --autosquash: demonstrate a problem skipping the last squash
+      rebase -i: be careful to wrap up fixup/squash chains
+      pack-objects: fix typo 'detla' -> 'delta'
+      pack-objects (mingw): demonstrate a segmentation fault with large deltas
+      pack-objects (mingw): initialize `packing_data` mutex in the correct spot
+      repack: point out a bug handling stale shallow info
+      shallow: offer to prune only non-existing entries
+      repack -ad: prune the list of shallow commits
+
+Johannes Sixt (2):
+      diff: don't attempt to strip prefix from absolute Windows paths
+      t3404-rebase-interactive: test abbreviated commands
+
+Jonathan Nieder (2):
+      mailmap: consistently normalize brian m. carlson's name
+      git doc: direct bug reporters to mailing list archive
+
+Jonathan Tan (4):
+      fetch-object: unify fetch_object[s] functions
+      fetch-object: set exact_oid when fetching
+      fetch-pack: avoid object flags if no_dependents
+      fetch-pack: exclude blobs when lazy-fetching trees
+
+Junio C Hamano (5):
+      CodingGuidelines: document the API in *.h files
+      receive: denyCurrentBranch=updateinstead should not blindly update
+      cocci: simplify "if (++u > 1)" to "if (u++)"
+      fsck: s/++i > 1/i++/
+      Git 2.19.2
+
+Martin Ågren (5):
+      git-commit-graph.txt: fix bullet lists
+      git-commit-graph.txt: typeset more in monospace
+      git-commit-graph.txt: refer to "*commit*-graph file"
+      Doc: refer to the "commit-graph file" with dash
+      t1400: drop debug `echo` to actually execute `test`
+
+Matthew DeVore (2):
+      Documentation/git-log.txt: do not show --exclude-promisor-objects
+      exclude-promisor-objects: declare when option is allowed
+
+Michael Witten (3):
+      docs: typo: s/go/to/
+      docs: graph: remove unnecessary `graph_update()' call
+      docs: typo: s/isimilar/similar/
+
+Mihir Mehta (1):
+      doc: fix a typo and clarify a sentence
+
+Nguyễn Thái Ngọc Duy (2):
+      add: do not accept pathspec magic 'attr'
+      config.txt: correct the note about uploadpack.packObjectsHook
+
+Noam Postavsky (1):
+      log: fix coloring of certain octopus merge shapes
+
+René Scharfe (1):
+      sequencer: use return value of oidset_insert()
+
+SZEDER Gábor (12):
+      Documentation/git.txt: clarify that GIT_TRACE=/path appends
+      t3701-add-interactive: tighten the check of trace output
+      t1700-split-index: drop unnecessary 'grep'
+      t0090: disable GIT_TEST_SPLIT_INDEX for the test checking split index
+      t1700-split-index: document why FSMONITOR is disabled in this test script
+      split-index: add tests to demonstrate the racy split index problem
+      t1700-split-index: date back files to avoid racy situations
+      split-index: count the number of deleted entries
+      split-index: don't compare cached data of entries already marked for split index
+      split-index: smudge and add racily clean cache entries to split index
+      split-index: BUG() when cache entry refers to non-existing shared entry
+      test-lib: introduce the '-V' short option for '--verbose-log'
+
+Sam McKelvie (1):
+      rev-parse: --show-superproject-working-tree should work during a merge
+
+Saulius Gurklys (1):
+      doc: fix small typo in git show-branch
+
+Sebastian Staudt (1):
+      travis-ci: no longer use containers
+
+Shulhan (1):
+      builtin/remote: quote remote name on error to display empty name
+
+Stefan Beller (4):
+      refs.c: migrate internal ref iteration to pass thru repository argument
+      refs.c: upgrade for_each_replace_ref to be a each_repo_ref_fn callback
+      string-list: remove unused function print_string_list
+      strbuf.h: format according to coding guidelines
+
+Tao Qingyun (3):
+      refs: docstring typo
+      builtin/branch.c: remove useless branch_get
+      branch: trivial style fix
+
+Thomas Gummerer (4):
+      .gitattributes: add conflict-marker-size for relevant files
+      linear-assignment: fix potential out of bounds memory access
+      t5551: move setup code inside test_expect blocks
+      t5551: compare sorted cookies files
+
+Tim Schumacher (1):
+      Documentation/Makefile: make manpage-base-url.xsl generation quieter
+
+Torsten Bögershausen (2):
+      Make git_check_attr() a void function
+      path.c: char is not (always) signed
+
+Uwe Kleine-König (1):
+      howto/using-merge-subtree: mention --allow-unrelated-histories
+
+
 Version v2.19.1; changes since v2.19.0:
 ---------------------------------------
 
@@ -149,7 +335,7 @@ Samuel Maftoul (1):
       refactor various if (x) FREE_AND_NULL(x) to just FREE_AND_NULL(x)
 
 
-Version v2.19.0-rc0; changes since v2.18.0:
+Version v2.19.0-rc0; changes since v2.18.1:
 -------------------------------------------
 
 Aaron Schrab (1):
@@ -980,6 +1166,24 @@ brian m. carlson (21):
       completion: complete remote names too
 
 
+Version v2.18.1; changes since v2.18.0:
+---------------------------------------
+
+Jeff King (5):
+      submodule--helper: use "--" to signal end of clone options
+      submodule-config: ban submodule urls that start with dash
+      submodule-config: ban submodule paths that start with a dash
+      fsck: detect submodule urls starting with dash
+      fsck: detect submodule paths starting with dash
+
+Junio C Hamano (5):
+      Git 2.14.5
+      Git 2.15.3
+      Git 2.16.5
+      Git 2.17.2
+      Git 2.18.1
+
+
 Version v2.18.0; changes since v2.18.0-rc2:
 -------------------------------------------
 
@@ -1183,7 +1387,7 @@ brian m. carlson (2):
       t3430: test clean-up
 
 
-Version v2.18.0-rc0; changes since v2.17.1:
+Version v2.18.0-rc0; changes since v2.17.2:
 -------------------------------------------
 
 Anders Kaseorg (1):
@@ -2084,6 +2288,23 @@ brian m. carlson (121):
       get_short_oid: sort ambiguous objects by type, then SHA-1
 
 
+Version v2.17.2; changes since v2.17.1:
+---------------------------------------
+
+Jeff King (5):
+      submodule--helper: use "--" to signal end of clone options
+      submodule-config: ban submodule urls that start with dash
+      submodule-config: ban submodule paths that start with a dash
+      fsck: detect submodule urls starting with dash
+      fsck: detect submodule paths starting with dash
+
+Junio C Hamano (4):
+      Git 2.14.5
+      Git 2.15.3
+      Git 2.16.5
+      Git 2.17.2
+
+
 Version v2.17.1; changes since v2.17.0:
 ---------------------------------------
 
@@ -2231,7 +2452,7 @@ Todd Zullinger (2):
       completion: complete tags with git tag --delete/--verify
 
 
-Version v2.17.0-rc0; changes since v2.16.4:
+Version v2.17.0-rc0; changes since v2.16.5:
 -------------------------------------------
 
 Adam Borowski (1):
@@ -2709,6 +2930,20 @@ brian m. carlson (13):
       git manpage: note git-security@googlegroups.com
 
 
+Version v2.16.5; changes since v2.16.4:
+---------------------------------------
+
+Jeff King (3):
+      submodule--helper: use "--" to signal end of clone options
+      submodule-config: ban submodule urls that start with dash
+      submodule-config: ban submodule paths that start with a dash
+
+Junio C Hamano (3):
+      Git 2.14.5
+      Git 2.15.3
+      Git 2.16.5
+
+
 Version v2.16.4; changes since v2.16.3:
 ---------------------------------------
 
@@ -3072,7 +3307,7 @@ Torsten Bögershausen (1):
       check-non-portable-shell.pl: `wc -l` may have leading WS
 
 
-Version v2.16.0-rc0; changes since v2.15.2:
+Version v2.16.0-rc0; changes since v2.15.3:
 -------------------------------------------
 
 Albert Astals Cid (1):
@@ -3561,6 +3796,19 @@ brian m. carlson (29):
       git-gui: prevent double UTF-8 conversion
 
 
+Version v2.15.3; changes since v2.15.2:
+---------------------------------------
+
+Jeff King (3):
+      submodule--helper: use "--" to signal end of clone options
+      submodule-config: ban submodule urls that start with dash
+      submodule-config: ban submodule paths that start with a dash
+
+Junio C Hamano (2):
+      Git 2.14.5
+      Git 2.15.3
+
+
 Version v2.15.2; changes since v2.15.1:
 ---------------------------------------
 
@@ -3925,7 +4173,7 @@ Todd Zullinger (1):
       api-argv-array.txt: remove broken link to string-list API
 
 
-Version v2.15.0-rc0; changes since v2.14.4:
+Version v2.15.0-rc0; changes since v2.14.5:
 -------------------------------------------
 
 Brandon Casey (7):
@@ -4465,6 +4713,18 @@ brian m. carlson (12):
 
 Łukasz Gryglicki (1):
       merge: add a --signoff flag
+
+
+Version v2.14.5; changes since v2.14.4:
+---------------------------------------
+
+Jeff King (3):
+      submodule--helper: use "--" to signal end of clone options
+      submodule-config: ban submodule urls that start with dash
+      submodule-config: ban submodule paths that start with a dash
+
+Junio C Hamano (1):
+      Git 2.14.5
 
 
 Version v2.14.4; changes since v2.14.3:

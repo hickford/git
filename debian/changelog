@@ -1,3 +1,10 @@
+git (1:2.19.2-1) unstable; urgency=high
+
+  * new upstream point release (see RelNotes/2.19.2.txt).
+    * run-command: do not fall back to cwd when command is not in $PATH.
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Thu, 22 Nov 2018 14:48:49 -0800
+
 git (1:2.19.1-1) unstable; urgency=high
 
   * new upstream point release (see RelNotes/2.19.1.txt,
