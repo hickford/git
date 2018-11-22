@@ -202,6 +202,7 @@ typedef int (*each_commit_graft_fn)(const struct commit_graft *, void *);
 
 struct commit_graft *read_graft_line(struct strbuf *line);
 int register_commit_graft(struct repository *r, struct commit_graft *, int);
+void prepare_commit_graft(struct repository *r);
 struct commit_graft *lookup_commit_graft(struct repository *r, const struct object_id *oid);
 
 extern struct commit_list *get_merge_bases(struct commit *rev1, struct commit *rev2);
@@ -255,7 +256,9 @@ extern void assign_shallow_commits_to_refs(struct shallow_info *info,
 					   uint32_t **used,
 					   int *ref_status);
 extern int delayed_reachability_test(struct shallow_info *si, int c);
-extern void prune_shallow(int show_only);
+#define PRUNE_SHOW_ONLY 1
+#define PRUNE_QUICK 2
+extern void prune_shallow(unsigned options);
 extern struct trace_key trace_shallow;
 
 int is_descendant_of(struct commit *, struct commit_list *);
@@ -322,7 +325,7 @@ extern const char *find_commit_header(const char *msg, const char *key,
 				      size_t *out_len);
 
 /* Find the end of the log message, the right place for a new trailer. */
-extern int ignore_non_trailer(const char *buf, size_t len);
+extern size_t ignore_non_trailer(const char *buf, size_t len);
 
 typedef int (*each_mergetag_fn)(struct commit *commit, struct commit_extra_header *extra,
 				 void *cb_data);

@@ -225,13 +225,16 @@ static const char *get_todo_path(const struct replay_opts *opts)
  * Returns 3 when sob exists within conforming footer as last entry
  */
 static int has_conforming_footer(struct strbuf *sb, struct strbuf *sob,
-	int ignore_footer)
+	size_t ignore_footer)
 {
+	struct process_trailer_options opts = PROCESS_TRAILER_OPTIONS_INIT;
 	struct trailer_info info;
-	int i;
+	size_t i;
 	int found_sob = 0, found_sob_last = 0;
 
-	trailer_info_get(&info, sb->buf);
+	opts.no_divider = 1;
+
+	trailer_info_get(&info, sb->buf, &opts);
 
 	if (info.trailer_start == info.trailer_end)
 		return 0;
@@ -899,7 +902,7 @@ static int run_git_commit(const char *defmsg, struct replay_opts *opts,
 	if ((flags & ALLOW_EMPTY))
 		argv_array_push(&cmd.args, "--allow-empty");
 
-	if (opts->allow_empty_message)
+	if (!(flags & EDIT_MSG))
 		argv_array_push(&cmd.args, "--allow-empty-message");
 
 	if (cmd.err == -1) {
@@ -1313,7 +1316,7 @@ static int try_to_commit(struct strbuf *msg, const char *author,
 
 	if (cleanup != COMMIT_MSG_CLEANUP_NONE)
 		strbuf_stripspace(msg, cleanup == COMMIT_MSG_CLEANUP_ALL);
-	if (!opts->allow_empty_message && message_is_empty(msg, cleanup)) {
+	if ((flags & EDIT_MSG) && message_is_empty(msg, cleanup)) {
 		res = 1; /* run 'git commit' to display error message */
 		goto out;
 	}
@@ -3607,9 +3610,20 @@ static int commit_staged_changes(struct replay_opts *opts,
 		 * the commit message and if there was a squash, let the user
 		 * edit it.
 		 */
-		if (is_clean && !oidcmp(&head, &to_amend) &&
-		    opts->current_fixup_count > 0 &&
-		    file_exists(rebase_path_stopped_sha())) {
+		if (!is_clean || !opts->current_fixup_count)
+			; /* this is not the final fixup */
+		else if (oidcmp(&head, &to_amend) ||
+			 !file_exists(rebase_path_stopped_sha())) {
+			/* was a final fixup or squash done manually? */
+			if (!is_fixup(peek_command(todo_list, 0))) {
+				unlink(rebase_path_fixup_msg());
+				unlink(rebase_path_squash_msg());
+				unlink(rebase_path_current_fixups());
+				strbuf_reset(&opts->current_fixups);
+				opts->current_fixup_count = 0;
+			}
+		} else {
+			/* we are in a fixup/squash chain */
 			const char *p = opts->current_fixups.buf;
 			int len = opts->current_fixups.len;
 
@@ -3828,7 +3842,7 @@ int sequencer_pick_revisions(struct replay_opts *opts)
 	return res;
 }
 
-void append_signoff(struct strbuf *msgbuf, int ignore_footer, unsigned flag)
+void append_signoff(struct strbuf *msgbuf, size_t ignore_footer, unsigned flag)
 {
 	unsigned no_dup_sob = flag & APPEND_SIGNOFF_DEDUP;
 	struct strbuf sob = STRBUF_INIT;
@@ -4131,9 +4145,7 @@ static int make_script_with_merges(struct pretty_print_context *pp,
 			struct object_id *oid = &parent->item->object.oid;
 			if (!oidset_contains(&interesting, oid))
 				continue;
-			if (!oidset_contains(&child_seen, oid))
-				oidset_insert(&child_seen, oid);
-			else
+			if (oidset_insert(&child_seen, oid))
 				label_oid(oid, "branch-point", &state);
 		}
 

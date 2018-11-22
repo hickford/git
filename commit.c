@@ -209,7 +209,7 @@ static int read_graft_file(struct repository *r, const char *graft_file)
 	return 0;
 }
 
-static void prepare_commit_graft(struct repository *r)
+void prepare_commit_graft(struct repository *r)
 {
 	char *graft_file;
 
@@ -1787,10 +1787,10 @@ const char *find_commit_header(const char *msg, const char *key, size_t *out_len
  * Returns the number of bytes from the tail to ignore, to be fed as
  * the second parameter to append_signoff().
  */
-int ignore_non_trailer(const char *buf, size_t len)
+size_t ignore_non_trailer(const char *buf, size_t len)
 {
-	int boc = 0;
-	int bol = 0;
+	size_t boc = 0;
+	size_t bol = 0;
 	int in_old_conflicts_block = 0;
 	size_t cutoff = wt_status_locate_end(buf, len);
 

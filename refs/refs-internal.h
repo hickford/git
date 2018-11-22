@@ -282,7 +282,7 @@ int refs_rename_ref_available(struct ref_store *refs,
  *
  *             // Access information about the current reference:
  *             if (!(iter->flags & REF_ISSYMREF))
- *                     printf("%s is %s\n", iter->refname, oid_to_hex(&iter->oid));
+ *                     printf("%s is %s\n", iter->refname, oid_to_hex(iter->oid));
  *
  *             // If you need to peel the reference:
  *             ref_iterator_peel(iter, &oid);
@@ -474,8 +474,9 @@ extern struct ref_iterator *current_ref_iter;
  * adapter between the callback style of reference iteration and the
  * iterator style.
  */
-int do_for_each_ref_iterator(struct ref_iterator *iter,
-			     each_ref_fn fn, void *cb_data);
+int do_for_each_repo_ref_iterator(struct repository *r,
+				  struct ref_iterator *iter,
+				  each_repo_ref_fn fn, void *cb_data);
 
 /*
  * Only include per-worktree refs in a do_for_each_ref*() iteration.

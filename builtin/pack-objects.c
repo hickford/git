@@ -951,8 +951,7 @@ static int no_try_delta(const char *path)
 
 	if (!check)
 		check = attr_check_initl("delta", NULL);
-	if (git_check_attr(&the_index, path, check))
-		return 0;
+	git_check_attr(&the_index, path, check);
 	if (ATTR_FALSE(check->items[0].value))
 		return 1;
 	return 0;
@@ -2299,7 +2298,6 @@ static void init_threaded_search(void)
 	pthread_mutex_init(&cache_mutex, NULL);
 	pthread_mutex_init(&progress_mutex, NULL);
 	pthread_cond_init(&progress_cond, NULL);
-	pthread_mutex_init(&to_pack.lock, NULL);
 	old_try_to_free_routine = set_try_to_free_routine(try_to_free_from_threads);
 }
 
@@ -2991,6 +2989,7 @@ static void get_object_list(int ac, const char **av)
 
 	init_revisions(&revs, NULL);
 	save_commit_buffer = 0;
+	revs.allow_exclude_promisor_objects_opt = 1;
 	setup_revisions(ac, av, &revs, NULL);
 
 	/* make sure shallows are read */

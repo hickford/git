@@ -24,6 +24,7 @@
 #include "quote.h"
 #include "upload-pack.h"
 #include "serve.h"
+#include "commit-graph.h"
 
 /* Remember to update object flag allocation in object.h */
 #define THEY_HAVE	(1u << 11)
@@ -740,6 +741,7 @@ static void deepen_by_rev_list(int ac, const char **av,
 {
 	struct commit_list *result;
 
+	close_commit_graph(the_repository);
 	result = get_shallow_commits_by_rev_list(ac, av, SHALLOW, NOT_SHALLOW);
 	send_shallow(result);
 	free_commit_list(result);
@@ -1074,14 +1076,17 @@ static int upload_pack_config(const char *var, const char *value, void *unused)
 		keepalive = git_config_int(var, value);
 		if (!keepalive)
 			keepalive = -1;
-	} else if (current_config_scope() != CONFIG_SCOPE_REPO) {
-		if (!strcmp("uploadpack.packobjectshook", var))
-			return git_config_string(&pack_objects_hook, var, value);
 	} else if (!strcmp("uploadpack.allowfilter", var)) {
 		allow_filter = git_config_bool(var, value);
 	} else if (!strcmp("uploadpack.allowrefinwant", var)) {
 		allow_ref_in_want = git_config_bool(var, value);
 	}
+
+	if (current_config_scope() != CONFIG_SCOPE_REPO) {
+		if (!strcmp("uploadpack.packobjectshook", var))
+			return git_config_string(&pack_objects_hook, var, value);
+	}
+
 	return parse_hide_refs_config(var, value, "uploadpack");
 }
 
