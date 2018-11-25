@@ -25,18 +25,21 @@
 #include "upload-pack.h"
 #include "serve.h"
 #include "commit-graph.h"
+#include "commit-reach.h"
 
 /* Remember to update object flag allocation in object.h */
 #define THEY_HAVE	(1u << 11)
 #define OUR_REF		(1u << 12)
 #define WANTED		(1u << 13)
 #define COMMON_KNOWN	(1u << 14)
-#define REACHABLE	(1u << 15)
 
 #define SHALLOW		(1u << 16)
 #define NOT_SHALLOW	(1u << 17)
 #define CLIENT_SHALLOW	(1u << 18)
 #define HIDDEN_REF	(1u << 19)
+
+#define ALL_FLAGS (THEY_HAVE | OUR_REF | WANTED | COMMON_KNOWN | SHALLOW | \
+		NOT_SHALLOW | CLIENT_SHALLOW | HIDDEN_REF)
 
 static timestamp_t oldest_have;
 
@@ -53,8 +56,6 @@ static int no_progress, daemon_mode;
 #define ALLOW_ANY_SHA1	07
 static unsigned int allow_unadvertised_object_request;
 static int shallow_nr;
-static struct object_array have_obj;
-static struct object_array want_obj;
 static struct object_array extra_edge_obj;
 static unsigned int timeout;
 static int keepalive = 5;
@@ -100,7 +101,8 @@ static int write_one_shallow(const struct commit_graft *graft, void *cb_data)
 	return 0;
 }
 
-static void create_pack_file(void)
+static void create_pack_file(const struct object_array *have_obj,
+			     const struct object_array *want_obj)
 {
 	struct child_process pack_objects = CHILD_PROCESS_INIT;
 	char data[8193], progress[128];
@@ -161,13 +163,13 @@ static void create_pack_file(void)
 	if (shallow_nr)
 		for_each_commit_graft(write_one_shallow, pipe_fd);
 
-	for (i = 0; i < want_obj.nr; i++)
+	for (i = 0; i < want_obj->nr; i++)
 		fprintf(pipe_fd, "%s\n",
-			oid_to_hex(&want_obj.objects[i].item->oid));
+			oid_to_hex(&want_obj->objects[i].item->oid));
 	fprintf(pipe_fd, "--not\n");
-	for (i = 0; i < have_obj.nr; i++)
+	for (i = 0; i < have_obj->nr; i++)
 		fprintf(pipe_fd, "%s\n",
-			oid_to_hex(&have_obj.objects[i].item->oid));
+			oid_to_hex(&have_obj->objects[i].item->oid));
 	for (i = 0; i < extra_edge_obj.nr; i++)
 		fprintf(pipe_fd, "%s\n",
 			oid_to_hex(&extra_edge_obj.objects[i].item->oid));
@@ -304,7 +306,8 @@ static void create_pack_file(void)
 	die("git upload-pack: %s", abort_msg);
 }
 
-static int got_oid(const char *hex, struct object_id *oid)
+static int got_oid(const char *hex, struct object_id *oid,
+		   struct object_array *have_obj)
 {
 	struct object *o;
 	int we_knew_they_have = 0;
@@ -332,73 +335,27 @@ static int got_oid(const char *hex, struct object_id *oid)
 			parents->item->object.flags |= THEY_HAVE;
 	}
 	if (!we_knew_they_have) {
-		add_object_array(o, NULL, &have_obj);
+		add_object_array(o, NULL, have_obj);
 		return 1;
 	}
 	return 0;
 }
 
-static int reachable(struct commit *want)
+static int ok_to_give_up(const struct object_array *have_obj,
+			 struct object_array *want_obj)
 {
-	struct prio_queue work = { compare_commits_by_commit_date };
+	uint32_t min_generation = GENERATION_NUMBER_ZERO;
 
-	prio_queue_put(&work, want);
-	while (work.nr) {
-		struct commit_list *list;
-		struct commit *commit = prio_queue_get(&work);
-
-		if (commit->object.flags & THEY_HAVE) {
-			want->object.flags |= COMMON_KNOWN;
-			break;
-		}
-		if (!commit->object.parsed)
-			parse_object(the_repository, &commit->object.oid);
-		if (commit->object.flags & REACHABLE)
-			continue;
-		commit->object.flags |= REACHABLE;
-		if (commit->date < oldest_have)
-			continue;
-		for (list = commit->parents; list; list = list->next) {
-			struct commit *parent = list->item;
-			if (!(parent->object.flags & REACHABLE))
-				prio_queue_put(&work, parent);
-		}
-	}
-	want->object.flags |= REACHABLE;
-	clear_commit_marks(want, REACHABLE);
-	clear_prio_queue(&work);
-	return (want->object.flags & COMMON_KNOWN);
-}
-
-static int ok_to_give_up(void)
-{
-	int i;
-
-	if (!have_obj.nr)
+	if (!have_obj->nr)
 		return 0;
 
-	for (i = 0; i < want_obj.nr; i++) {
-		struct object *want = want_obj.objects[i].item;
-
-		if (want->flags & COMMON_KNOWN)
-			continue;
-		want = deref_tag(the_repository, want, "a want line", 0);
-		if (!want || want->type != OBJ_COMMIT) {
-			/* no way to tell if this is reachable by
-			 * looking at the ancestry chain alone, so
-			 * leave a note to ourselves not to worry about
-			 * this object anymore.
-			 */
-			want_obj.objects[i].item->flags |= COMMON_KNOWN;
-			continue;
-		}
-		if (!reachable((struct commit *)want))
-			return 0;
-	}
-	return 1;
+	return can_all_from_reach_with_flag(want_obj, THEY_HAVE,
+					    COMMON_KNOWN, oldest_have,
+					    min_generation);
 }
 
-static int get_common_commits(void)
+static int get_common_commits(struct object_array *have_obj,
+			      struct object_array *want_obj)
 {
 	struct object_id oid;
 	char last_hex[GIT_MAX_HEXSZ + 1];
@@ -416,11 +373,11 @@ static int get_common_commits(void)
 
 		if (!line) {
 			if (multi_ack == 2 && got_common
-			    && !got_other && ok_to_give_up()) {
+			    && !got_other && ok_to_give_up(have_obj, want_obj)) {
 				sent_ready = 1;
 				packet_write_fmt(1, "ACK %s ready\n", last_hex);
 			}
-			if (have_obj.nr == 0 || multi_ack)
+			if (have_obj->nr == 0 || multi_ack)
 				packet_write_fmt(1, "NAK\n");
 
 			if (no_done && sent_ready) {
@@ -434,10 +391,10 @@ static int get_common_commits(void)
 			continue;
 		}
 		if (skip_prefix(line, "have ", &arg)) {
-			switch (got_oid(arg, &oid)) {
+			switch (got_oid(arg, &oid, have_obj)) {
 			case -1: /* they have what we do not */
 				got_other = 1;
-				if (multi_ack && ok_to_give_up()) {
+				if (multi_ack && ok_to_give_up(have_obj, want_obj)) {
 					const char *hex = oid_to_hex(&oid);
 					if (multi_ack == 2) {
 						sent_ready = 1;
@@ -453,14 +410,14 @@ static int get_common_commits(void)
 					packet_write_fmt(1, "ACK %s common\n", last_hex);
 				else if (multi_ack)
 					packet_write_fmt(1, "ACK %s continue\n", last_hex);
-				else if (have_obj.nr == 1)
+				else if (have_obj->nr == 1)
 					packet_write_fmt(1, "ACK %s\n", last_hex);
 				break;
 			}
 			continue;
 		}
 		if (!strcmp(line, "done")) {
-			if (have_obj.nr > 0) {
+			if (have_obj->nr > 0) {
 				if (multi_ack)
 					packet_write_fmt(1, "ACK %s\n", last_hex);
 				return 0;
@@ -492,6 +449,7 @@ static int do_reachable_revlist(struct child_process *cmd,
 	struct object *o;
 	char namebuf[GIT_MAX_HEXSZ + 2]; /* ^ + hash + LF */
 	int i;
+	const unsigned hexsz = the_hash_algo->hexsz;
 
 	cmd->argv = argv;
 	cmd->git_cmd = 1;
@@ -510,7 +468,7 @@ static int do_reachable_revlist(struct child_process *cmd,
 		goto error;
 
 	namebuf[0] = '^';
-	namebuf[GIT_SHA1_HEXSZ + 1] = '\n';
+	namebuf[hexsz + 1] = '\n';
 	for (i = get_max_object_index(); 0 < i; ) {
 		o = get_indexed_object(--i);
 		if (!o)
@@ -519,11 +477,11 @@ static int do_reachable_revlist(struct child_process *cmd,
 			o->flags &= ~TMP_MARK;
 		if (!is_our_ref(o))
 			continue;
-		memcpy(namebuf + 1, oid_to_hex(&o->oid), GIT_SHA1_HEXSZ);
-		if (write_in_full(cmd->in, namebuf, GIT_SHA1_HEXSZ + 2) < 0)
+		memcpy(namebuf + 1, oid_to_hex(&o->oid), hexsz);
+		if (write_in_full(cmd->in, namebuf, hexsz + 2) < 0)
 			goto error;
 	}
-	namebuf[GIT_SHA1_HEXSZ] = '\n';
+	namebuf[hexsz] = '\n';
 	for (i = 0; i < src->nr; i++) {
 		o = src->objects[i].item;
 		if (is_our_ref(o)) {
@@ -533,8 +491,8 @@ static int do_reachable_revlist(struct child_process *cmd,
 		}
 		if (reachable && o->type == OBJ_COMMIT)
 			o->flags |= TMP_MARK;
-		memcpy(namebuf, oid_to_hex(&o->oid), GIT_SHA1_HEXSZ);
-		if (write_in_full(cmd->in, namebuf, GIT_SHA1_HEXSZ + 1) < 0)
+		memcpy(namebuf, oid_to_hex(&o->oid), hexsz);
+		if (write_in_full(cmd->in, namebuf, hexsz + 1) < 0)
 			goto error;
 	}
 	close(cmd->in);
@@ -630,7 +588,7 @@ error:
 	return 1;
 }
 
-static void check_non_tip(void)
+static void check_non_tip(struct object_array *want_obj)
 {
 	int i;
 
@@ -641,14 +599,14 @@ static void check_non_tip(void)
 	 */
 	if (!stateless_rpc && !(allow_unadvertised_object_request & ALLOW_REACHABLE_SHA1))
 		goto error;
-	if (!has_unreachable(&want_obj))
+	if (!has_unreachable(want_obj))
 		/* All the non-tip ones are ancestors of what we advertised */
 		return;
 
 error:
 	/* Pick one of them (we know there at least is one) */
-	for (i = 0; i < want_obj.nr; i++) {
-		struct object *o = want_obj.objects[i].item;
+	for (i = 0; i < want_obj->nr; i++) {
+		struct object *o = want_obj->objects[i].item;
 		if (!is_our_ref(o))
 			die("git upload-pack: not our ref %s",
 			    oid_to_hex(&o->oid));
@@ -669,7 +627,8 @@ static void send_shallow(struct commit_list *result)
 	}
 }
 
-static void send_unshallow(const struct object_array *shallows)
+static void send_unshallow(const struct object_array *shallows,
+			   struct object_array *want_obj)
 {
 	int i;
 
@@ -693,7 +652,7 @@ static void send_unshallow(const struct object_array *shallows)
 			parents = ((struct commit *)object)->parents;
 			while (parents) {
 				add_object_array(&parents->item->object,
-						 NULL, &want_obj);
+						 NULL, want_obj);
 				parents = parents->next;
 			}
 			add_object_array(object, NULL, &extra_edge_obj);
@@ -704,7 +663,7 @@ static void send_unshallow(const struct object_array *shallows)
 }
 
 static void deepen(int depth, int deepen_relative,
-		   struct object_array *shallows)
+		   struct object_array *shallows, struct object_array *want_obj)
 {
 	if (depth == INFINITE_DEPTH && !is_repository_shallow(the_repository)) {
 		int i;
@@ -727,17 +686,18 @@ static void deepen(int depth, int deepen_relative,
 	} else {
 		struct commit_list *result;
 
-		result = get_shallow_commits(&want_obj, depth,
+		result = get_shallow_commits(want_obj, depth,
 					     SHALLOW, NOT_SHALLOW);
 		send_shallow(result);
 		free_commit_list(result);
 	}
 
-	send_unshallow(shallows);
+	send_unshallow(shallows, want_obj);
 }
 
 static void deepen_by_rev_list(int ac, const char **av,
-			       struct object_array *shallows)
+			       struct object_array *shallows,
+			       struct object_array *want_obj)
 {
 	struct commit_list *result;
 
@@ -745,21 +705,22 @@ static void deepen_by_rev_list(int ac, const char **av,
 	result = get_shallow_commits_by_rev_list(ac, av, SHALLOW, NOT_SHALLOW);
 	send_shallow(result);
 	free_commit_list(result);
-	send_unshallow(shallows);
+	send_unshallow(shallows, want_obj);
 }
 
 /* Returns 1 if a shallow list is sent or 0 otherwise */
 static int send_shallow_list(int depth, int deepen_rev_list,
 			     timestamp_t deepen_since,
 			     struct string_list *deepen_not,
-			     struct object_array *shallows)
+			     struct object_array *shallows,
+			     struct object_array *want_obj)
 {
 	int ret = 0;
 
 	if (depth > 0 && deepen_rev_list)
 		die("git upload-pack: deepen and deepen-since (or deepen-not) cannot be used together");
 	if (depth > 0) {
-		deepen(depth, deepen_relative, shallows);
+		deepen(depth, deepen_relative, shallows, want_obj);
 		ret = 1;
 	} else if (deepen_rev_list) {
 		struct argv_array av = ARGV_ARRAY_INIT;
@@ -776,11 +737,11 @@ static int send_shallow_list(int depth, int deepen_rev_list,
 			}
 			argv_array_push(&av, "--not");
 		}
-		for (i = 0; i < want_obj.nr; i++) {
-			struct object *o = want_obj.objects[i].item;
+		for (i = 0; i < want_obj->nr; i++) {
+			struct object *o = want_obj->objects[i].item;
 			argv_array_push(&av, oid_to_hex(&o->oid));
 		}
-		deepen_by_rev_list(av.argc, av.argv, shallows);
+		deepen_by_rev_list(av.argc, av.argv, shallows, want_obj);
 		argv_array_clear(&av);
 		ret = 1;
 	} else {
@@ -865,7 +826,7 @@ static int process_deepen_not(const char *line, struct string_list *deepen_not, 
 	return 0;
 }
 
-static void receive_needs(void)
+static void receive_needs(struct object_array *want_obj)
 {
 	struct object_array shallows = OBJECT_ARRAY_INIT;
 	struct string_list deepen_not = STRING_LIST_INIT_DUP;
@@ -943,7 +904,7 @@ static void receive_needs(void)
 			if (!((allow_unadvertised_object_request & ALLOW_ANY_SHA1) == ALLOW_ANY_SHA1
 			      || is_our_ref(o)))
 				has_non_tip = 1;
-			add_object_array(o, NULL, &want_obj);
+			add_object_array(o, NULL, want_obj);
 		}
 	}
 
@@ -955,7 +916,7 @@ static void receive_needs(void)
 	 * by another process that handled the initial request.
 	 */
 	if (has_non_tip)
-		check_non_tip();
+		check_non_tip(want_obj);
 
 	if (!use_sideband && daemon_mode)
 		no_progress = 1;
@@ -964,7 +925,7 @@ static void receive_needs(void)
 		return;
 
 	if (send_shallow_list(depth, deepen_rev_list, deepen_since,
-			      &deepen_not, &shallows))
+			      &deepen_not, &shallows, want_obj))
 		packet_flush(1);
 	object_array_clear(&shallows);
 }
@@ -1093,6 +1054,7 @@ static int upload_pack_config(const char *var, const char *value, void *unused)
 void upload_pack(struct upload_pack_options *options)
 {
 	struct string_list symref = STRING_LIST_INIT_DUP;
+	struct object_array want_obj = OBJECT_ARRAY_INIT;
 
 	stateless_rpc = options->stateless_rpc;
 	timeout = options->timeout;
@@ -1116,10 +1078,11 @@ void upload_pack(struct upload_pack_options *options)
 	if (options->advertise_refs)
 		return;
 
-	receive_needs();
+	receive_needs(&want_obj);
 	if (want_obj.nr) {
-		get_common_commits();
-		create_pack_file();
+		struct object_array have_obj = OBJECT_ARRAY_INIT;
+		get_common_commits(&have_obj, &want_obj);
+		create_pack_file(&have_obj, &want_obj);
 	}
 }
 
@@ -1169,7 +1132,7 @@ static void upload_pack_data_clear(struct upload_pack_data *data)
 	string_list_clear(&data->deepen_not, 0);
 }
 
-static int parse_want(const char *line)
+static int parse_want(const char *line, struct object_array *want_obj)
 {
 	const char *arg;
 	if (skip_prefix(line, "want ", &arg)) {
@@ -1191,7 +1154,7 @@ static int parse_want(const char *line)
 
 		if (!(o->flags & WANTED)) {
 			o->flags |= WANTED;
-			add_object_array(o, NULL, &want_obj);
+			add_object_array(o, NULL, want_obj);
 		}
 
 		return 1;
@@ -1200,7 +1163,8 @@ static int parse_want(const char *line)
 	return 0;
 }
 
-static int parse_want_ref(const char *line, struct string_list *wanted_refs)
+static int parse_want_ref(const char *line, struct string_list *wanted_refs,
+			  struct object_array *want_obj)
 {
 	const char *arg;
 	if (skip_prefix(line, "want-ref ", &arg)) {
@@ -1219,7 +1183,7 @@ static int parse_want_ref(const char *line, struct string_list *wanted_refs)
 		o = parse_object_or_die(&oid, arg);
 		if (!(o->flags & WANTED)) {
 			o->flags |= WANTED;
-			add_object_array(o, NULL, &want_obj);
+			add_object_array(o, NULL, want_obj);
 		}
 
 		return 1;
@@ -1244,16 +1208,18 @@ static int parse_have(const char *line, struct oid_array *haves)
 }
 
 static void process_args(struct packet_reader *request,
-			 struct upload_pack_data *data)
+			 struct upload_pack_data *data,
+			 struct object_array *want_obj)
 {
 	while (packet_reader_read(request) != PACKET_READ_FLUSH) {
 		const char *arg = request->line;
 		const char *p;
 
 		/* process want */
-		if (parse_want(arg))
+		if (parse_want(arg, want_obj))
 			continue;
-		if (allow_ref_in_want && parse_want_ref(arg, &data->wanted_refs))
+		if (allow_ref_in_want &&
+		    parse_want_ref(arg, &data->wanted_refs, want_obj))
 			continue;
 		/* process have line */
 		if (parse_have(arg, &data->haves))
@@ -1307,7 +1273,8 @@ static void process_args(struct packet_reader *request,
 	}
 }
 
-static int process_haves(struct oid_array *haves, struct oid_array *common)
+static int process_haves(struct oid_array *haves, struct oid_array *common,
+			 struct object_array *have_obj)
 {
 	int i;
 
@@ -1340,13 +1307,15 @@ static int process_haves(struct oid_array *haves, struct oid_array *common)
 				parents->item->object.flags |= THEY_HAVE;
 		}
 		if (!we_knew_they_have)
-			add_object_array(o, NULL, &have_obj);
+			add_object_array(o, NULL, have_obj);
 	}
 
 	return 0;
 }
 
-static int send_acks(struct oid_array *acks, struct strbuf *response)
+static int send_acks(struct oid_array *acks, struct strbuf *response,
+		     const struct object_array *have_obj,
+		     struct object_array *want_obj)
 {
 	int i;
 
@@ -1361,7 +1330,7 @@ static int send_acks(struct oid_array *acks, struct strbuf *response)
 				 oid_to_hex(&acks->oid[i]));
 	}
 
-	if (ok_to_give_up()) {
+	if (ok_to_give_up(have_obj, want_obj)) {
 		/* Send Ready */
 		packet_buf_write(response, "ready\n");
 		return 1;
@@ -1370,16 +1339,18 @@ static int send_acks(struct oid_array *acks, struct strbuf *response)
 	return 0;
 }
 
-static int process_haves_and_send_acks(struct upload_pack_data *data)
+static int process_haves_and_send_acks(struct upload_pack_data *data,
+				       struct object_array *have_obj,
+				       struct object_array *want_obj)
 {
 	struct oid_array common = OID_ARRAY_INIT;
 	struct strbuf response = STRBUF_INIT;
 	int ret = 0;
 
-	process_haves(&data->haves, &common);
+	process_haves(&data->haves, &common, have_obj);
 	if (data->done) {
 		ret = 1;
-	} else if (send_acks(&common, &response)) {
+	} else if (send_acks(&common, &response, have_obj, want_obj)) {
 		packet_buf_delim(&response);
 		ret = 1;
 	} else {
@@ -1415,7 +1386,8 @@ static void send_wanted_ref_info(struct upload_pack_data *data)
 	packet_delim(1);
 }
 
-static void send_shallow_info(struct upload_pack_data *data)
+static void send_shallow_info(struct upload_pack_data *data,
+			      struct object_array *want_obj)
 {
 	/* No shallow info needs to be sent */
 	if (!data->depth && !data->deepen_rev_list && !data->shallows.nr &&
@@ -1426,9 +1398,10 @@ static void send_shallow_info(struct upload_pack_data *data)
 
 	if (!send_shallow_list(data->depth, data->deepen_rev_list,
 			       data->deepen_since, &data->deepen_not,
-			       &data->shallows) &&
+			       &data->shallows, want_obj) &&
 	    is_repository_shallow(the_repository))
-		deepen(INFINITE_DEPTH, data->deepen_relative, &data->shallows);
+		deepen(INFINITE_DEPTH, data->deepen_relative, &data->shallows,
+		       want_obj);
 
 	packet_delim(1);
 }
@@ -1445,6 +1418,10 @@ int upload_pack_v2(struct repository *r, struct argv_array *keys,
 {
 	enum fetch_state state = FETCH_PROCESS_ARGS;
 	struct upload_pack_data data;
+	struct object_array have_obj = OBJECT_ARRAY_INIT;
+	struct object_array want_obj = OBJECT_ARRAY_INIT;
+
+	clear_object_flags(ALL_FLAGS);
 
 	git_config(upload_pack_config, NULL);
 
@@ -1454,7 +1431,7 @@ int upload_pack_v2(struct repository *r, struct argv_array *keys,
 	while (state != FETCH_DONE) {
 		switch (state) {
 		case FETCH_PROCESS_ARGS:
-			process_args(request, &data);
+			process_args(request, &data, &want_obj);
 
 			if (!want_obj.nr) {
 				/*
@@ -1476,17 +1453,18 @@ int upload_pack_v2(struct repository *r, struct argv_array *keys,
 			}
 			break;
 		case FETCH_SEND_ACKS:
-			if (process_haves_and_send_acks(&data))
+			if (process_haves_and_send_acks(&data, &have_obj,
+							&want_obj))
 				state = FETCH_SEND_PACK;
 			else
 				state = FETCH_DONE;
 			break;
 		case FETCH_SEND_PACK:
 			send_wanted_ref_info(&data);
-			send_shallow_info(&data);
+			send_shallow_info(&data, &want_obj);
 
 			packet_write_fmt(1, "packfile\n");
-			create_pack_file();
+			create_pack_file(&have_obj, &want_obj);
 			state = FETCH_DONE;
 			break;
 		case FETCH_DONE:
@@ -1495,6 +1473,8 @@ int upload_pack_v2(struct repository *r, struct argv_array *keys,
 	}
 
 	upload_pack_data_clear(&data);
+	object_array_clear(&have_obj);
+	object_array_clear(&want_obj);
 	return 0;
 }
 

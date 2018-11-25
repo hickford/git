@@ -10,6 +10,7 @@
 #include "refspec.h"
 #include "object-store.h"
 #include "argv-array.h"
+#include "commit-reach.h"
 
 static const char * const builtin_remote_usage[] = {
 	N_("git remote [-v | --verbose]"),
@@ -412,7 +413,7 @@ static int get_push_ref_states(const struct ref *remote_refs,
 
 		if (is_null_oid(&ref->new_oid)) {
 			info->status = PUSH_STATUS_DELETE;
-		} else if (!oidcmp(&ref->old_oid, &ref->new_oid))
+		} else if (oideq(&ref->old_oid, &ref->new_oid))
 			info->status = PUSH_STATUS_UPTODATE;
 		else if (is_null_oid(&ref->old_oid))
 			info->status = PUSH_STATUS_CREATE;

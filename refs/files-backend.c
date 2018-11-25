@@ -10,6 +10,7 @@
 #include "../object.h"
 #include "../dir.h"
 #include "../chdir-notify.h"
+#include "worktree.h"
 
 /*
  * This backend uses the following flags in `ref_update::flags` for
@@ -149,6 +150,25 @@ static struct files_ref_store *files_downcast(struct ref_store *ref_store,
 	return refs;
 }
 
+static void files_reflog_path_other_worktrees(struct files_ref_store *refs,
+					      struct strbuf *sb,
+					      const char *refname)
+{
+	const char *real_ref;
+	const char *worktree_name;
+	int length;
+
+	if (parse_worktree_ref(refname, &worktree_name, &length, &real_ref))
+		BUG("refname %s is not a other-worktree ref", refname);
+
+	if (worktree_name)
+		strbuf_addf(sb, "%s/worktrees/%.*s/logs/%s", refs->gitcommondir,
+			    length, worktree_name, real_ref);
+	else
+		strbuf_addf(sb, "%s/logs/%s", refs->gitcommondir,
+			    real_ref);
+}
+
 static void files_reflog_path(struct files_ref_store *refs,
 			      struct strbuf *sb,
 			      const char *refname)
@@ -158,6 +178,9 @@ static void files_reflog_path(struct files_ref_store *refs,
 	case REF_TYPE_PSEUDOREF:
 		strbuf_addf(sb, "%s/logs/%s", refs->gitdir, refname);
 		break;
+	case REF_TYPE_OTHER_PSEUDOREF:
+	case REF_TYPE_MAIN_PSEUDOREF:
+		return files_reflog_path_other_worktrees(refs, sb, refname);
 	case REF_TYPE_NORMAL:
 		strbuf_addf(sb, "%s/logs/%s", refs->gitcommondir, refname);
 		break;
@@ -176,6 +199,11 @@ static void files_ref_path(struct files_ref_store *refs,
 	case REF_TYPE_PSEUDOREF:
 		strbuf_addf(sb, "%s/%s", refs->gitdir, refname);
 		break;
+	case REF_TYPE_MAIN_PSEUDOREF:
+		if (!skip_prefix(refname, "main-worktree/", &refname))
+			BUG("ref %s is not a main pseudoref", refname);
+		/* fallthrough */
+	case REF_TYPE_OTHER_PSEUDOREF:
 	case REF_TYPE_NORMAL:
 		strbuf_addf(sb, "%s/%s", refs->gitcommondir, refname);
 		break;
@@ -269,9 +297,9 @@ static void loose_fill_ref_dir(struct ref_store *ref_store,
 	closedir(d);
 
 	/*
-	 * Manually add refs/bisect, which, being per-worktree, might
-	 * not appear in the directory listing for refs/ in the main
-	 * repo.
+	 * Manually add refs/bisect and refs/worktree, which, being
+	 * per-worktree, might not appear in the directory listing for
+	 * refs/ in the main repo.
 	 */
 	if (!strcmp(dirname, "refs/")) {
 		int pos = search_ref_dir(dir, "refs/bisect/", 12);
@@ -279,6 +307,14 @@ static void loose_fill_ref_dir(struct ref_store *ref_store,
 		if (pos < 0) {
 			struct ref_entry *child_entry = create_dir_entry(
 					dir->cache, "refs/bisect/", 12, 1);
+			add_entry_to_dir(dir, child_entry);
+		}
+
+		pos = search_ref_dir(dir, "refs/worktree/", 11);
+
+		if (pos < 0) {
+			struct ref_entry *child_entry = create_dir_entry(
+					dir->cache, "refs/worktree/", 11, 1);
 			add_entry_to_dir(dir, child_entry);
 		}
 	}
@@ -841,7 +877,7 @@ static int verify_lock(struct ref_store *ref_store, struct ref_lock *lock,
 			return 0;
 		}
 	}
-	if (old_oid && oidcmp(&lock->old_oid, old_oid)) {
+	if (old_oid && !oideq(&lock->old_oid, old_oid)) {
 		strbuf_addf(err, "ref '%s' is at %s but expected %s",
 			    lock->ref_name,
 			    oid_to_hex(&lock->old_oid),
@@ -2307,7 +2343,7 @@ static int check_old_oid(struct ref_update *update, struct object_id *oid,
 			 struct strbuf *err)
 {
 	if (!(update->flags & REF_HAVE_OLD) ||
-		   !oidcmp(oid, &update->old_oid))
+		   oideq(oid, &update->old_oid))
 		return 0;
 
 	if (is_null_oid(&update->old_oid))
@@ -2443,7 +2479,7 @@ static int lock_ref_for_update(struct files_ref_store *refs,
 	    !(update->flags & REF_DELETING) &&
 	    !(update->flags & REF_LOG_ONLY)) {
 		if (!(update->type & REF_ISSYMREF) &&
-		    !oidcmp(&lock->old_oid, &update->new_oid)) {
+		    oideq(&lock->old_oid, &update->new_oid)) {
 			/*
 			 * The reference already has the desired
 			 * value, so we don't need to write it.

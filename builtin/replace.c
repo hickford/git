@@ -295,7 +295,7 @@ static int import_object(struct object_id *oid, enum object_type type,
 			close(fd);
 			return -1;
 		}
-		if (index_fd(oid, fd, &st, type, NULL, flags) < 0)
+		if (index_fd(&the_index, oid, fd, &st, type, NULL, flags) < 0)
 			return error(_("unable to write object to database"));
 		/* index_fd close()s fd for us */
 	}
@@ -343,7 +343,7 @@ static int edit_and_replace(const char *object_ref, int force, int raw)
 	}
 	free(tmpfile);
 
-	if (!oidcmp(&old_oid, &new_oid))
+	if (oideq(&old_oid, &new_oid))
 		return error(_("new object is the same as the old one: '%s'"), oid_to_hex(&old_oid));
 
 	return replace_object_oid(object_ref, &old_oid, "replacement", &new_oid, force);
@@ -414,7 +414,7 @@ static int check_one_mergetag(struct commit *commit,
 		if (get_oid(mergetag_data->argv[i], &oid) < 0)
 			return error(_("not a valid object name: '%s'"),
 				     mergetag_data->argv[i]);
-		if (!oidcmp(&tag->tagged->oid, &oid))
+		if (oideq(&tag->tagged->oid, &oid))
 			return 0; /* found */
 	}
 
@@ -474,7 +474,7 @@ static int create_graft(int argc, const char **argv, int force, int gentle)
 
 	strbuf_release(&buf);
 
-	if (!oidcmp(&old_oid, &new_oid)) {
+	if (oideq(&old_oid, &new_oid)) {
 		if (gentle) {
 			warning(_("graft for '%s' unnecessary"), oid_to_hex(&old_oid));
 			return 0;

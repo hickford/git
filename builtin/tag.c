@@ -338,6 +338,8 @@ static int parse_msg_arg(const struct option *opt, const char *arg, int unset)
 {
 	struct msg_arg *msg = opt->value;
 
+	BUG_ON_OPT_NEG(unset);
+
 	if (!arg)
 		return -1;
 	if (msg->buf.len)
@@ -390,8 +392,8 @@ int cmd_tag(int argc, const char **argv, const char *prefix)
 		OPT_GROUP(N_("Tag creation options")),
 		OPT_BOOL('a', "annotate", &annotate,
 					N_("annotated tag, needs a message")),
-		OPT_CALLBACK('m', "message", &msg, N_("message"),
-			     N_("tag message"), parse_msg_arg),
+		{ OPTION_CALLBACK, 'm', "message", &msg, N_("message"),
+		  N_("tag message"), PARSE_OPT_NONEG, parse_msg_arg },
 		OPT_FILENAME('F', "file", &msgfile, N_("read message from file")),
 		OPT_BOOL('e', "edit", &edit_flag, N_("force edit of tag message")),
 		OPT_BOOL('s', "sign", &opt.sign, N_("annotated and GPG-signed tag")),
@@ -559,7 +561,7 @@ int cmd_tag(int argc, const char **argv, const char *prefix)
 	    ref_transaction_commit(transaction, &err))
 		die("%s", err.buf);
 	ref_transaction_free(transaction);
-	if (force && !is_null_oid(&prev) && oidcmp(&prev, &object))
+	if (force && !is_null_oid(&prev) && !oideq(&prev, &object))
 		printf(_("Updated tag '%s' (was %s)\n"), tag,
 		       find_unique_abbrev(&prev, DEFAULT_ABBREV));
 

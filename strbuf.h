@@ -190,6 +190,9 @@ void strbuf_ltrim(struct strbuf *sb);
 /* Strip trailing directory separators */
 void strbuf_trim_trailing_dir_sep(struct strbuf *sb);
 
+/* Strip trailing LF or CR/LF */
+void strbuf_trim_trailing_newline(struct strbuf *sb);
+
 /**
  * Replace the contents of the strbuf with a reencoded form.  Returns -1
  * on error, 0 on success.
@@ -582,9 +585,11 @@ void strbuf_add_unique_abbrev(struct strbuf *sb,
  * run in. If the buffer is NULL the editor is launched as usual but the
  * file's contents are not read into the buffer upon completion.
  */
-int launch_editor(const char *path,
-		  struct strbuf *buffer,
+int launch_editor(const char *path, struct strbuf *buffer,
 		  const char *const *env);
+
+int launch_sequence_editor(const char *path, struct strbuf *buffer,
+			   const char *const *env);
 
 void strbuf_add_lines(struct strbuf *sb,
 		      const char *prefix,

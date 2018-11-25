@@ -15,6 +15,8 @@
 #include "sequencer.h"
 #include "line-log.h"
 #include "help.h"
+#include "interdiff.h"
+#include "range-diff.h"
 
 static struct decoration name_decoration = { "object names" };
 static int decoration_loaded;
@@ -472,7 +474,7 @@ static int which_parent(const struct object_id *oid, const struct commit *commit
 	const struct commit_list *parent;
 
 	for (nth = 0, parent = commit->parents; parent; parent = parent->next) {
-		if (!oidcmp(&parent->item->object.oid, oid))
+		if (oideq(&parent->item->object.oid, oid))
 			return nth;
 		nth++;
 	}
@@ -506,8 +508,8 @@ static int show_one_mergetag(struct commit *commit,
 	if (parse_tag_buffer(the_repository, tag, extra->value, extra->len))
 		strbuf_addstr(&verify_message, "malformed mergetag\n");
 	else if (is_common_merge(commit) &&
-		 !oidcmp(&tag->tagged->oid,
-			  &commit->parents->next->item->object.oid))
+		 oideq(&tag->tagged->oid,
+		       &commit->parents->next->item->object.oid))
 		strbuf_addf(&verify_message,
 			    "merged tag '%s'\n", tag->tag);
 	else if ((nth = which_parent(&tag->tagged->oid, commit)) < 0)
@@ -540,6 +542,16 @@ static int show_one_mergetag(struct commit *commit,
 static int show_mergetag(struct rev_info *opt, struct commit *commit)
 {
 	return for_each_mergetag(show_one_mergetag, commit, opt);
+}
+
+static void next_commentary_block(struct rev_info *opt, struct strbuf *sb)
+{
+	const char *x = opt->shown_dashes ? "\n" : "---\n";
+	if (sb)
+		strbuf_addstr(sb, x);
+	else
+		fputs(x, opt->diffopt.file);
+	opt->shown_dashes = 1;
 }
 
 void show_log(struct rev_info *opt)
@@ -699,10 +711,8 @@ void show_log(struct rev_info *opt)
 
 	if ((ctx.fmt != CMIT_FMT_USERFORMAT) &&
 	    ctx.notes_message && *ctx.notes_message) {
-		if (cmit_fmt_is_mail(ctx.fmt)) {
-			strbuf_addstr(&msgbuf, "---\n");
-			opt->shown_dashes = 1;
-		}
+		if (cmit_fmt_is_mail(ctx.fmt))
+			next_commentary_block(opt, &msgbuf);
 		strbuf_addstr(&msgbuf, ctx.notes_message);
 	}
 
@@ -729,6 +739,33 @@ void show_log(struct rev_info *opt)
 
 	strbuf_release(&msgbuf);
 	free(ctx.notes_message);
+
+	if (cmit_fmt_is_mail(ctx.fmt) && opt->idiff_oid1) {
+		struct diff_queue_struct dq;
+
+		memcpy(&dq, &diff_queued_diff, sizeof(diff_queued_diff));
+		DIFF_QUEUE_CLEAR(&diff_queued_diff);
+
+		next_commentary_block(opt, NULL);
+		fprintf_ln(opt->diffopt.file, "%s", opt->idiff_title);
+		show_interdiff(opt, 2);
+
+		memcpy(&diff_queued_diff, &dq, sizeof(diff_queued_diff));
+	}
+
+	if (cmit_fmt_is_mail(ctx.fmt) && opt->rdiff1) {
+		struct diff_queue_struct dq;
+
+		memcpy(&dq, &diff_queued_diff, sizeof(diff_queued_diff));
+		DIFF_QUEUE_CLEAR(&diff_queued_diff);
+
+		next_commentary_block(opt, NULL);
+		fprintf_ln(opt->diffopt.file, "%s", opt->rdiff_title);
+		show_range_diff(opt->rdiff1, opt->rdiff2,
+				opt->creation_factor, 1, &opt->diffopt);
+
+		memcpy(&diff_queued_diff, &dq, sizeof(diff_queued_diff));
+	}
 }
 
 int log_tree_diff_flush(struct rev_info *opt)
@@ -766,9 +803,10 @@ int log_tree_diff_flush(struct rev_info *opt)
 
 			/*
 			 * We may have shown three-dashes line early
-			 * between notes and the log message, in which
-			 * case we only want a blank line after the
-			 * notes without (an extra) three-dashes line.
+			 * between generated commentary (notes, etc.)
+			 * and the log message, in which case we only
+			 * want a blank line after the commentary
+			 * without (an extra) three-dashes line.
 			 * Otherwise, we show the three-dashes line if
 			 * we are showing the patch with diffstat, but
 			 * in that case, there is no extra blank line

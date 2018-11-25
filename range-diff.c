@@ -38,6 +38,14 @@ static int read_patches(const char *range, struct string_list *list)
 
 	argv_array_pushl(&cp.args, "log", "--no-color", "-p", "--no-merges",
 			"--reverse", "--date-order", "--decorate=no",
+			/*
+			 * Choose indicators that are not used anywhere
+			 * else in diffs, but still look reasonable
+			 * (e.g. will not be confusing when debugging)
+			 */
+			"--output-indicator-new=>",
+			"--output-indicator-old=<",
+			"--output-indicator-context=#",
 			"--no-abbrev-commit", range,
 			NULL);
 	cp.out = -1;
@@ -82,6 +90,7 @@ static int read_patches(const char *range, struct string_list *list)
 			strbuf_addch(&buf, '\n');
 			if (!util->diff_offset)
 				util->diff_offset = buf.len;
+			strbuf_addch(&buf, ' ');
 			strbuf_addbuf(&buf, &line);
 		} else if (in_header) {
 			if (starts_with(line.buf, "Author: ")) {
@@ -108,8 +117,19 @@ static int read_patches(const char *range, struct string_list *list)
 			 * we are not interested.
 			 */
 			continue;
-		else
+		else if (line.buf[0] == '>') {
+			strbuf_addch(&buf, '+');
+			strbuf_add(&buf, line.buf + 1, line.len - 1);
+		} else if (line.buf[0] == '<') {
+			strbuf_addch(&buf, '-');
+			strbuf_add(&buf, line.buf + 1, line.len - 1);
+		} else if (line.buf[0] == '#') {
+			strbuf_addch(&buf, ' ');
+			strbuf_add(&buf, line.buf + 1, line.len - 1);
+		} else {
+			strbuf_addch(&buf, ' ');
 			strbuf_addbuf(&buf, &line);
+		}
 
 		strbuf_addch(&buf, '\n');
 		util->diffsize++;
@@ -177,6 +197,12 @@ static void diffsize_consume(void *data, char *line, unsigned long len)
 	(*(int *)data)++;
 }
 
+static void diffsize_hunk(void *data, long ob, long on, long nb, long nn,
+			  const char *funcline, long funclen)
+{
+	diffsize_consume(data, NULL, 0);
+}
+
 static int diffsize(const char *a, const char *b)
 {
 	xpparam_t pp = { 0 };
@@ -190,7 +216,9 @@ static int diffsize(const char *a, const char *b)
 	mf2.size = strlen(b);
 
 	cfg.ctxlen = 3;
-	if (!xdi_diff_outf(&mf1, &mf2, diffsize_consume, &count, &pp, &cfg))
+	if (!xdi_diff_outf(&mf1, &mf2,
+			   diffsize_hunk, diffsize_consume, &count,
+			   &pp, &cfg))
 		return count;
 
 	error(_("failed to generate diff"));
@@ -323,7 +351,7 @@ static void output_pair_header(struct diff_options *diffopt,
 	}
 	strbuf_addf(buf, "%s\n", color_reset);
 
-	fwrite(buf->buf, buf->len, 1, stdout);
+	fwrite(buf->buf, buf->len, 1, diffopt->file);
 }
 
 static struct userdiff_driver no_func_name = {
@@ -334,7 +362,7 @@ static struct diff_filespec *get_filespec(const char *name, const char *p)
 {
 	struct diff_filespec *spec = alloc_filespec(name);
 
-	fill_filespec(spec, &null_oid, 0, 0644);
+	fill_filespec(spec, &null_oid, 0, 0100644);
 	spec->data = (char *)p;
 	spec->size = strlen(p);
 	spec->should_munmap = 0;
@@ -409,8 +437,14 @@ static void output(struct string_list *a, struct string_list *b,
 	strbuf_release(&dashes);
 }
 
+static struct strbuf *output_prefix_cb(struct diff_options *opt, void *data)
+{
+	return data;
+}
+
 int show_range_diff(const char *range1, const char *range2,
-		    int creation_factor, struct diff_options *diffopt)
+		    int creation_factor, int dual_color,
+		    struct diff_options *diffopt)
 {
 	int res = 0;
 
@@ -423,9 +457,24 @@ int show_range_diff(const char *range1, const char *range2,
 		res = error(_("could not parse log for '%s'"), range2);
 
 	if (!res) {
+		struct diff_options opts;
+		struct strbuf indent = STRBUF_INIT;
+
+		memcpy(&opts, diffopt, sizeof(opts));
+		if (!opts.output_format)
+			opts.output_format = DIFF_FORMAT_PATCH;
+		opts.flags.suppress_diff_headers = 1;
+		opts.flags.dual_color_diffed_diffs = dual_color;
+		opts.output_prefix = output_prefix_cb;
+		strbuf_addstr(&indent, "    ");
+		opts.output_prefix_data = &indent;
+		diff_setup_done(&opts);
+
 		find_exact_matches(&branch1, &branch2);
 		get_correspondences(&branch1, &branch2, creation_factor);
-		output(&branch1, &branch2, diffopt);
+		output(&branch1, &branch2, &opts);
+
+		strbuf_release(&indent);
 	}
 
 	string_list_clear(&branch1, 1);

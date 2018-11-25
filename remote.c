@@ -12,6 +12,7 @@
 #include "string-list.h"
 #include "mergesort.h"
 #include "argv-array.h"
+#include "commit-reach.h"
 
 enum map_direction { FROM_SRC, FROM_DST };
 
@@ -1204,9 +1205,36 @@ static void add_missing_tags(struct ref *src, struct ref **dst, struct ref ***ds
 	 * sent to the other side.
 	 */
 	if (sent_tips.nr) {
+		const int reachable_flag = 1;
+		struct commit_list *found_commits;
+		struct commit **src_commits;
+		int nr_src_commits = 0, alloc_src_commits = 16;
+		ALLOC_ARRAY(src_commits, alloc_src_commits);
+
 		for_each_string_list_item(item, &src_tag) {
 			struct ref *ref = item->util;
+			struct commit *commit;
+
+			if (is_null_oid(&ref->new_oid))
+				continue;
+			commit = lookup_commit_reference_gently(the_repository,
+								&ref->new_oid,
+								1);
+			if (!commit)
+				/* not pushing a commit, which is not an error */
+				continue;
+
+			ALLOC_GROW(src_commits, nr_src_commits + 1, alloc_src_commits);
+			src_commits[nr_src_commits++] = commit;
+		}
+
+		found_commits = get_reachable_subset(sent_tips.tip, sent_tips.nr,
+						     src_commits, nr_src_commits,
+						     reachable_flag);
+
+		for_each_string_list_item(item, &src_tag) {
 			struct ref *dst_ref;
+			struct ref *ref = item->util;
 			struct commit *commit;
 
 			if (is_null_oid(&ref->new_oid))
@@ -1222,7 +1250,7 @@ static void add_missing_tags(struct ref *src, struct ref **dst, struct ref ***ds
 			 * Is this tag, which they do not have, reachable from
 			 * any of the commits we are sending?
 			 */
-			if (!in_merge_bases_many(commit, sent_tips.nr, sent_tips.tip))
+			if (!(commit->object.flags & reachable_flag))
 				continue;
 
 			/* Add it in */
@@ -1230,7 +1258,12 @@ static void add_missing_tags(struct ref *src, struct ref **dst, struct ref ***ds
 			oidcpy(&dst_ref->new_oid, &ref->new_oid);
 			dst_ref->peer_ref = copy_ref(ref);
 		}
+
+		clear_commit_marks_many(nr_src_commits, src_commits, reachable_flag);
+		free(src_commits);
+		free_commit_list(found_commits);
 	}
+
 	string_list_clear(&src_tag, 0);
 	free(sent_tips.tip);
 }
@@ -1388,7 +1421,7 @@ void set_ref_status_for_push(struct ref *remote_refs, int send_mirror,
 
 		ref->deletion = is_null_oid(&ref->new_oid);
 		if (!ref->deletion &&
-			!oidcmp(&ref->old_oid, &ref->new_oid)) {
+			oideq(&ref->old_oid, &ref->new_oid)) {
 			ref->status = REF_STATUS_UPTODATE;
 			continue;
 		}
@@ -1403,7 +1436,7 @@ void set_ref_status_for_push(struct ref *remote_refs, int send_mirror,
 		 * branch.
 		 */
 		if (ref->expect_old_sha1) {
-			if (oidcmp(&ref->old_oid, &ref->old_oid_expect))
+			if (!oideq(&ref->old_oid, &ref->old_oid_expect))
 				reject_reason = REF_STATUS_REJECT_STALE;
 			else
 				/* If the ref isn't stale then force the update. */
@@ -1791,55 +1824,6 @@ int resolve_remote_symref(struct ref *ref, struct ref *list)
 	return 1;
 }
 
-static void unmark_and_free(struct commit_list *list, unsigned int mark)
-{
-	while (list) {
-		struct commit *commit = pop_commit(&list);
-		commit->object.flags &= ~mark;
-	}
-}
-
-int ref_newer(const struct object_id *new_oid, const struct object_id *old_oid)
-{
-	struct object *o;
-	struct commit *old_commit, *new_commit;
-	struct commit_list *list, *used;
-	int found = 0;
-
-	/*
-	 * Both new_commit and old_commit must be commit-ish and new_commit is descendant of
-	 * old_commit.  Otherwise we require --force.
-	 */
-	o = deref_tag(the_repository, parse_object(the_repository, old_oid),
-		      NULL, 0);
-	if (!o || o->type != OBJ_COMMIT)
-		return 0;
-	old_commit = (struct commit *) o;
-
-	o = deref_tag(the_repository, parse_object(the_repository, new_oid),
-		      NULL, 0);
-	if (!o || o->type != OBJ_COMMIT)
-		return 0;
-	new_commit = (struct commit *) o;
-
-	if (parse_commit(new_commit) < 0)
-		return 0;
-
-	used = list = NULL;
-	commit_list_insert(new_commit, &list);
-	while (list) {
-		new_commit = pop_most_recent_commit(&list, TMP_MARK);
-		commit_list_insert(new_commit, &used);
-		if (new_commit == old_commit) {
-			found = 1;
-			break;
-		}
-	}
-	unmark_and_free(list, TMP_MARK);
-	unmark_and_free(used, TMP_MARK);
-	return found;
-}
-
 /*
  * Lookup the upstream branch for the given branch and if present, optionally
  * compute the commit ahead/behind values for the pair.
@@ -1903,7 +1887,7 @@ int stat_tracking_info(struct branch *branch, int *num_ours, int *num_theirs,
 			 oid_to_hex(&theirs->object.oid));
 	argv_array_push(&argv, "--");
 
-	init_revisions(&revs, NULL);
+	repo_init_revisions(the_repository, &revs, NULL);
 	setup_revisions(argv.argc, argv.argv, &revs, NULL);
 	if (prepare_revision_walk(&revs))
 		die("revision walk setup failed");
@@ -2049,7 +2033,7 @@ struct ref *guess_remote_head(const struct ref *head,
 	/* If refs/heads/master could be right, it is. */
 	if (!all) {
 		r = find_ref_by_name(refs, "refs/heads/master");
-		if (r && !oidcmp(&r->old_oid, &head->old_oid))
+		if (r && oideq(&r->old_oid, &head->old_oid))
 			return copy_ref(r);
 	}
 
@@ -2057,7 +2041,7 @@ struct ref *guess_remote_head(const struct ref *head,
 	for (r = refs; r; r = r->next) {
 		if (r != head &&
 		    starts_with(r->name, "refs/heads/") &&
-		    !oidcmp(&r->old_oid, &head->old_oid)) {
+		    oideq(&r->old_oid, &head->old_oid)) {
 			*tail = copy_ref(r);
 			tail = &((*tail)->next);
 			if (!all)

@@ -77,11 +77,18 @@ test_expect_success 'rebase -n overrides config rebase.stat config' '
 #     "Does not point to a valid commit: invalid-ref"
 #
 # NEEDSWORK: This "grep" is fine in real non-C locales, but
-# GETTEXT_POISON poisons the refname along with the enclosing
+# GIT_TEST_GETTEXT_POISON poisons the refname along with the enclosing
 # error message.
 test_expect_success 'rebase --onto outputs the invalid ref' '
 	test_must_fail git rebase --onto invalid-ref HEAD HEAD 2>err &&
 	test_i18ngrep "invalid-ref" err
+'
+
+test_expect_success 'error out early upon -C<n> or --whitespace=<bad>' '
+	test_must_fail git rebase -Cnot-a-number HEAD 2>err &&
+	test_i18ngrep "numerical value" err &&
+	test_must_fail git rebase --whitespace=bad HEAD 2>err &&
+	test_i18ngrep "Invalid whitespace option" err
 '
 
 test_done

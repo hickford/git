@@ -14,6 +14,7 @@
 #include "revision.h"
 #include "split-index.h"
 #include "submodule.h"
+#include "commit-reach.h"
 
 #define DO_REVS		1
 #define DO_NOREV	2
@@ -764,6 +765,7 @@ int cmd_rev_parse(int argc, const char **argv, const char *prefix)
 			}
 			if (!strcmp(arg, "--all")) {
 				for_each_ref(show_reference, NULL);
+				clear_ref_exclusion(&ref_excludes);
 				continue;
 			}
 			if (skip_prefix(arg, "--disambiguate=", &arg)) {

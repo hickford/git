@@ -22,6 +22,7 @@
 #include "tempfile.h"
 #include "lockfile.h"
 #include "wt-status.h"
+#include "commit-reach.h"
 
 enum rebase_type {
 	REBASE_INVALID = -1,
@@ -556,13 +557,26 @@ static int run_fetch(const char *repo, const char **refspecs)
 static int pull_into_void(const struct object_id *merge_head,
 		const struct object_id *curr_head)
 {
+	if (opt_verify_signatures) {
+		struct commit *commit;
+
+		commit = lookup_commit(the_repository, merge_head);
+		if (!commit)
+			die(_("unable to access commit %s"),
+			    oid_to_hex(merge_head));
+
+		verify_merge_signature(commit, opt_verbosity);
+	}
+
 	/*
 	 * Two-way merge: we treat the index as based on an empty tree,
 	 * and try to fast-forward to HEAD. This ensures we will not lose
 	 * index/worktree changes that the user already made on the unborn
 	 * branch.
 	 */
-	if (checkout_fast_forward(the_hash_algo->empty_tree, merge_head, 0))
+	if (checkout_fast_forward(the_repository,
+				  the_hash_algo->empty_tree,
+				  merge_head, 0))
 		return 1;
 
 	if (update_ref("initial pull", "HEAD", merge_head, curr_head, 0, UPDATE_REFS_DIE_ON_ERR))
@@ -799,7 +813,7 @@ static int run_rebase(const struct object_id *curr_head,
 	struct argv_array args = ARGV_ARRAY_INIT;
 
 	if (!get_octopus_merge_base(&oct_merge_base, curr_head, merge_head, fork_point))
-		if (!is_null_oid(fork_point) && !oidcmp(&oct_merge_base, fork_point))
+		if (!is_null_oid(fork_point) && oideq(&oct_merge_base, fork_point))
 			fork_point = NULL;
 
 	argv_array_push(&args, "rebase");
@@ -902,7 +916,7 @@ int cmd_pull(int argc, const char **argv, const char *prefix)
 		oidclr(&curr_head);
 
 	if (!is_null_oid(&orig_head) && !is_null_oid(&curr_head) &&
-			oidcmp(&orig_head, &curr_head)) {
+			!oideq(&orig_head, &curr_head)) {
 		/*
 		 * The fetch involved updating the current branch.
 		 *
@@ -915,7 +929,8 @@ int cmd_pull(int argc, const char **argv, const char *prefix)
 			"fast-forwarding your working tree from\n"
 			"commit %s."), oid_to_hex(&orig_head));
 
-		if (checkout_fast_forward(&orig_head, &curr_head, 0))
+		if (checkout_fast_forward(the_repository, &orig_head,
+					  &curr_head, 0))
 			die(_("Cannot fast-forward your working tree.\n"
 				"After making sure that you saved anything precious from\n"
 				"$ git diff %s\n"
@@ -941,7 +956,7 @@ int cmd_pull(int argc, const char **argv, const char *prefix)
 		int ret = 0;
 		if ((recurse_submodules == RECURSE_SUBMODULES_ON ||
 		     recurse_submodules == RECURSE_SUBMODULES_ON_DEMAND) &&
-		    submodule_touches_in_range(&rebase_fork_point, &curr_head))
+		    submodule_touches_in_range(the_repository, &rebase_fork_point, &curr_head))
 			die(_("cannot rebase with locally recorded submodule modifications"));
 		if (!autostash) {
 			struct commit_list *list = NULL;

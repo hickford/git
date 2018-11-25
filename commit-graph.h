@@ -6,6 +6,8 @@
 #include "string-list.h"
 #include "cache.h"
 
+#define GIT_TEST_COMMIT_GRAPH "GIT_TEST_COMMIT_GRAPH"
+
 struct commit;
 
 char *get_commit_graph_filename(const char *obj_dir);
@@ -52,11 +54,18 @@ struct commit_graph {
 
 struct commit_graph *load_commit_graph_one(const char *graph_file);
 
-void write_commit_graph_reachable(const char *obj_dir, int append);
+/*
+ * Return 1 if and only if the repository has a commit-graph
+ * file and generation numbers are computed in that file.
+ */
+int generation_numbers_enabled(struct repository *r);
+
+void write_commit_graph_reachable(const char *obj_dir, int append,
+				  int report_progress);
 void write_commit_graph(const char *obj_dir,
 			struct string_list *pack_indexes,
 			struct string_list *commit_hex,
-			int append);
+			int append, int report_progress);
 
 int verify_commit_graph(struct repository *r, struct commit_graph *g);
 

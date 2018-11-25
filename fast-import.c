@@ -171,6 +171,7 @@ Format of STDIN stream:
 #include "packfile.h"
 #include "object-store.h"
 #include "mem-pool.h"
+#include "commit-reach.h"
 
 #define PACK_ID_BITS 16
 #define MAX_PACK_ID ((1<<PACK_ID_BITS)-1)
@@ -572,7 +573,7 @@ static struct object_entry *find_object(struct object_id *oid)
 	unsigned int h = oid->hash[0] << 8 | oid->hash[1];
 	struct object_entry *e;
 	for (e = object_table[h]; e; e = e->next)
-		if (!oidcmp(oid, &e->idx.oid))
+		if (oideq(oid, &e->idx.oid))
 			return e;
 	return NULL;
 }
@@ -583,7 +584,7 @@ static struct object_entry *insert_object(struct object_id *oid)
 	struct object_entry *e = object_table[h];
 
 	while (e) {
-		if (!oidcmp(oid, &e->idx.oid))
+		if (oideq(oid, &e->idx.oid))
 			return e;
 		e = e->next;
 	}
@@ -1068,7 +1069,7 @@ static int store_object(
 		duplicate_count_by_type[type]++;
 		return 1;
 	} else if (find_sha1_pack(oid.hash,
-				  get_packed_git(the_repository))) {
+				  get_all_packs(the_repository))) {
 		e->type = type;
 		e->pack_id = MAX_PACK_ID;
 		e->idx.offset = 1; /* just not zero! */
@@ -1266,7 +1267,7 @@ static void stream_blob(uintmax_t len, struct object_id *oidout, uintmax_t mark)
 		truncate_pack(&checkpoint);
 
 	} else if (find_sha1_pack(oid.hash,
-				  get_packed_git(the_repository))) {
+				  get_all_packs(the_repository))) {
 		e->type = OBJ_BLOB;
 		e->pack_id = MAX_PACK_ID;
 		e->idx.offset = 1; /* just not zero! */
@@ -1533,7 +1534,7 @@ static int tree_content_set(
 			if (!*slash1) {
 				if (!S_ISDIR(mode)
 						&& e->versions[1].mode == mode
-						&& !oidcmp(&e->versions[1].oid, oid))
+						&& oideq(&e->versions[1].oid, oid))
 					return 0;
 				e->versions[1].mode = mode;
 				oidcpy(&e->versions[1].oid, oid);
@@ -2649,7 +2650,7 @@ static int parse_from(struct branch *b)
 		struct object_entry *oe = find_mark(idnum);
 		if (oe->type != OBJ_COMMIT)
 			die("Mark :%" PRIuMAX " not a commit", idnum);
-		if (oidcmp(&b->oid, &oe->idx.oid)) {
+		if (!oideq(&b->oid, &oe->idx.oid)) {
 			oidcpy(&b->oid, &oe->idx.oid);
 			if (oe->pack_id != MAX_PACK_ID) {
 				unsigned long size;
@@ -2667,7 +2668,7 @@ static int parse_from(struct branch *b)
 	else
 		die("Invalid ref name or SHA1 expression: %s", from);
 
-	if (b->branch_tree.tree && oidcmp(&oid, &b->branch_tree.versions[1].oid)) {
+	if (b->branch_tree.tree && !oideq(&oid, &b->branch_tree.versions[1].oid)) {
 		release_tree_content_recursive(b->branch_tree.tree);
 		b->branch_tree.tree = NULL;
 	}
@@ -2954,8 +2955,8 @@ static void cat_blob(struct object_entry *oe, struct object_id *oid)
 		die("Object %s is a %s but a blob was expected.",
 		    oid_to_hex(oid), type_name(type));
 	strbuf_reset(&line);
-	strbuf_addf(&line, "%s %s %lu\n", oid_to_hex(oid),
-						type_name(type), size);
+	strbuf_addf(&line, "%s %s %"PRIuMAX"\n", oid_to_hex(oid),
+		    type_name(type), (uintmax_t)size);
 	cat_blob_write(line.buf, line.len);
 	strbuf_release(&line);
 	cat_blob_write(buf, size);

@@ -8,12 +8,14 @@
 #include "strbuf.h"
 #include "string-list.h"
 #include "argv-array.h"
+#include "midx.h"
 #include "packfile.h"
 #include "object-store.h"
 
 static int delta_base_offset = 1;
 static int pack_kept_objects = -1;
 static int write_bitmaps;
+static int use_delta_islands;
 static char *packdir, *packtmp;
 
 static const char *const git_repack_usage[] = {
@@ -40,6 +42,10 @@ static int repack_config(const char *var, const char *value, void *cb)
 	if (!strcmp(var, "repack.writebitmaps") ||
 	    !strcmp(var, "pack.writebitmaps")) {
 		write_bitmaps = git_config_bool(var, value);
+		return 0;
+	}
+	if (!strcmp(var, "repack.usedeltaislands")) {
+		use_delta_islands = git_config_bool(var, value);
 		return 0;
 	}
 	return git_default_config(var, value, cb);
@@ -229,8 +235,8 @@ static void repack_promisor_objects(const struct pack_objects_args *args,
 	while (strbuf_getline_lf(&line, out) != EOF) {
 		char *promisor_name;
 		int fd;
-		if (line.len != 40)
-			die("repack: Expecting 40 character sha1 lines only from pack-objects.");
+		if (line.len != the_hash_algo->hexsz)
+			die("repack: Expecting full hex object ID lines only from pack-objects.");
 		string_list_append(names, line.buf);
 
 		/*
@@ -280,6 +286,7 @@ int cmd_repack(int argc, const char **argv, const char *prefix)
 	int keep_unreachable = 0;
 	struct string_list keep_pack_list = STRING_LIST_INIT_NODUP;
 	int no_update_server_info = 0;
+	int midx_cleared = 0;
 	struct pack_objects_args po_args = {NULL};
 
 	struct option builtin_repack_options[] = {
@@ -301,6 +308,8 @@ int cmd_repack(int argc, const char **argv, const char *prefix)
 				N_("pass --local to git-pack-objects")),
 		OPT_BOOL('b', "write-bitmap-index", &write_bitmaps,
 				N_("write bitmap index")),
+		OPT_BOOL('i', "delta-islands", &use_delta_islands,
+				N_("pass --delta-islands to git-pack-objects")),
 		OPT_STRING(0, "unpack-unreachable", &unpack_unreachable, N_("approxidate"),
 				N_("with -A, do not loosen objects older than this")),
 		OPT_BOOL('k', "keep-unreachable", &keep_unreachable,
@@ -361,6 +370,8 @@ int cmd_repack(int argc, const char **argv, const char *prefix)
 		argv_array_push(&cmd.args, "--exclude-promisor-objects");
 	if (write_bitmaps)
 		argv_array_push(&cmd.args, "--write-bitmap-index");
+	if (use_delta_islands)
+		argv_array_push(&cmd.args, "--delta-islands");
 
 	if (pack_everything & ALL_INTO_ONE) {
 		get_non_kept_pack_filenames(&existing_packs, &keep_pack_list);
@@ -396,8 +407,8 @@ int cmd_repack(int argc, const char **argv, const char *prefix)
 
 	out = xfdopen(cmd.out, "r");
 	while (strbuf_getline_lf(&line, out) != EOF) {
-		if (line.len != 40)
-			die("repack: Expecting 40 character sha1 lines only from pack-objects.");
+		if (line.len != the_hash_algo->hexsz)
+			die("repack: Expecting full hex object ID lines only from pack-objects.");
 		string_list_append(&names, line.buf);
 	}
 	fclose(out);
@@ -418,6 +429,12 @@ int cmd_repack(int argc, const char **argv, const char *prefix)
 	for_each_string_list_item(item, &names) {
 		for (ext = 0; ext < ARRAY_SIZE(exts); ext++) {
 			char *fname, *fname_old;
+
+			if (!midx_cleared) {
+				clear_midx_file(the_repository);
+				midx_cleared = 1;
+			}
+
 			fname = mkpathdup("%s/pack-%s%s", packdir,
 						item->string, exts[ext].name);
 			if (!file_exists(fname)) {
@@ -517,14 +534,15 @@ int cmd_repack(int argc, const char **argv, const char *prefix)
 	reprepare_packed_git(the_repository);
 
 	if (delete_redundant) {
+		const int hexsz = the_hash_algo->hexsz;
 		int opts = 0;
 		string_list_sort(&names);
 		for_each_string_list_item(item, &existing_packs) {
 			char *sha1;
 			size_t len = strlen(item->string);
-			if (len < 40)
+			if (len < hexsz)
 				continue;
-			sha1 = item->string + len - 40;
+			sha1 = item->string + len - hexsz;
 			if (!string_list_has_string(&names, sha1))
 				remove_redundant_pack(packdir, item->string);
 		}
@@ -542,6 +560,10 @@ int cmd_repack(int argc, const char **argv, const char *prefix)
 	if (!no_update_server_info)
 		update_server_info(0);
 	remove_temporary_files();
+
+	if (git_env_bool(GIT_TEST_MULTI_PACK_INDEX, 0))
+		write_midx_file(get_object_directory());
+
 	string_list_clear(&names, 0);
 	string_list_clear(&rollback, 0);
 	string_list_clear(&existing_packs, 0);

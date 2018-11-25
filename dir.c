@@ -281,8 +281,15 @@ static int match_attrs(const struct index_state *istate,
 		       const struct pathspec_item *item)
 {
 	int i;
+	char *to_free = NULL;
+
+	if (name[namelen])
+		name = to_free = xmemdupz(name, namelen);
 
 	git_check_attr(istate, name, item->attr_check);
+
+	free(to_free);
+
 	for (i = 0; i < item->attr_match_nr; i++) {
 		const char *value;
 		int matched;
@@ -1282,7 +1289,7 @@ static void prep_exclude(struct dir_struct *dir,
 		 * order, though, if you do that.
 		 */
 		if (untracked &&
-		    oidcmp(&oid_stat.oid, &untracked->exclude_oid)) {
+		    !oideq(&oid_stat.oid, &untracked->exclude_oid)) {
 			invalidate_gitignore(dir->untracked, untracked);
 			oidcpy(&untracked->exclude_oid, &oid_stat.oid);
 		}
@@ -2248,12 +2255,12 @@ static struct untracked_cache_dir *validate_untracked_cache(struct dir_struct *d
 
 	/* Validate $GIT_DIR/info/exclude and core.excludesfile */
 	root = dir->untracked->root;
-	if (oidcmp(&dir->ss_info_exclude.oid,
+	if (!oideq(&dir->ss_info_exclude.oid,
 		   &dir->untracked->ss_info_exclude.oid)) {
 		invalidate_gitignore(dir->untracked, root);
 		dir->untracked->ss_info_exclude = dir->ss_info_exclude;
 	}
-	if (oidcmp(&dir->ss_excludes_file.oid,
+	if (!oideq(&dir->ss_excludes_file.oid,
 		   &dir->untracked->ss_excludes_file.oid)) {
 		invalidate_gitignore(dir->untracked, root);
 		dir->untracked->ss_excludes_file = dir->ss_excludes_file;
@@ -2268,10 +2275,13 @@ int read_directory(struct dir_struct *dir, struct index_state *istate,
 		   const char *path, int len, const struct pathspec *pathspec)
 {
 	struct untracked_cache_dir *untracked;
-	uint64_t start = getnanotime();
 
-	if (has_symlink_leading_path(path, len))
+	trace_performance_enter();
+
+	if (has_symlink_leading_path(path, len)) {
+		trace_performance_leave("read directory %.*s", len, path);
 		return dir->nr;
+	}
 
 	untracked = validate_untracked_cache(dir, len, pathspec);
 	if (!untracked)
@@ -2307,7 +2317,7 @@ int read_directory(struct dir_struct *dir, struct index_state *istate,
 		dir->nr = i;
 	}
 
-	trace_performance_since(start, "read directory %.*s", len, path);
+	trace_performance_leave("read directory %.*s", len, path);
 	if (dir->untracked) {
 		static int force_untracked_cache = -1;
 		static struct trace_key trace_untracked_stats = TRACE_KEY_INIT(UNTRACKED_STATS);

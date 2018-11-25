@@ -6,10 +6,12 @@ test_description='split index mode tests'
 
 # We need total control of index splitting here
 sane_unset GIT_TEST_SPLIT_INDEX
-# A couple of tests expect the index to have a specific checksum,
-# but the presence of the optional FSMN extension would interfere
-# with those checks, so disable it in this test script.
-sane_unset GIT_FSMONITOR_TEST
+
+# Testing a hard coded SHA against an index with an extension
+# that can vary from run to run is problematic so we disable
+# those extensions.
+sane_unset GIT_TEST_FSMONITOR
+sane_unset GIT_TEST_INDEX_THREADS
 
 # Create a file named as $1 with content read from stdin.
 # Set the file's mtime to a few seconds in the past to avoid racy situations.
@@ -23,6 +25,8 @@ test_expect_success 'enable split index' '
 	git update-index --split-index &&
 	test-tool dump-split-index .git/index >actual &&
 	indexversion=$(test-tool index-version <.git/index) &&
+
+	# NEEDSWORK: Stop hard-coding checksums.
 	if test "$indexversion" = "4"
 	then
 		own=432ef4b63f32193984f339431fd50ca796493569
@@ -31,6 +35,7 @@ test_expect_success 'enable split index' '
 		own=8299b0bcd1ac364e5f1d7768efb62fa2da79a339
 		base=39d890139ee5356c7ef572216cebcd27aa41f9df
 	fi &&
+
 	cat >expect <<-EOF &&
 	own $own
 	base $base
@@ -377,6 +382,26 @@ test_expect_success 'check splitIndex.sharedIndexExpire set to "never" and "now"
 	create_non_racy_file sixteen &&
 	git update-index --add sixteen &&
 	test $(ls .git/sharedindex.* | wc -l) -le 2
+'
+
+test_expect_success POSIXPERM 'same mode for index & split index' '
+	git init same-mode &&
+	(
+		cd same-mode &&
+		test_commit A &&
+		test_modebits .git/index >index_mode &&
+		test_must_fail git config core.sharedRepository &&
+		git -c core.splitIndex=true status &&
+		shared=$(ls .git/sharedindex.*) &&
+		case "$shared" in
+		*" "*)
+			# we have more than one???
+			false ;;
+		*)
+			test_modebits "$shared" >split_index_mode &&
+			test_cmp index_mode split_index_mode ;;
+		esac
+	)
 '
 
 while read -r mode modebits
