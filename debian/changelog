@@ -1,3 +1,10 @@
+git (1:2.20.0~rc1-1) unstable; urgency=low
+
+  * new upstream release candidate (see RelNotes/2.20.0.txt).
+  * debian/rules: target clean: don't remove t/t4256/1/mailinfo.c.orig.
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Sun, 25 Nov 2018 11:47:53 -0800
+
 git (1:2.19.2-1) unstable; urgency=high
 
   * new upstream point release (see RelNotes/2.19.2.txt).

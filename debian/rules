@@ -87,6 +87,9 @@ override_dh_auto_clean:
 	$(MAKE) clean $(OPTS)
 	rm -f git-subtree
 
+override_dh_clean:
+	dh_clean -Xmailinfo.c.orig
+
 override_dh_auto_install-arch:
 	# git
 	DESTDIR='$(GIT)' $(MAKE) install $(OPTS)

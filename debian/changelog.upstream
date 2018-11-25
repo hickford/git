@@ -1,3 +1,932 @@
+Version v2.20.0-rc1; changes since v2.20.0-rc0:
+-----------------------------------------------
+
+Derrick Stolee (1):
+      pack-objects: ignore ambiguous object warnings
+
+Jeff King (3):
+      pack-objects: fix tree_depth and layer invariants
+      pack-objects: zero-initialize tree_depth/layer arrays
+      pack-objects: fix off-by-one in delta-island tree-depth computation
+
+Johannes Schindelin (7):
+      tests: fix GIT_TEST_INSTALLED's PATH to include t/helper/
+      tests: respect GIT_TEST_INSTALLED when initializing repositories
+      t/lib-gettext: test installed git-sh-i18n if GIT_TEST_INSTALLED is set
+      tests: do not require Git to be built when testing an installed Git
+      tests: explicitly use `git.exe` on Windows
+      legacy-rebase: backport -C<n> and --whitespace=<option> checks
+      rebase: warn about the correct tree's OID
+
+Jonathan Nieder (3):
+      eoie: default to not writing EOIE section
+      ieot: default to not writing IEOT section
+      index: make index.threads=true enable ieot and eoie
+
+Junio C Hamano (5):
+      Makefile: ease dynamic-gettext-poison transition
+      RelNotes: name the release properly
+      Prepare for 2.20-rc1
+      Git 2.19.2
+      Git 2.20-rc1
+
+Nguyễn Thái Ngọc Duy (2):
+      format-patch: respect --stat in cover letter's diffstat
+      clone: fix colliding file detection on APFS
+
+SZEDER Gábor (1):
+      coccicheck: introduce 'pending' semantic patches
+
+Todd Zullinger (1):
+      Documentation: build technical/multi-pack-index
+
+Torsten Bögershausen (2):
+      Upcast size_t variables to uintmax_t when printing
+      remote-curl.c: xcurl_off_t is not portable (on 32 bit platfoms)
+
+Ævar Arnfjörð Bjarmason (2):
+      i18n: make GETTEXT_POISON a runtime option
+      read-cache: make the split index obey umask settings
+
+Đoàn Trần Công Danh (1):
+      git-compat-util: prefer poll.h to sys/poll.h
+
+
+Version v2.20.0-rc0; changes since v2.19.2:
+-------------------------------------------
+
+Aaron Lindsay (1):
+      send-email: avoid empty transfer encoding header
+
+Alban Gruin (21):
+      sequencer: make three functions and an enum from sequencer.c public
+      rebase -i: rewrite append_todo_help() in C
+      editor: add a function to launch the sequence editor
+      rebase -i: rewrite the edit-todo functionality in C
+      sequencer: add a new function to silence a command, except if it fails
+      rebase -i: rewrite setup_reflog_action() in C
+      rebase -i: rewrite checkout_onto() in C
+      sequencer: refactor append_todo_help() to write its message to a buffer
+      sequencer: change the way skip_unnecessary_picks() returns its result
+      t3404: todo list with commented-out commands only aborts
+      rebase -i: rewrite complete_action() in C
+      rebase -i: remove unused modes and functions
+      rebase -i: implement the logic to initialize $revisions in C
+      rebase -i: rewrite the rest of init_revisions_and_shortrevisions() in C
+      rebase -i: rewrite write_basic_state() in C
+      rebase -i: rewrite init_basic_state() in C
+      rebase -i: implement the main part of interactive rebase as a builtin
+      rebase--interactive2: rewrite the submodes of interactive rebase in C
+      rebase -i: remove git-rebase--interactive.sh
+      rebase -i: move rebase--helper modes to rebase--interactive
+      p3400: replace calls to `git checkout -b' by `git checkout -B'
+
+Andreas Gruenbacher (1):
+      rev-parse: clear --exclude list after 'git rev-parse --all'
+
+Anton Serbulov (1):
+      mingw: fix getcwd when the parent directory cannot be queried
+
+Antonio Ospite (10):
+      submodule: add a print_config_from_gitmodules() helper
+      submodule: factor out a config_set_in_gitmodules_file_gently function
+      t7411: merge tests 5 and 6
+      t7411: be nicer to future tests and really clean things up
+      submodule--helper: add a new 'config' subcommand
+      submodule: use the 'submodule--helper config' command
+      t7506: clean up .gitmodules properly before setting up new scenario
+      submodule: add a helper to check if it is safe to write to .gitmodules
+      submodule: support reading .gitmodules when it's not in the working tree
+      t/helper: add test-submodule-nested-repo-config
+
+Ben Peart (18):
+      checkout: optimize "git checkout -b <new_branch>"
+      t/README: correct spelling of "uncommon"
+      preload-index: use git_env_bool() not getenv() for customization
+      fsmonitor: update GIT_TEST_FSMONITOR support
+      read-cache: update TEST_GIT_INDEX_VERSION support
+      preload-index: update GIT_FORCE_PRELOAD_TEST support
+      read-cache: clean up casting and byte decoding
+      eoie: add End of Index Entry (EOIE) extension
+      config: add new index.threads config setting
+      read-cache: load cache extensions on a worker thread
+      ieot: add Index Entry Offset Table (IEOT) extension
+      read-cache: load cache entries on worker threads
+      reset: don't compute unstaged changes after reset when --quiet
+      reset: add new reset.quiet config setting
+      reset: warn when refresh_index() takes more than 2 seconds
+      speed up refresh_index() by utilizing preload_index()
+      add: speed up cmd_add() by utilizing read_cache_preload()
+      refresh_index: remove unnecessary calls to preload_index()
+
+Brendan Forster (1):
+      http: add support for disabling SSL revocation checks in cURL
+
+Carlo Marcelo Arenas Belón (8):
+      unpack-trees: avoid dead store for struct progress
+      multi-pack-index: avoid dead store for struct progress
+      read-cache: use of memory after it is freed
+      commit-slabs: move MAYBE_UNUSED out
+      khash: silence -Wunused-function for delta-islands
+      compat: make sure git_mmap is not expected to write
+      sequencer: cleanup for gcc warning in non developer mode
+      builtin/notes: remove unnecessary free
+
+Christian Couder (3):
+      pack-objects: refactor code into compute_layer_order()
+      pack-objects: move tree_depth into 'struct packing_data'
+      pack-objects: move 'layer' into 'struct packing_data'
+
+Christian Hesse (2):
+      subtree: add build targets 'man' and 'html'
+      subtree: make install targets depend on build targets
+
+Denton Liu (3):
+      mergetool: accept -g/--[no-]gui as arguments
+      completion: support `git mergetool --[no-]gui`
+      doc: document diff/merge.guitool config keys
+
+Derrick Stolee (86):
+      multi-pack-index: add design document
+      multi-pack-index: add format details
+      multi-pack-index: add builtin
+      multi-pack-index: add 'write' verb
+      midx: write header information to lockfile
+      multi-pack-index: load into memory
+      t5319: expand test data
+      packfile: generalize pack directory list
+      multi-pack-index: read packfile list
+      multi-pack-index: write pack names in chunk
+      midx: read pack names into array
+      midx: sort and deduplicate objects from packfiles
+      midx: write object ids in a chunk
+      midx: write object id fanout chunk
+      midx: write object offsets
+      config: create core.multiPackIndex setting
+      midx: read objects from multi-pack-index
+      midx: use midx in abbreviation calculations
+      midx: use existing midx when writing new one
+      midx: use midx in approximate_object_count
+      midx: prevent duplicate packfile loads
+      packfile: skip loading index if in multi-pack-index
+      midx: clear midx on repack
+      commit-reach: move walk methods from commit.c
+      commit.h: remove method declarations
+      commit-reach: move ref_newer from remote.c
+      commit-reach: move commit_contains from ref-filter
+      upload-pack: make reachable() more generic
+      upload-pack: refactor ok_to_give_up()
+      upload-pack: generalize commit date cutoff
+      commit-reach: move can_all_from_reach_with_flags
+      test-reach: create new test tool for ref_newer
+      test-reach: test in_merge_bases
+      test-reach: test is_descendant_of
+      test-reach: test get_merge_bases_many
+      test-reach: test reduce_heads
+      test-reach: test can_all_from_reach_with_flags
+      test-reach: test commit_contains
+      commit-reach: replace ref_newer logic
+      commit-reach: make can_all_from_reach... linear
+      commit-reach: use can_all_from_reach
+      multi-pack-index: provide more helpful usage info
+      multi-pack-index: store local property
+      midx: mark bad packed objects
+      midx: stop reporting garbage
+      midx: fix bug that skips midx with alternates
+      packfile: add all_packs list
+      treewide: use get_all_packs
+      midx: test a few commands that use get_all_packs
+      pack-objects: consider packs in multi-pack-index
+      commit-graph: define GIT_TEST_COMMIT_GRAPH
+      t3206-range-diff.sh: cover single-patch case
+      t5318: use test_oid for HASH_LEN
+      multi-pack-index: add 'verify' verb
+      multi-pack-index: verify bad header
+      multi-pack-index: verify corrupt chunk lookup table
+      multi-pack-index: verify packname order
+      multi-pack-index: verify missing pack
+      multi-pack-index: verify oid fanout order
+      multi-pack-index: verify oid lookup order
+      multi-pack-index: fix 32-bit vs 64-bit size check
+      multi-pack-index: verify object offsets
+      multi-pack-index: report progress during 'verify'
+      fsck: verify multi-pack-index
+      commit-reach: properly peel tags
+      commit-reach: fix memory and flag leaks
+      commit-reach: cleanups in can_all_from_reach...
+      commit-graph: clean up leaked memory during write
+      commit-graph: reduce initial oid allocation
+      midx: fix broken free() in close_midx()
+      contrib: add coverage-diff script
+      ci: add optional test variables
+      commit-reach: fix first-parent heuristic
+      midx: close multi-pack-index on repack
+      multi-pack-index: define GIT_TEST_MULTI_PACK_INDEX
+      packfile: close multi-pack-index in close_all_packs
+      prio-queue: add 'peek' operation
+      test-reach: add run_three_modes method
+      test-reach: add rev-list tests
+      revision.c: begin refactoring --topo-order logic
+      commit/revisions: bookkeeping before refactoring
+      revision.c: generation-based topo-order algorithm
+      t6012: make rev-list tests more interesting
+      commit-reach: implement get_reachable_subset
+      test-reach: test get_reachable_subset
+      remote: make add_missing_tags() linear
+
+Elijah Newren (7):
+      merge-recursive: set paths correctly when three-way merging content
+      merge-recursive: avoid wrapper function when unnecessary and wasteful
+      merge-recursive: remove final remaining caller of merge_file_one()
+      merge-recursive: rename merge_file_1() and merge_content()
+      merge-recursive: improve auto-merging messages with path collisions
+      merge-recursive: avoid showing conflicts with merge branch before HEAD
+      fsck: move fsck_head_link() to get_default_heads() to avoid some globals
+
+Eric Sunshine (26):
+      format-patch: allow additional generated content in make_cover_letter()
+      format-patch: add --interdiff option to embed diff in cover letter
+      format-patch: teach --interdiff to respect -v/--reroll-count
+      interdiff: teach show_interdiff() to indent interdiff
+      log-tree: show_log: make commentary block delimiting reusable
+      format-patch: allow --interdiff to apply to a lone-patch
+      range-diff: respect diff_option.file rather than assuming 'stdout'
+      range-diff: publish default creation factor
+      range-diff: relieve callers of low-level configuration burden
+      format-patch: add --range-diff option to embed diff in cover letter
+      format-patch: extend --range-diff to accept revision range
+      format-patch: teach --range-diff to respect -v/--reroll-count
+      format-patch: add --creation-factor tweak for --range-diff
+      format-patch: allow --range-diff to apply to a lone-patch
+      worktree: don't die() in library function find_worktree()
+      worktree: move delete_git_dir() earlier in file for upcoming new callers
+      worktree: generalize delete_git_dir() to reduce code duplication
+      worktree: prepare for more checks of whether path can become worktree
+      worktree: disallow adding same path multiple times
+      worktree: teach 'add' to respect --force for registered but missing path
+      worktree: teach 'move' to override lock when --force given twice
+      worktree: teach 'remove' to override lock when --force given twice
+      worktree: delete .git/worktrees if empty after 'remove'
+      doc-diff: fix non-portable 'man' invocation
+      doc-diff: add --clean mode to remove temporary working gunk
+      doc/Makefile: drop doc-diff worktree and temporary files on "make clean"
+
+James Knight (1):
+      build: link with curl-defined linker flags
+
+Jann Horn (2):
+      patch-delta: fix oob read
+      patch-delta: consistently report corruption
+
+Jeff King (73):
+      branch: make "-l" a synonym for "--list"
+      Add delta-islands.{c,h}
+      pack-objects: add delta-islands support
+      repack: add delta-islands support
+      t5320: tests for delta islands
+      t/perf: factor boilerplate out of test_perf
+      t/perf: factor out percent calculations
+      t/perf: add infrastructure for measuring sizes
+      t/perf: add perf tests for fetches from a bitmapped server
+      pack-bitmap: save "have" bitmap from walk
+      pack-objects: reuse on-disk deltas for thin "have" objects
+      SubmittingPatches: mention doc-diff
+      rev-list: make empty --stdin not an error
+      coccinelle: use <...> for function exclusion
+      introduce hasheq() and oideq()
+      convert "oidcmp() == 0" to oideq()
+      convert "hashcmp() == 0" to hasheq()
+      convert "oidcmp() != 0" to "!oideq()"
+      convert "hashcmp() != 0" to "!hasheq()"
+      convert hashmap comparison functions to oideq()
+      read-cache: use oideq() in ce_compare functions
+      show_dirstat: simplify same-content check
+      doc-diff: always use oids inside worktree
+      test-delta: read input into a heap buffer
+      t5303: test some corrupt deltas
+      patch-delta: handle truncated copy parameters
+      t5303: use printf to generate delta bases
+      doc/git-branch: remove obsolete "-l" references
+      bitmap_has_sha1_in_uninteresting(): drop BUG check
+      t5310: test delta reuse with bitmaps
+      traverse_bitmap_commit_list(): don't free result
+      pack-bitmap: drop "loaded" flag
+      doc-diff: force worktree add
+      pack-objects: handle island check for "external" delta base
+      more oideq/hasheq conversions
+      transport: drop refnames from for_each_alternate_ref
+      test-tool: show tool list on error
+      config.mak.dev: enable -Wunused-function
+      t5410: use longer path for sample script
+      ls-remote: do not send ref prefixes for patterns
+      ls-remote: pass heads/tags prefixes to transport
+      read_istream_pack_non_delta(): document input handling
+      xdiff: provide a separate emit callback for hunks
+      xdiff-interface: provide a separate consume callback for hunks
+      rev-list: handle flags for --indexed-objects
+      approxidate: handle pending number for "specials"
+      pathspec: handle non-terminated strings with :(attr)
+      diff: avoid generating unused hunk header lines
+      diff: discard hunk headers for patch-ids earlier
+      diff: use hunk callback for word-diff
+      combine-diff: use an xdiff hunk callback
+      diff: convert --check to use a hunk callback
+      range-diff: use a hunk callback
+      xdiff-interface: drop parse_hunk_header()
+      apply: mark include/exclude options as NONEG
+      am: handle --no-patch-format option
+      ls-files: mark exclude options as NONEG
+      pack-objects: mark index-version option as NONEG
+      cat-file: mark batch options with NONEG
+      status: mark --find-renames option with NONEG
+      format-patch: mark "--no-numbered" option with NONEG
+      show-branch: mark --reflog option as NONEG
+      tag: mark "--message" option with NONEG
+      cat-file: report an error on multiple --batch options
+      apply: return -1 from option callback instead of calling exit(1)
+      parse-options: drop OPT_DATE()
+      assert NOARG/NONEG behavior of parse-options callbacks
+      midx: double-check large object write loop
+      merge: extract verify_merge_signature() helper
+      merge: handle --verify-signatures for unborn branch
+      pull: handle --verify-signatures for unborn branch
+      approxidate: fix NULL dereference in date_time()
+      bundle: dup() output descriptor closer to point-of-use
+
+Johannes Schindelin (47):
+      compat/poll: prepare for targeting Windows Vista
+      mingw: set _WIN32_WINNT explicitly for Git for Windows
+      mingw: bump the minimum Windows version to Vista
+      builtin rebase: prepare for builtin rebase -i
+      rebase -i: clarify what happens on a failed `exec`
+      rebase -i: introduce the 'break' command
+      getpwuid(mingw): initialize the structure only once
+      getpwuid(mingw): provide a better default for the user name
+      mingw: use domain information for default email
+      http: add support for selecting SSL backends at runtime
+      rebase (autostash): avoid duplicate call to state_dir_path()
+      rebase (autostash): store the full OID in <state-dir>/autostash
+      rebase (autostash): use an explicit OID to apply the stash
+      mingw: factor out code to set stat() data
+      rebase --autostash: demonstrate a problem with dirty submodules
+      rebase --autostash: fix issue with dirty submodules
+      mingw: load system libraries the recommended way
+      mingw: ensure `getcwd()` reports the correct case
+      http: when using Secure Channel, ignore sslCAInfo by default
+      t7800: fix quoting
+      mingw: reencode environment variables on the fly (UTF-16 <-> UTF-8)
+      config: rename `dummy` parameter to `cb` in git_default_config()
+      config: allow for platform-specific core.* config settings
+      config: move Windows-specific config settings into compat/mingw.c
+      mingw: unset PERL5LIB by default
+      mingw: fix isatty() after dup2()
+      t3404: decouple some test cases from outcomes of previous test cases
+      t3418: decouple test cases from a previous `rebase -p` test case
+      tests: optionally skip `git rebase -p` tests
+      Windows: force-recompile git.res for differing architectures
+      built-in rebase: demonstrate regression with --autostash
+      built-in rebase --autostash: leave the current branch alone if possible
+      Update .mailmap
+      rebase -r: demonstrate bug with conflicting merges
+      rebase -r: do not write MERGE_HEAD unless needed
+      rebase -i: include MERGE_HEAD into files to clean up
+      built-in rebase --skip/--abort: clean up stale .git/<name> files
+      status: rebase and merge can be in progress at the same time
+      apply --recount: allow "no-op hunks"
+      rebase: consolidate clean-up code before leaving reset_head()
+      rebase: prepare reset_head() for more flags
+      built-in rebase: reinstate `checkout -q` behavior where appropriate
+      mingw: use `CreateHardLink()` directly
+      rebase: really just passthru the `git am` options
+      rebase: validate -C<n> and --whitespace=<mode> parameters early
+      config: report a bug if git_dir exists without commondir
+      mingw: replace an obsolete link with the superseding one
+
+Johannes Sixt (1):
+      rebase -i: recognize short commands without arguments
+
+Jonathan Nieder (4):
+      gc: improve handling of errors reading gc.log
+      gc: exit with status 128 on failure
+      gc: do not return error for prior errors in daemonized mode
+      commit-reach: correct accidental #include of C file
+
+Jonathan Tan (11):
+      connected: document connectivity in partial clones
+      fetch: in partial clone, check presence of targets
+      transport: allow skipping of ref listing
+      transport: do not list refs if possible
+      transport: list refs before fetch if necessary
+      fetch: do not list refs if fetching only hashes
+      cache-tree: skip some blob checks in partial clone
+      upload-pack: make have_obj not global
+      upload-pack: make want_obj not global
+      upload-pack: clear flags before each v2 request
+      fetch-pack: be more precise in parsing v2 response
+
+Josh Steadmon (4):
+      fuzz: add basic fuzz testing target.
+      fuzz: add fuzz testing for packfile indices.
+      archive: initialize archivers earlier
+      Makefile: use FUZZ_CXXFLAGS for linking fuzzers
+
+Joshua Watt (1):
+      send-email: explicitly disable authentication
+
+Junio C Hamano (19):
+      Revert "doc/Makefile: drop doc-diff worktree and temporary files on "make clean""
+      Initial batch post 2.19
+      Second batch post 2.19
+      t0000: do not get self-test disrupted by environment warnings
+      Declare that the next one will be named 2.20
+      Third batch for 2.20
+      rebase: fix typoes in error messages
+      Fourth batch for 2.20
+      Revert "subtree: make install targets depend on build targets"
+      Fifth batch for 2.20
+      http: give curl version warnings consistently
+      Sixth batch for 2.20
+      Seventh batch for 2.20
+      fetch: replace string-list used as a look-up table with a hashmap
+      rebase: apply cocci patch
+      Eighth batch for 2.20
+      Ninth batch for 2.20
+      Tenth batch for 2.20
+      Git 2.20-rc0
+
+Karsten Blees (2):
+      mingw: replace MSVCRT's fstat() with a Win32-based implementation
+      mingw: implement nanosecond-precision file times
+
+Loo Rong Jie (1):
+      win32: replace pthread_cond_*() with much simpler code
+
+Lucas De Marchi (1):
+      range-diff: allow to diff files regardless of submodule config
+
+Luke Diamand (3):
+      git-p4: do not fail in verbose mode for missing 'fileSize' key
+      git-p4: unshelve into refs/remotes/p4-unshelved, not refs/remotes/p4/unshelved
+      git-p4: fully support unshelving changelists
+
+Martin Ågren (4):
+      Doc: use `--type=bool` instead of `--bool`
+      git-config.txt: fix 'see: above' note
+      builtin/commit-graph.c: UNLEAK variables
+      sequencer: break out of loop explicitly
+
+Matthew DeVore (17):
+      list-objects: store common func args in struct
+      list-objects: refactor to process_tree_contents
+      list-objects: always parse trees gently
+      t/README: reformat Do, Don't, Keep in mind lists
+      Documentation: add shell guidelines
+      tests: standardize pipe placement
+      t/*: fix ordering of expected/observed arguments
+      tests: don't swallow Git errors upstream of pipes
+      t9109: don't swallow Git errors upstream of pipes
+      tests: order arguments to git-rev-list properly
+      rev-list: handle missing tree objects properly
+      revision: mark non-user-given objects instead
+      list-objects-filter: use BUG rather than die
+      list-objects-filter-options: do not over-strbuf_init
+      list-objects-filter: implement filter tree:0
+      filter-trees: code clean-up of tests
+      list-objects: support for skipping tree traversal
+
+Max Kirillov (1):
+      http-backend test: make empty CONTENT_LENGTH test more realistic
+
+Michał Górny (6):
+      gpg-interface.c: detect and reject multiple signatures on commits
+      gpg-interface.c: use flags to determine key/signer info presence
+      gpg-interface.c: support getting key fingerprint via %GF format
+      gpg-interface.c: obtain primary key fingerprint as well
+      t/t7510-signed-commit.sh: Add %GP to custom format checks
+      t/t7510-signed-commit.sh: add signing subkey to Eris Discordia key
+
+Nguyễn Thái Ngọc Duy (164):
+      clone: report duplicate entries on case-insensitive filesystems
+      trace.h: support nested performance tracing
+      unpack-trees: add performance tracing
+      unpack-trees: optimize walking same trees with cache-tree
+      unpack-trees: reduce malloc in cache-tree walk
+      unpack-trees: reuse (still valid) cache-tree from src_index
+      unpack-trees: add missing cache invalidation
+      cache-tree: verify valid cache-tree in the test suite
+      Document update for nd/unpack-trees-with-cache-tree
+      bisect.c: make show_list() build again
+      t/helper: keep test-tool command list sorted
+      t/helper: merge test-dump-untracked-cache into test-tool
+      t/helper: merge test-pkt-line into test-tool
+      t/helper: merge test-parse-options into test-tool
+      t/helper: merge test-dump-fsmonitor into test-tool
+      Makefile: add a hint about TEST_BUILTINS_OBJS
+      config.txt: follow camelCase naming
+      config.txt: move fetch part out to a separate file
+      config.txt: move format part out to a separate file
+      config.txt: move gitcvs part out to a separate file
+      config.txt: move gui part out to a separate file
+      config.txt: move pull part out to a separate file
+      config.txt: move push part out to a separate file
+      config.txt: move receive part out to a separate file
+      config.txt: move sendemail part out to a separate file
+      config.txt: move sequence.editor out of "core" part
+      config.txt: move submodule part out to a separate file
+      archive.c: remove implicit dependency the_repository
+      status: show progress bar if refreshing the index takes too long
+      completion: support "git fetch --multiple"
+      read-cache.c: remove 'const' from index_has_changes()
+      diff.c: reduce implicit dependency on the_index
+      combine-diff.c: remove implicit dependency on the_index
+      blame.c: rename "repo" argument to "r"
+      diff.c: remove the_index dependency in textconv() functions
+      grep.c: remove implicit dependency on the_index
+      diff.c: remove implicit dependency on the_index
+      read-cache.c: remove implicit dependency on the_index
+      diff-lib.c: remove implicit dependency on the_index
+      ll-merge.c: remove implicit dependency on the_index
+      merge-blobs.c: remove implicit dependency on the_index
+      merge.c: remove implicit dependency on the_index
+      patch-ids.c: remove implicit dependency on the_index
+      sha1-file.c: remove implicit dependency on the_index
+      rerere.c: remove implicit dependency on the_index
+      userdiff.c: remove implicit dependency on the_index
+      line-range.c: remove implicit dependency on the_index
+      submodule.c: remove implicit dependency on the_index
+      tree-diff.c: remove implicit dependency on the_index
+      ws.c: remove implicit dependency on the_index
+      revision.c: remove implicit dependency on the_index
+      revision.c: reduce implicit dependency the_repository
+      read-cache.c: optimize reading index format v4
+      help -a: improve and make --verbose default
+      refs.c: indent with tabs, not spaces
+      Add a place for (not) sharing stuff between worktrees
+      submodule.c: remove some of the_repository references
+      completion: fix __gitcomp_builtin no longer consider extra options
+      t1300: extract and use test_cmp_config()
+      worktree: add per-worktree config files
+      refs: new ref types to make per-worktree refs visible to all worktrees
+      revision.c: correct a parameter name
+      revision.c: better error reporting on ref from different worktrees
+      fsck: check HEAD and reflog from other worktrees
+      reflog expire: cover reflog from all worktrees
+      Update makefile in preparation for Documentation/config/*.txt
+      config.txt: move advice.* to a separate file
+      config.txt: move core.* to a separate file
+      config.txt: move add.* to a separate file
+      config.txt: move alias.* to a separate file
+      config.txt: move am.* to a separate file
+      config.txt: move apply.* to a separate file
+      config.txt: move blame.* to a separate file
+      config.txt: move branch.* to a separate file
+      config.txt: move browser.* to a separate file
+      config.txt: move checkout.* to a separate file
+      config.txt: move clean.* to a separate file
+      config.txt: move color.* to a separate file
+      config.txt: move column.* to a separate file
+      config.txt: move commit.* to a separate file
+      config.txt: move credential.* to a separate file
+      config.txt: move completion.* to a separate file
+      config.txt: move diff-config.txt to config/
+      config.txt: move difftool.* to a separate file
+      config.txt: move fastimport.* to a separate file
+      config.txt: move fetch-config.txt to config/
+      config.txt: move filter.* to a separate file
+      config.txt: move format-config.txt to config/
+      config.txt: move fmt-merge-msg-config.txt to config/
+      config.txt: move fsck.* to a separate file
+      config.txt: move gc.* to a separate file
+      config.txt: move gitcvs-config.txt to config/
+      config.txt: move gitweb.* to a separate file
+      config.txt: move grep.* to a separate file
+      config.txt: move gpg.* to a separate file
+      config.txt: move gui-config.txt to config/
+      config.txt: move guitool.* to a separate file
+      config.txt: move help.* to a separate file
+      config.txt: move ssh.* to a separate file
+      config.txt: move http.* to a separate file
+      config.txt: move i18n.* to a separate file
+      git-imap-send.txt: move imap.* to a separate file
+      config.txt: move index.* to a separate file
+      config.txt: move init.* to a separate file
+      config.txt: move instaweb.* to a separate file
+      config.txt: move interactive.* to a separate file
+      config.txt: move log.* to a separate file
+      config.txt: move mailinfo.* to a separate file
+      config.txt: move mailmap.* to a separate file
+      config.txt: move man.* to a separate file
+      config.txt: move merge-config.txt to config/
+      config.txt: move mergetool.* to a separate file
+      config.txt: move notes.* to a separate file
+      config.txt: move pack.* to a separate file
+      config.txt: move pager.* to a separate file
+      config.txt: move pretty.* to a separate file
+      config.txt: move protocol.* to a separate file
+      config.txt: move pull-config.txt to config/
+      config.txt: move push-config.txt to config/
+      config.txt: move rebase-config.txt to config/
+      config.txt: move receive-config.txt to config/
+      config.txt: move remote.* to a separate file
+      config.txt: move remotes.* to a separate file
+      config.txt: move repack.* to a separate file
+      config.txt: move rerere.* to a separate file
+      config.txt: move reset.* to a separate file
+      config.txt: move sendemail-config.txt to config/
+      config.txt: move sequencer.* to a separate file
+      config.txt: move showBranch.* to a separate file
+      config.txt: move splitIndex.* to a separate file
+      config.txt: move status.* to a separate file
+      config.txt: move stash.* to a separate file
+      config.txt: move submodule.* to a separate file
+      config.txt: move tag.* to a separate file
+      config.txt: move transfer.* to a separate file
+      config.txt: move uploadarchive.* to a separate file
+      config.txt: move uploadpack.* to a separate file
+      config.txt: move url.* to a separate file
+      config.txt: move user.* to a separate file
+      config.txt: move versionsort.* to a separate file
+      config.txt: move web.* to a separate file
+      config.txt: move worktree.* to a separate file
+      config.txt: remove config/dummy.txt
+      thread-utils: macros to unconditionally compile pthreads API
+      wildmatch: change behavior of "foo**bar" in WM_PATHNAME mode
+      git-worktree.txt: correct linkgit command name
+      sequencer.c: remove a stray semicolon
+      tree-walk.c: fix overoptimistic inclusion in :(exclude) matching
+      run-command.h: include thread-utils.h instead of pthread.h
+      send-pack.c: move async's #ifdef NO_PTHREADS back to run-command.c
+      index-pack: remove #ifdef NO_PTHREADS
+      name-hash.c: remove #ifdef NO_PTHREADS
+      attr.c: remove #ifdef NO_PTHREADS
+      grep: remove #ifdef NO_PTHREADS
+      grep: clean up num_threads handling
+      preload-index.c: remove #ifdef NO_PTHREADS
+      pack-objects: remove #ifdef NO_PTHREADS
+      read-cache.c: remove #ifdef NO_PTHREADS
+      read-cache.c: reduce branching based on HAVE_THREADS
+      read-cache.c: initialize copy_len to shut up gcc 8
+      Clean up pthread_create() error handling
+      completion: use __gitcomp_builtin for format-patch
+      build: fix broken command-list.h generation with core.autocrlf
+      doc: move extensions.worktreeConfig to the right place
+
+Nickolai Belakovski (2):
+      worktree: update documentation for lock_reason and lock_reason_valid
+      worktree: rename is_worktree_locked to worktree_lock_reason
+
+Olga Telezhnaya (3):
+      ref-filter: free memory from used_atom
+      ls-remote: release memory instead of UNLEAK
+      ref-filter: free item->value and item->value->s
+
+Phillip Wood (11):
+      diff: fix --color-moved-ws=allow-indentation-change
+      diff --color-moved-ws: fix double free crash
+      diff --color-moved-ws: fix out of bounds string access
+      diff --color-moved-ws: fix a memory leak
+      diff --color-moved-ws: fix another memory leak
+      diff --color-moved: fix a memory leak
+      am: don't die in read_author_script()
+      am: improve author-script error reporting
+      am: rename read_author_script()
+      add read_author_script() to libgit
+      sequencer: use read_author_script()
+
+Pratik Karki (46):
+      rebase: start implementing it as a builtin
+      rebase: refactor common shell functions into their own file
+      builtin/rebase: support running "git rebase <upstream>"
+      builtin rebase: support --onto
+      builtin rebase: support `git rebase --onto A...B`
+      builtin rebase: handle the pre-rebase hook and --no-verify
+      builtin rebase: support --quiet
+      builtin rebase: support the `verbose` and `diffstat` options
+      builtin rebase: require a clean worktree
+      builtin rebase: try to fast forward when possible
+      builtin rebase: support --force-rebase
+      builtin rebase: start a new rebase only if none is in progress
+      builtin rebase: only store fully-qualified refs in `options.head_name`
+      builtin rebase: support `git rebase <upstream> <switch-to>`
+      builtin rebase: support --continue
+      builtin rebase: support --skip
+      builtin rebase: support --abort
+      builtin rebase: support --quit
+      builtin rebase: support --edit-todo and --show-current-patch
+      builtin rebase: actions require a rebase in progress
+      builtin rebase: stop if `git am` is in progress
+      builtin rebase: allow selecting the rebase "backend"
+      builtin rebase: support --signoff
+      builtin rebase: support --rerere-autoupdate
+      builtin rebase: support --committer-date-is-author-date
+      builtin rebase: support `ignore-whitespace` option
+      builtin rebase: support `ignore-date` option
+      builtin rebase: support `keep-empty` option
+      builtin rebase: support `--autosquash`
+      builtin rebase: support `--gpg-sign` option
+      builtin rebase: support `-C` and `--whitespace=<type>`
+      builtin rebase: support `--autostash` option
+      builtin rebase: support `--exec`
+      builtin rebase: support `--allow-empty-message` option
+      builtin rebase: support --rebase-merges[=[no-]rebase-cousins]
+      merge-base --fork-point: extract libified function
+      builtin rebase: support `fork-point` option
+      builtin rebase: add support for custom merge strategies
+      builtin rebase: support --root
+      builtin rebase: optionally auto-detect the upstream
+      builtin rebase: optionally pass custom reflogs to reset_head()
+      builtin rebase: fast-forward to onto if it is a proper descendant
+      builtin rebase: show progress when connected to a terminal
+      builtin rebase: use no-op editor when interactive is "implied"
+      builtin rebase: error out on incompatible option/mode combinations
+      rebase: default to using the builtin rebase
+
+Rafael Ascensão (2):
+      refs: show --exclude failure with --branches/tags/remotes=glob
+      refs: fix some exclude patterns being ignored
+
+Ralf Thielow (1):
+      git-rebase.sh: fix typos in error messages
+
+Ramsay Jones (12):
+      Makefile: add a hdr-check target
+      json-writer.h: add missing include (hdr-check)
+      ewah/ewok_rlw.h: add missing include (hdr-check)
+      refs/ref-cache.h: add missing declarations (hdr-check)
+      refs/packed-backend.h: add missing declaration (hdr-check)
+      refs/refs-internal.h: add missing declarations (hdr-check)
+      midx.h: add missing forward declarations (hdr-check)
+      delta-islands.h: add missing forward declarations (hdr-check)
+      headers: normalize the spelling of some header guards
+      fetch-object.h: add missing declaration (hdr-check)
+      ewok_rlw.h: add missing 'inline' to function definition
+      commit-reach.h: add missing declarations (hdr-check)
+
+Rasmus Villemoes (6):
+      help: redirect to aliased commands for "git cmd --help"
+      git.c: handle_alias: prepend alias info when first argument is -h
+      git-help.txt: document "git help cmd" vs "git cmd --help" for aliases
+      Documentation/git-send-email.txt: style fixes
+      send-email: only consider lines containing @ or <> for automatic Cc'ing
+      send-email: also pick up cc addresses from -by trailers
+
+René Scharfe (11):
+      mailinfo: support format=flowed
+      fsck: add a performance test for skipList
+      fsck: use strbuf_getline() to read skiplist file
+      fsck: use oidset instead of oid_array for skipList
+      grep: add -r/--[no-]recursive
+      fetch-pack: factor out is_unmatched_ref()
+      fetch-pack: load tip_oids eagerly iff needed
+      khash: factor out kh_release_*
+      oidset: use khash
+      oidset: uninline oidset_init()
+      commit-reach: fix cast in compare_commits_by_gen()
+
+Roger Strain (1):
+      subtree: performance improvement for finding unexpected parent commits
+
+SZEDER Gábor (4):
+      t1404: increase core.packedRefsTimeout to avoid occasional test failure
+      object_id.cocci: match only expressions of type 'struct object_id'
+      travis-ci: install packages in 'ci/install-dependencies.sh'
+      ref-filter: don't look for objects when outside of a repository
+
+Stefan Beller (21):
+      git-submodule.sh: align error reporting for update mode to use path
+      git-submodule.sh: rename unused variables
+      builtin/submodule--helper: factor out submodule updating
+      builtin/submodule--helper: store update_clone information in a struct
+      builtin/submodule--helper: factor out method to update a single submodule
+      submodule--helper: replace connect-gitdir-workingtree by ensure-core-worktree
+      submodule--helper: introduce new update-module-mode helper
+      test_decode_color: understand FAINT and ITALIC
+      t3206: add color test for range-diff --dual-color
+      diff.c: simplify caller of emit_line_0
+      diff.c: reorder arguments for emit_line_ws_markup
+      diff.c: add set_sign to emit_line_0
+      diff: use emit_line_0 once per line
+      diff.c: omit check for line prefix in emit_line_0
+      diff.c: rewrite emit_line_0 more understandably
+      diff.c: add --output-indicator-{new, old, context}
+      range-diff: make use of different output indicators
+      range-diff: indent special lines as context
+      diff.c: pass sign_index to emit_line_ws_markup
+      submodule helper: convert relative URL to absolute URL if needed
+      builtin/submodule--helper: remove debugging leftover tracing
+
+Stephen P. Smith (10):
+      wt-status.c: move has_unmerged earlier in the file
+      wt-status: rename commitable to committable
+      t7501: add test of "commit --dry-run --short"
+      wt-status.c: set the committable flag in the collect phase
+      roll wt_status_state into wt_status and populate in the collect phase
+      t2000: rename and combine checkout clash tests
+      t7509: cleanup description and filename
+      t7502: rename commit test script to comply with naming convention
+      t7500: rename commit tests script to comply with naming convention
+      t7501: rename commit test to comply with naming convention
+
+Steve Hoelzer (1):
+      poll: use GetTickCount64() to avoid wrap-around issues
+
+Steven Fernandez (1):
+      git-completion.bash: add completion for stash list
+
+Strain, Roger L (4):
+      subtree: refactor split of a commit into standalone method
+      subtree: make --ignore-joins pay attention to adds
+      subtree: use commits before rejoins for splits
+      subtree: improve decision on merges kept in split
+
+Taylor Blau (4):
+      transport.c: extract 'fill_alternate_refs_command'
+      transport.c: introduce core.alternateRefsCommand
+      transport.c: introduce core.alternateRefsPrefixes
+      Documentation/config.txt: fix typo in core.alternateRefsCommand
+
+Thomas Gummerer (13):
+      rerere: unify error messages when read_cache fails
+      rerere: lowercase error messages
+      rerere: wrap paths in output in sq
+      rerere: mark strings for translation
+      rerere: add documentation for conflict normalization
+      rerere: fix crash with files rerere can't handle
+      rerere: only return whether a path has conflicts or not
+      rerere: factor out handle_conflict function
+      rerere: return strbuf from handle path
+      rerere: teach rerere to handle nested conflicts
+      rerere: recalculate conflict ID when unresolved conflict is committed
+      rerere: mention caveat about unmatched conflict markers
+      rerere: add note about files with existing conflict markers
+
+Tim Schumacher (3):
+      alias: add support for aliases of an alias
+      alias: show the call history when an alias is looping
+      t0014: introduce an alias testing suite
+
+brian m. carlson (26):
+      t: add test functions to translate hash-related values
+      t0000: use hash translation table
+      t0000: update tests for SHA-256
+      t0002: abstract away SHA-1 specific constants
+      t0064: make hash size independent
+      t1006: make hash size independent
+      t1400: switch hard-coded object ID to variable
+      t1405: make hash size independent
+      t1406: make hash-size independent
+      t1407: make hash size independent
+      editorconfig: provide editor settings for Git developers
+      editorconfig: indicate settings should be kept in sync
+      pack-bitmap-write: use GIT_MAX_RAWSZ for allocation
+      builtin/repack: replace hard-coded constants
+      builtin/mktree: remove hard-coded constant
+      builtin/fetch-pack: remove constants with parse_oid_hex
+      pack-revindex: express constants in terms of the_hash_algo
+      packfile: express constants in terms of the_hash_algo
+      refs/packed-backend: express constants using the_hash_algo
+      upload-pack: express constants in terms of the_hash_algo
+      transport: use parse_oid_hex instead of a constant
+      tag: express constant in terms of the_hash_algo
+      apply: replace hard-coded constants
+      apply: rename new_sha1_prefix and old_sha1_prefix
+      submodule: make zero-oid comparison hash function agnostic
+      rerere: convert to use the_hash_algo
+
+Ævar Arnfjörð Bjarmason (31):
+      fetch: change "branch" to "reference" in --force -h output
+      push tests: make use of unused $1 in test description
+      push tests: use spaces in interpolated string
+      fetch tests: add a test for clobbering tag behavior
+      push doc: remove confusing mention of remote merger
+      push doc: move mention of "tag <tag>" later in the prose
+      push doc: correct lies about how push refspecs work
+      fetch: document local ref updates with/without --force
+      fetch: stop clobbering existing tags without --force
+      fsck tests: setup of bogus commit object
+      fsck tests: add a test for no skipList input
+      fsck: document and test sorted skipList input
+      fsck: document and test commented & empty line skipList input
+      fsck: document that skipList input must be unabbreviated
+      fsck: add a performance test
+      fsck: support comments & empty lines in skipList
+      commit-graph write: add progress output
+      commit-graph verify: add progress output
+      config doc: add missing list separator for checkout.optimizeNewBranch
+      push doc: add spacing between two words
+      fetch doc: correct grammar in --force docs
+      gc: fix regression in 7b0f229222 impacting --quiet
+      gc doc: mention the commit-graph in the intro
+      pack-objects test: modernize style
+      pack-objects tests: don't leave test .git corrupt at end
+      index-pack tests: don't leave test repo dirty at end
+      range-diff doc: add a section about output stability
+      range-diff: fix regression in passing along diff options
+      range-diff: make diff option behavior (e.g. --stat) consistent
+      rebase doc: document rebase.useBuiltin
+      tests: add a special setup where rebase.useBuiltin is off
+
+
 Version v2.19.2; changes since v2.19.1:
 ---------------------------------------
 
