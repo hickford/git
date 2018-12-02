@@ -1,3 +1,11 @@
+git (1:2.20.0~rc2-1) unstable; urgency=low
+
+  * new upstream release candidate.
+    * rebase: specify 'rebase -i' in reflog for interactive rebase
+      (closes: #914695).
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Sun, 02 Dec 2018 12:11:19 -0800
+
 git (1:2.20.0~rc1-1) unstable; urgency=low
 
   * new upstream release candidate (see RelNotes/2.20.0.txt).

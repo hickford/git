@@ -1,3 +1,50 @@
+Version v2.20.0-rc2; changes since v2.20.0-rc1:
+-----------------------------------------------
+
+Greg Hurrell (1):
+      doc: update diff-format.txt for removed ellipses in --raw
+
+Jean-Noël Avila (1):
+      i18n: fix small typos
+
+Jeff King (1):
+      t5562: fix perl path
+
+Johannes Schindelin (2):
+      rebase: fix GIT_REFLOG_ACTION regression
+      rebase --stat: fix when rebasing to an unrelated history
+
+Junio C Hamano (2):
+      format-patch: do not let its diff-options affect --range-diff
+      Git 2.20-rc2
+
+Martin Ågren (2):
+      git-reset.txt: render tables correctly under Asciidoctor
+      git-reset.txt: render literal examples as monospace
+
+Nguyễn Thái Ngọc Duy (2):
+      files-backend.c: fix build error on Solaris
+      transport-helper.c: do not translate a string twice
+
+Ralf Thielow (1):
+      builtin/rebase.c: remove superfluous space in messages
+
+SZEDER Gábor (3):
+      tests: send "bug in the test script" errors to the script's stderr
+      test-lib-functions: make 'test_cmp_rev' more informative on failure
+      t/lib-git-daemon: fix signal checking
+
+Sven Strickroth (1):
+      msvc: directly use MS version (_stricmp) of strcasecmp
+
+Torsten Bögershausen (1):
+      t5601-99: Enable colliding file detection for MINGW
+
+Ævar Arnfjörð Bjarmason (2):
+      push: change needlessly ambiguous example in error
+      advice: don't pointlessly suggest --convert-graft-file
+
+
 Version v2.20.0-rc1; changes since v2.20.0-rc0:
 -----------------------------------------------
 
