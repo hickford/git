@@ -30,7 +30,7 @@ Multi-Arch: foreign
 Depends: ${misc:Depends}, ${shlibs:Depends}, perl, liberror-perl,
  git-man (>> ${source:Upstream-Version}), git-man (<< ${source:Upstream-Version}-.)
 Pre-Depends: ${misc:Pre-Depends}
-Recommends: patch, less, ssh-client
+Recommends: ca-certificates, patch, less, ssh-client
 Suggests: gettext-base, git-daemon-run | git-daemon-sysvinit,
  git-doc, git-el, git-email, git-gui, gitk, gitweb,
  git-cvs, git-mediawiki, git-svn
