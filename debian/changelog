@@ -1,9 +1,10 @@
-git (1:2.20.0~rc2-1.1) unstable; urgency=low
+git (1:2.20.0-1) unstable; urgency=medium
 
+  * new upstream release (see RelNotes/2.20.0.txt).
   * package git: Recommends: ca-certificates for https support (thx HJ;
     closes: #915644).
 
- -- Jonathan Nieder <jrnieder@gmail.com>  Wed, 05 Dec 2018 15:36:36 -0800
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 10 Dec 2018 11:07:26 -0800
 
 git (1:2.20.0~rc2-1) unstable; urgency=low
 

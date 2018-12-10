@@ -1,3 +1,59 @@
+Version v2.20.0; changes since v2.20.0-rc2:
+-------------------------------------------
+
+Alexander Shopov (3):
+      l10n: bg.po: Updated Bulgarian translation (4185t)
+      l10n: bg.po: Updated Bulgarian translation (4185t)
+      l10n: bg.po: Updated Bulgarian translation (4187t)
+
+Christopher Díaz Riveros (2):
+      l10n: es.po v2.20.0 round 1
+      l10n: es.po v2.20.0 round 3
+
+Jean-Noël Avila (2):
+      l10n: fr.po v2.20 rnd 1
+      l10n: fr.po v2.20.0 round 3
+
+Jiang Xin (5):
+      l10n: zh_CN: review for git v2.19.0 l10n
+      l10n: git.pot: v2.20.0 round 1 (254 new, 27 removed)
+      l10n: git.pot: v2.20.0 round 2 (2 new, 2 removed)
+      l10n: git.pot: v2.20.0 round 3 (5 new, 3 removed)
+      l10n: zh_CN: for git v2.20.0 l10n round 1 to 3
+
+Johannes Sixt (1):
+      rebase docs: fix incorrect format of the section Behavioral Differences
+
+Jordi Mas (2):
+      l10n: Update Catalan translation
+      l10n: Update Catalan translation
+
+Junio C Hamano (1):
+      Git 2.20
+
+Martin Ågren (4):
+      range-diff: always pass at least minimal diff options
+      RelNotes 2.20: move some items between sections
+      RelNotes 2.20: clarify sentence
+      RelNotes 2.20: drop spurious double quote
+
+Minh Nguyen (1):
+      l10n: vi.po: fix typo in pack-objects
+
+Peter Krefting (2):
+      l10n: sv.po: Update Swedish translation (4185t0f0u)
+      l10n: sv.po: Update Swedish translation (4187t0f0u)
+
+Ralf Thielow (3):
+      l10n: update German translation
+      l10n: update German translation
+      l10n: de.po: fix two messages
+
+Trần Ngọc Quân (2):
+      l10n: vi(4185t): Updated Vietnamese translation for v2.20.0
+      l10n: vi(4187t): Updated Vietnamese translation for v2.20.0 rd3
+
+
 Version v2.20.0-rc2; changes since v2.20.0-rc1:
 -----------------------------------------------
 
