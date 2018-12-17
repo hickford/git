@@ -1,9 +1,10 @@
-git (1:2.20.0-1.1) unstable; urgency=low
+git (1:2.20.1-1) unstable; urgency=medium
 
+  * new upstream point release (see RelNotes/2.20.1.txt).
   * package git-gui: Suggests: meld for mergetool support (thx Jens
     Reyer; closes: #707790).
 
- -- Jonathan Nieder <jrnieder@gmail.com>  Sun, 16 Dec 2018 13:54:20 -0800
+ -- Jonathan Nieder <jrnieder@gmail.com>  Sun, 16 Dec 2018 16:53:30 -0800
 
 git (1:2.20.0-1) unstable; urgency=medium
 
