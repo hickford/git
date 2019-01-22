@@ -237,7 +237,7 @@ Architecture: all
 Multi-Arch: foreign
 Depends: ${misc:Depends}, git (>> ${source:Upstream-Version}), git (<< ${source:Upstream-Version}-.), tk
 Recommends: gitk
-Suggests: git-doc, aspell
+Suggests: git-doc, aspell, meld
 Description: fast, scalable, distributed revision control system (GUI)
  Git is popular version control system designed to handle very large
  projects with speed and efficiency; it is used for many high profile
@@ -252,6 +252,9 @@ Description: fast, scalable, distributed revision control system (GUI)
  .
  If aspell is installed, it can check the spelling of commit messages
  as the user types.
+ .
+ If meld is installed, it can be used for displaying diffs and for
+ interactive merge conflict resolution.
 
 Package: gitk
 Architecture: all
