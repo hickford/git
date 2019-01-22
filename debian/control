@@ -8,7 +8,7 @@ Build-Depends: libz-dev, gettext,
  libcurl4-gnutls-dev, libexpat1-dev,
  subversion, libsvn-perl, libyaml-perl,
  tcl, python,
- libhttp-date-perl | libtime-modules-perl,
+ libhttp-date-perl | libtime-parsedate-perl,
  libcgi-pm-perl,
  liberror-perl,
  libmailtools-perl,
@@ -301,7 +301,7 @@ Multi-Arch: foreign
 Depends: ${misc:Depends}, git (>> ${source:Upstream-Version}), git (<< ${source:Upstream-Version}-.),
  perl, libcgi-pm-perl
 Pre-Depends: ${misc:Pre-Depends}
-Recommends: ${misc:Recommends}, libhttp-date-perl | libtime-modules-perl
+Recommends: ${misc:Recommends}, libhttp-date-perl | libtime-parsedate-perl
 Breaks: apache2.2-common (<< 2.3~)
 Suggests: httpd-cgi | libcgi-fast-perl, git-doc
 Description: fast, scalable, distributed revision control system (web interface)
