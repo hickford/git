@@ -9,6 +9,7 @@
 #include "refs.h"
 #include "run-command.h"
 #include "sigchain.h"
+#include "submodule.h"
 #include "refs.h"
 #include "utf8.h"
 #include "worktree.h"
@@ -267,10 +268,10 @@ static int add_worktree(const char *path, const char *refname,
 	struct strbuf sb_git = STRBUF_INIT, sb_repo = STRBUF_INIT;
 	struct strbuf sb = STRBUF_INIT;
 	const char *name;
-	struct stat st;
 	struct child_process cp = CHILD_PROCESS_INIT;
 	struct argv_array child_env = ARGV_ARRAY_INIT;
-	int counter = 0, len, ret;
+	unsigned int counter = 0;
+	int len, ret;
 	struct strbuf symref = STRBUF_INIT;
 	struct commit *commit = NULL;
 	int is_branch = 0;
@@ -294,8 +295,12 @@ static int add_worktree(const char *path, const char *refname,
 	if (safe_create_leading_directories_const(sb_repo.buf))
 		die_errno(_("could not create leading directories of '%s'"),
 			  sb_repo.buf);
-	while (!stat(sb_repo.buf, &st)) {
+
+	while (mkdir(sb_repo.buf, 0777)) {
 		counter++;
+		if ((errno != EEXIST) || !counter /* overflow */)
+			die_errno(_("could not create directory of '%s'"),
+				  sb_repo.buf);
 		strbuf_setlen(&sb_repo, len);
 		strbuf_addf(&sb_repo, "%d", counter);
 	}
@@ -305,8 +310,6 @@ static int add_worktree(const char *path, const char *refname,
 	atexit(remove_junk);
 	sigchain_push_common(remove_junk_on_signal);
 
-	if (mkdir(sb_repo.buf, 0777))
-		die_errno(_("could not create directory of '%s'"), sb_repo.buf);
 	junk_git_dir = xstrdup(sb_repo.buf);
 	is_junk = 1;
 
@@ -401,6 +404,7 @@ done:
 			cp.dir = path;
 			cp.env = env;
 			cp.argv = NULL;
+			cp.trace2_hook_name = "post-checkout";
 			argv_array_pushl(&cp.args, absolute_path(hook),
 					 oid_to_hex(&null_oid),
 					 oid_to_hex(&commit->object.oid),
@@ -724,20 +728,36 @@ static int unlock_worktree(int ac, const char **av, const char *prefix)
 static void validate_no_submodules(const struct worktree *wt)
 {
 	struct index_state istate = { NULL };
+	struct strbuf path = STRBUF_INIT;
 	int i, found_submodules = 0;
 
-	if (read_index_from(&istate, worktree_git_path(wt, "index"),
-			    get_worktree_git_dir(wt)) > 0) {
+	if (is_directory(worktree_git_path(wt, "modules"))) {
+		/*
+		 * There could be false positives, e.g. the "modules"
+		 * directory exists but is empty. But it's a rare case and
+		 * this simpler check is probably good enough for now.
+		 */
+		found_submodules = 1;
+	} else if (read_index_from(&istate, worktree_git_path(wt, "index"),
+				   get_worktree_git_dir(wt)) > 0) {
 		for (i = 0; i < istate.cache_nr; i++) {
 			struct cache_entry *ce = istate.cache[i];
+			int err;
 
-			if (S_ISGITLINK(ce->ce_mode)) {
-				found_submodules = 1;
-				break;
-			}
+			if (!S_ISGITLINK(ce->ce_mode))
+				continue;
+
+			strbuf_reset(&path);
+			strbuf_addf(&path, "%s/%s", wt->path, ce->name);
+			if (!is_submodule_populated_gently(path.buf, &err))
+				continue;
+
+			found_submodules = 1;
+			break;
 		}
 	}
 	discard_index(&istate);
+	strbuf_release(&path);
 
 	if (found_submodules)
 		die(_("working trees containing submodules cannot be moved or removed"));

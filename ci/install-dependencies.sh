@@ -3,7 +3,7 @@
 # Install dependencies required to build and test Git on Linux and macOS
 #
 
-. ${0%/*}/lib-travisci.sh
+. ${0%/*}/lib.sh
 
 P4WHENCE=http://filehost.perforce.com/perforce/r$LINUX_P4_VERSION
 LFSWHENCE=https://github.com/github/git-lfs/releases/download/v$LINUX_GIT_LFS_VERSION
@@ -12,7 +12,7 @@ case "$jobname" in
 linux-clang|linux-gcc)
 	sudo apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
 	sudo apt-get -q update
-	sudo apt-get -q -y install language-pack-is git-svn apache2
+	sudo apt-get -q -y install language-pack-is libsvn-perl apache2
 	case "$jobname" in
 	linux-gcc)
 		sudo apt-get -q -y install gcc-8
@@ -34,12 +34,18 @@ linux-clang|linux-gcc)
 	popd
 	;;
 osx-clang|osx-gcc)
-	brew update --quiet
+	brew update >/dev/null
 	# Uncomment this if you want to run perf tests:
 	# brew install gnu-time
-	brew install git-lfs gettext
+	test -z "$BREW_INSTALL_PACKAGES" ||
+	brew install $BREW_INSTALL_PACKAGES
 	brew link --force gettext
 	brew install caskroom/cask/perforce
+	case "$jobname" in
+	osx-gcc)
+		brew link gcc@8
+		;;
+	esac
 	;;
 StaticAnalysis)
 	sudo apt-get -q update
@@ -48,6 +54,9 @@ StaticAnalysis)
 Documentation)
 	sudo apt-get -q update
 	sudo apt-get -q -y install asciidoc xmlto
+
+	test -n "$ALREADY_HAVE_ASCIIDOCTOR" ||
+	gem install --version 1.5.8 asciidoctor
 	;;
 esac
 

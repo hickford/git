@@ -219,8 +219,16 @@ static unsigned check_objects(void)
 	unsigned i, max, foreign_nr = 0;
 
 	max = get_max_object_index();
-	for (i = 0; i < max; i++)
+
+	if (verbose)
+		progress = start_delayed_progress(_("Checking objects"), max);
+
+	for (i = 0; i < max; i++) {
 		foreign_nr += check_object(get_indexed_object(i));
+		display_progress(progress, i + 1);
+	}
+
+	stop_progress(&progress);
 	return foreign_nr;
 }
 
@@ -772,7 +780,7 @@ static void sha1_object(const void *data, struct object_entry *obj_entry,
 	if (startup_info->have_repository) {
 		read_lock();
 		collision_test_needed =
-			has_sha1_file_with_flags(oid->hash, OBJECT_INFO_QUICK);
+			has_object_file_with_flags(oid, OBJECT_INFO_QUICK);
 		read_unlock();
 	}
 

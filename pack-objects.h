@@ -5,6 +5,8 @@
 #include "thread-utils.h"
 #include "pack.h"
 
+struct repository;
+
 #define DEFAULT_DELTA_CACHE_SIZE (256 * 1024 * 1024)
 
 #define OE_DFS_STATE_BITS	2
@@ -127,6 +129,7 @@ struct object_entry {
 };
 
 struct packing_data {
+	struct repository *repo;
 	struct object_entry *objects;
 	uint32_t nr_objects, nr_alloc;
 
@@ -145,7 +148,11 @@ struct packing_data {
 	struct packed_git **in_pack_by_idx;
 	struct packed_git **in_pack;
 
-	pthread_mutex_t lock;
+	/*
+	 * During packing with multiple threads, protect the in-core
+	 * object database from concurrent accesses.
+	 */
+	pthread_mutex_t odb_lock;
 
 	/*
 	 * This list contains entries for bases which we know the other side
@@ -163,15 +170,16 @@ struct packing_data {
 	unsigned char *layer;
 };
 
-void prepare_packing_data(struct packing_data *pdata);
+void prepare_packing_data(struct repository *r, struct packing_data *pdata);
 
+/* Protect access to object database */
 static inline void packing_data_lock(struct packing_data *pdata)
 {
-	pthread_mutex_lock(&pdata->lock);
+	pthread_mutex_lock(&pdata->odb_lock);
 }
 static inline void packing_data_unlock(struct packing_data *pdata)
 {
-	pthread_mutex_unlock(&pdata->lock);
+	pthread_mutex_unlock(&pdata->odb_lock);
 }
 
 struct object_entry *packlist_alloc(struct packing_data *pdata,
@@ -239,14 +247,14 @@ static inline struct packed_git *oe_in_pack(const struct packing_data *pack,
 		return pack->in_pack[e - pack->objects];
 }
 
-void oe_map_new_pack(struct packing_data *pack,
-		     struct packed_git *p);
+void oe_map_new_pack(struct packing_data *pack);
+
 static inline void oe_set_in_pack(struct packing_data *pack,
 				  struct object_entry *e,
 				  struct packed_git *p)
 {
 	if (!p->index)
-		oe_map_new_pack(pack, p);
+		oe_map_new_pack(pack);
 	if (pack->in_pack_by_idx)
 		e->in_pack_idx = p->index;
 	else
