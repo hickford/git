@@ -1,3 +1,74 @@
+Version v2.23.0-rc1; changes since v2.23.0-rc0:
+-----------------------------------------------
+
+Carlo Marcelo Arenas Belón (3):
+      xdiff: drop system includes in xutils.c
+      xdiff: remove duplicate headers from xhistogram.c
+      xdiff: remove duplicate headers from xpatience.c
+
+Jeff King (6):
+      verify-tag: drop signal.h include
+      wt-status.h: drop stdio.h include
+      t: sort output of hashmap iteration
+      t7700: clean up .keep file in bitmap-writing test
+      repack: silence warnings when auto-enabled bitmaps cannot be built
+      repack: simplify handling of auto-bitmaps and .keep files
+
+Johannes Schindelin (15):
+      Vcproj.pm: auto-generate GUIDs
+      Vcproj.pm: do not configure VCWebServiceProxyGeneratorTool
+      Vcproj.pm: urlencode '<' and '>' when generating VC projects
+      contrib/buildsystems: ignore irrelevant files in Generators/
+      contrib/buildsystems: error out on unknown option
+      contrib/buildsystems: handle libiconv, too
+      contrib/buildsystems: also handle -lexpat
+      contrib/buildsystems: handle options starting with a slash
+      contrib/buildsystems: add a backend for modern Visual Studio versions
+      msvc: add a Makefile target to pre-generate the Visual Studio solution
+      vcxproj: also link-or-copy builtins
+      .gitignore: ignore Visual Studio's temporary/generated files
+      bin-wrappers: append `.exe` to target paths if necessary
+      git: avoid calling aliased builtins via their dashed form
+      config: work around bug with includeif:onbranch and early config
+
+Junio C Hamano (5):
+      test-dir-iterator: do not assume errno values
+      A few more last-minute fixes
+      log: flip the --mailmap default unconditionally
+      log: really flip the --mailmap default
+      Git 2.23-rc1
+
+Martin Ågren (2):
+      RelNotes/2.21.1: typofix
+      RelNotes/2.23.0: fix a few typos and other minor issues
+
+Philip Oakley (9):
+      Vcproj.pm: list git.exe first to be startup project
+      contrib/buildsystems: ignore invalidcontinue.obj
+      contrib/buildsystems: fix misleading error message
+      contrib/buildsystems: handle quoted spaces in filenames
+      contrib/buildsystems: ignore gettext stuff
+      contrib/buildsystems: redirect errors of the dry run into a log file
+      contrib/buildsystems: optionally capture the dry-run in a file
+      contrib/buildsystems: handle the curl library option
+      .gitignore: touch up the entries regarding Visual Studio
+
+SZEDER Gábor (1):
+      Documentation/git-fsck.txt: include fsck.* config variables
+
+brian m. carlson (10):
+      t: add helper to convert object IDs to paths
+      t1410: make hash size independent
+      t1450: make hash size independent
+      t5000: make hash independent
+      t6030: make test work with SHA-256
+      t0027: make hash size independent
+      t0090: make test pass with SHA-256
+      t1007: remove SHA1 prerequisites
+      t1710: make hash independent
+      t2203: avoid hard-coded object ID values
+
+
 Version v2.23.0-rc0; changes since v2.22.0:
 -------------------------------------------
 
