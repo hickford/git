@@ -1,3 +1,93 @@
+Version v2.23.0; changes since v2.23.0-rc2:
+-------------------------------------------
+
+Alessandro Menti (3):
+      l10n: it.po: update the Italian translation
+      l10n: it.po: update the Italian translation for v2.23.0
+      l10n: it.po: update the Italian localization for v2.23.0 round 2
+
+Alexander Shopov (1):
+      l10n: bg.po: Updated Bulgarian translation (4674t)
+
+Carmine Zaccagnino (1):
+      l10n: it.po: remove an extra space
+
+Christopher Díaz Riveros (1):
+      l10n: es: 2.23.0 round 2
+
+Dimitriy Ryazantcev (1):
+      l10n: ru.po: update Russian translation
+
+Jean-Noël Avila (1):
+      l10n: fr v2.23.0 round 2
+
+Jiang Xin (3):
+      l10n: git.pot: v2.23.0 round 1 (130 new, 35 removed)
+      l10n: git.pot: v2.23.0 round 2 (4 new, 6 removed)
+      l10n: zh_CN: for git v2.23.0 l10n round 1~2
+
+Jordi Mas (2):
+      l10n: Update Catalan translation
+      l10n: Update Catalan translation
+
+Junio C Hamano (2):
+      Git 2.22.1
+      Git 2.23
+
+Mark Rushakoff (1):
+      doc: fix repeated words
+
+Matthias Rüster (1):
+      l10n: de.po: Update German translation
+
+Peter Krefting (1):
+      l10n: sv.po: Update Swedish translation (4676t0f0u)
+
+Philip Oakley (1):
+      .mailmap: update email address of Philip Oakley
+
+Philipp Weißmann (1):
+      l10n: de.po: Fix typo in German translation
+
+Trần Ngọc Quân (2):
+      l10n: vi.po (4676t): Updated Vietnamese translation
+      l10n: vi(4674t): Updated translation for Vietnamese
+
+
+Version v2.23.0-rc2; changes since v2.23.0-rc1:
+-----------------------------------------------
+
+Derrick Stolee (1):
+      commit-graph: fix bug around octopus merges
+
+Elijah Newren (1):
+      merge-recursive: avoid directory rename detection in recursive case
+
+Jean-Noël Avila (1):
+      l10n: reformat some localized strings for v2.23.0
+
+Jeff King (1):
+      t0000: reword comments for "local" test
+
+Jonathan Nieder (1):
+      t: decrease nesting in test_oid_to_path
+
+Junio C Hamano (1):
+      Git 2.23-rc2
+
+Mark Rushakoff (1):
+      doc: typo: s/can not/cannot/ and s/is does/does/
+
+René Scharfe (4):
+      commit-graph: release strbufs after use
+      dir-iterator: release strbuf after use
+      test-dir-iterator: use path argument directly
+      sha1-file: release strbuf after use
+
+William Chargin (1):
+      restore: fix typo in docs
+
+
 Version v2.23.0-rc1; changes since v2.23.0-rc0:
 -----------------------------------------------
 
@@ -69,7 +159,7 @@ brian m. carlson (10):
       t2203: avoid hard-coded object ID values
 
 
-Version v2.23.0-rc0; changes since v2.22.0:
+Version v2.23.0-rc0; changes since v2.22.1:
 -------------------------------------------
 
 Ariadne Conill (3):
@@ -87,8 +177,7 @@ Barret Rhoden (8):
       blame: use the fingerprint heuristic to match ignored lines
       blame: add a test to cover blame_coalesce()
 
-Beat Bolli (2):
-      unicode: update the width tables to Unicode 12.1
+Beat Bolli (1):
       grep: print the pcre2_jit_on value
 
 Ben Avison (1):
@@ -98,16 +187,11 @@ Boxuan Li (2):
       userdiff: add Octave
       userdiff: fix grammar and style issues
 
-Carlo Marcelo Arenas Belón (3):
-      fsmonitor: avoid signed integer overflow / infinite loop
-      wrapper: avoid undefined behaviour in macOS
+Carlo Marcelo Arenas Belón (1):
       trace2: correct typo in technical documentation
 
 Cesar Eduardo Barros (1):
       mingw: embed a manifest to trick UAC into Doing The Right Thing
-
-Chris Mayo (1):
-      send-email: update documentation of required Perl modules
 
 Christian Couder (7):
       t/helper: add test-oidmap.c
@@ -121,18 +205,14 @@ Christian Couder (7):
 Daniel Ferreira (1):
       dir-iterator: add tests for dir-iterator API
 
-Denton Liu (5):
+Denton Liu (3):
       git-format-patch.txt: document --no-notes option
       format-patch: teach format.notes config option
       config: learn the "onbranch:" includeIf condition
-      config/alias.txt: change " and ' to `
-      config/alias.txt: document alias accepting non-command first word
 
-Derrick Stolee (50):
-      commit-graph: fix the_repository reference
+Derrick Stolee (35):
       revision: use generation for A..B --topo-order queries
       revision: keep topo-walk free of unintersting commits
-      sha1-file: split OBJECT_INFO_FOR_PREFETCH
       repack: refactor pack deletion for future use
       Docs: rearrange subcommands for multi-pack-index
       multi-pack-index: prepare for 'expire' subcommand
@@ -144,19 +224,6 @@ Derrick Stolee (50):
       multi-pack-index: test expire while adding packs
       midx: add test that 'expire' respects .keep files
       t5319-multi-pack-index.sh: test batch size zero
-      commit-graph: return with errors during write
-      commit-graph: collapse parameters into flags
-      commit-graph: remove Future Work section
-      commit-graph: create write_commit_graph_context
-      commit-graph: extract fill_oids_from_packs()
-      commit-graph: extract fill_oids_from_commit_hex()
-      commit-graph: extract fill_oids_from_all_packs()
-      commit-graph: extract count_distinct_commits()
-      commit-graph: extract copy_oids_to_commits()
-      commit-graph: extract write_commit_graph_file()
-      commit-graph: use raw_object_store when closing
-      packfile: close commit-graph in close_all_packs
-      packfile: rename close_all_packs to close_object_store
       commit-graph: document commit-graph chains
       commit-graph: prepare for commit-graph chains
       commit-graph: rename commit_compare to oid_compare
@@ -183,12 +250,6 @@ Derrick Stolee (50):
 Dimitriy Ryazantcev (1):
       l10n: localizable upload progress messages
 
-Doug Ilijev (1):
-      README: fix rendering of text in angle brackets
-
-Dr. Adam Nielsen (1):
-      gitignore.txt: make slash-rules more readable
-
 Edmundo Carmona Antoranz (1):
       builtin/merge.c - cleanup of code in for-cycle that tests strategies
 
@@ -199,29 +260,15 @@ Elijah Newren (5):
       fast-export: differentiate between explicitly UTF-8 and implicitly UTF-8
       fast-export: do automatic reencoding of commit messages only if requested
 
-Emily Shaffer (7):
+Emily Shaffer (4):
       documentation: add tutorial for first contribution
       documentation: add anchors to MyFirstContribution
-      grep: fail if call could output and name is null
-      doc: hint about GIT_DEBUGGER in CodingGuidelines
       doc: add some nit fixes to MyFirstContribution
       rev-list: teach --no-object-names to enable piping
-      transport-helper: enforce atomic in push_refs_with_push
 
-Eric Wong (3):
+Eric Wong (2):
       update-server-info: avoid needless overwrites
-      server-info: do not list unlinked packs
       repack: disable bitmaps-by-default if .keep files exist
-
-Felipe Contreras (5):
-      t5801 (remote-helpers): cleanup refspec stuff
-      t5801 (remote-helpers): add test to fetch tags
-      fetch: trivial cleanup
-      fetch: make the code more understandable
-      fetch: fix regression with transport helpers
-
-Jakub Wilk (1):
-      doc: don't use git.kernel.org as example gitweb URL
 
 Jeff Hostetler (13):
       cache-tree/blame: avoid reusing the DEBUG constant
@@ -238,7 +285,7 @@ Jeff Hostetler (13):
       msvc: do not pretend to support all signals
       msvc: ignore .dll and incremental compile output
 
-Jeff King (50):
+Jeff King (42):
       cmd_{read,write}_tree: rename "unused" variable that is used
       builtin: consistently pass cmd_* prefix to parse_options
       submodule: drop unused prefix parameter from some functions
@@ -255,12 +302,6 @@ Jeff King (50):
       verify-commit: simplify parameters to run_gpg_verify()
       help_unknown_ref(): duplicate collected refnames
       help_unknown_ref(): check for refname ambiguity
-      upload-pack: strip namespace from symref data
-      am: simplify prompt response handling
-      am: read interactive input from stdin
-      am: drop tty requirement for --interactive
-      am: fix --interactive HEAD tree resolution
-      interpret-trailers: load default config
       describe: fix accidental oid/hash type-punning
       upload-pack: rename a "sha1" variable to "oid"
       pack-bitmap-write: convert some helpers to use object_id
@@ -278,7 +319,6 @@ Jeff King (50):
       khash: rename oid helper functions
       hash.h: move object_id definition from cache.h
       hashmap: convert sha1hash() to oidhash()
-      delta-islands: respect progress flag
       blame: drop some unused function parameters
       object-store.h: move for_each_alternate_ref() from transport.h
       check_everything_connected: assume alternate ref tips are valid
@@ -288,39 +328,24 @@ Jeff King (50):
       t5702: use test_commit_bulk
       t5703: use test_commit_bulk
       t6200: use test_commit_bulk
-      xdiff: clamp function context indices in post-image
 
-Johannes Schindelin (32):
+Johannes Schindelin (18):
       Drop unused git-rebase--am.sh
       t3400: stop referring to the scripted rebase
       .gitignore: there is no longer a built-in `git-rebase--interactive`
       sequencer: the `am` and `rebase--interactive` scripts are gone
       rebase: fold git-rebase--common into the -p backend
-      bisect--helper: verify HEAD could be parsed before continuing
-      fill_stat_cache_info(): prepare for an fsmonitor fix
-      mark_fsmonitor_valid(): mark the index as changed if needed
-      bundle verify: error out if called without an object database
-      poll (mingw): allow compiling with GCC 8 and DEVELOPER=1
-      kwset: allow building with GCC 8
-      winansi: simplify loading the GetCurrentConsoleFontEx() function
-      config: avoid calling `labs()` on too-large data type
-      t3404: fix a typo
       mingw: fix a typo in the msysGit-specific section
       Mark .bat files as requiring CR/LF endings
       t0001 (mingw): do not expect a specific order of stdout/stderr
       obstack: fix compiler warning
       mingw: replace mingw_startup() hack
       msvc: fix dependencies of compat/msvc.c
-      t0001: fix on case-insensitive filesystems
       msvc: avoid debug assertion windows in Debug Mode
       mingw: enable stack smashing protector
       mingw: get pw_name in UTF-8 format
       mingw: use Unicode functions explicitly
-      rebase --am: ignore rebase.rescheduleFailedExec
       mingw: fix possible buffer overrun when calling `GetUserNameW()`
-      diff: munmap() file contents before running external diff
-      mingw: support spawning programs containing spaces in their names
-      clean: show an error message when the path is too long
       rebase: fix white-space
       git: mark cmd_rebase as requiring a worktree
 
@@ -334,29 +359,14 @@ Johannes Sixt (5):
 John Lin (1):
       status: remove the empty line after hints
 
-Jonathan Tan (5):
-      t5616: refactor packfile replacement
-      index-pack: prefetch missing REF_DELTA bases
-      t5616: use correct flag to check object is missing
-      t5616: cover case of client having delta base
-      t5551: test usage of chunked encoding explicitly
-
-Josh Steadmon (1):
-      trace2: correct trace2 field name documentation
-
-Junio C Hamano (13):
+Junio C Hamano (8):
       The first batch after 2.22
       The second batch
       The third batch
       The fourth batch
       The fifth batch
-      transport-helper: avoid var decl in for () loop control
-      rm: resolving by removal is not a warning-worthy event
-      CodingGuidelines: spell out post-C89 rules
       The sixth batch
       The seventh batch
-      Flush fixes up to the third batch post 2.22.0
-      Merge fixes made on the 'master' front
       Git 2.23-rc0
 
 Karsten Blees (2):
@@ -379,11 +389,8 @@ Matheus Tavares (8):
       clone: use dir-iterator to avoid explicit dir traversal
       clone: replace strcmp by fspathcmp
 
-Matthew DeVore (5):
+Matthew DeVore (2):
       list-objects-filter-options: error is localizeable
-      list-objects-filter: correct usage of ALLOC_GROW
-      url: do not read past end of buffer
-      url: do not allow %00 to represent NUL in URLs
       ref-filter: sort detached HEAD lines firstly
 
 Mazo, Andrey (8):
@@ -403,20 +410,7 @@ Michael Platings (2):
       blame: add a fingerprint heuristic to match ignored lines
       t8014: remove unnecessary braces
 
-Miguel Ojeda (1):
-      clang-format: use git grep to generate the ForEachMacros list
-
-Mike Hommey (2):
-      dup() the input fd for fast-import used for remote helpers
-      Use xmmap_gently instead of xmmap in use_pack
-
-Mike Mueller (1):
-      p4 unshelve: fix "Not a valid object name HEAD0" on Windows
-
-Morian Sonnet (1):
-      submodule foreach: fix recursion of options
-
-Nguyễn Thái Ngọc Duy (63):
+Nguyễn Thái Ngọc Duy (60):
       git-checkout.txt: spell out --no-option
       git-checkout.txt: fix one syntax line
       doc: document --overwrite-ignore
@@ -461,11 +455,8 @@ Nguyễn Thái Ngọc Duy (63):
       help: move git-diff and git-reset to different groups
       Declare both git-switch and git-restore experimental
       merge: remove drop_save() in favor of remove_merge_branch_state()
-      init: make --template path relative to $CWD
       worktree add: sanitize worktree names
-      worktree add: be tolerant of corrupt worktrees
       merge: add --quit
-      completion: do not cache if --git-completion-helper fails
       fetch: only run 'gc' once when fetching multiple remotes
       t2027: use test_must_be_empty
       switch: allow to switch in the middle of bisect
@@ -486,25 +477,15 @@ Nickolai Belakovski (3):
       branch: update output to include worktree info
       branch: add worktree info on verbose output
 
-Paolo Bonzini (2):
-      request-pull: quote regex metacharacters in local ref
-      request-pull: warn if the remote object is not the same as the local one
-
-Philip Oakley (6):
+Philip Oakley (5):
       git.c: show usage for accessing the git(1) help page
       Doc: git.txt: remove backticks from link and add git-scm.com/docs
-      doc branch: provide examples for listing remote tracking branches
       msvc: include sigset_t definition
       msvc: define O_ACCMODE
       msvc: add pragmas for common warnings
 
-Phillip Wood (12):
-      rebase: fix a memory leak
-      rebase: warn if state directory cannot be removed
-      sequencer: return errors from sequencer_remove_state()
-      rebase --abort/--quit: cleanup refs/rewritten
+Phillip Wood (7):
       rebase -r: always reword merge -c
-      add -p: fix checkout -p with pathological context
       show --continue/skip etc. consistently in synopsis
       sequencer: always allow tab after command name
       sequencer: factor out todo command name parsing
@@ -512,23 +493,8 @@ Phillip Wood (12):
       git-prompt: improve cherry-pick/revert detection
       t3420: remove progress lines before comparing output
 
-Quentin Nerden (2):
-      docs: git-clone: refer to long form of options
-      docs: git-clone: list short form of options first
-
 Ramsay Jones (1):
       env--helper: mark a file-local symbol as static
-
-René Scharfe (6):
-      cleanup: fix possible overflow errors in binary search, part 2
-      coccinelle: use COPY_ARRAY for copying arrays
-      use COPY_ARRAY for copying arrays
-      config: use unsigned_mult_overflows to check for overflows
-      config: don't multiply in parse_unit_factor()
-      config: simplify parsing of unit factors
-
-Robert Morgan (1):
-      gpg(docs): use correct --verify syntax
 
 Rohit Ashiwal (5):
       sequencer: add advice for revert
@@ -537,34 +503,17 @@ Rohit Ashiwal (5):
       cherry-pick/revert: add --skip option
       cherry-pick/revert: advise using --skip
 
-SZEDER Gábor (11):
-      t3404: modernize here doc style
-      t3404: make the 'rebase.missingCommitsCheck=ignore' test more focused
-      pager: add a helper function to clear the last line in the terminal
-      t5551: use 'test_i18ngrep' to check translated output
-      rebase: fix garbled progress display with '-x'
-      progress: use term_clear_line()
-      Document that 'git -C ""' works and doesn't change directory
-      ci: don't update Homebrew
-      ci: disable Homebrew's auto cleanup
-      ci/lib.sh: update a comment about installed P4 and Git-LFS versions
+SZEDER Gábor (1):
       travis-ci: build with GCC 4.8 as well
-
-Simon Williams (1):
-      git-p4: allow unshelving of branched files
 
 Stephen Boyd (2):
       format-patch: inform user that patch-id generation is unstable
       format-patch: make --base patch-id output stable
 
-Steven Roberts (1):
-      gpg-interface: do not scan past the end of buffer
-
 Taylor Blau (1):
       ref-filter.c: find disjoint pattern prefixes
 
-Thomas Gummerer (16):
-      stash: fix show referencing stash index
+Thomas Gummerer (15):
       apply: replace marc.info link with public-inbox
       apply: only pass required data to skip_tree_prefix
       apply: only pass required data to git_header_name
@@ -584,16 +533,7 @@ Thomas Gummerer (16):
 Tigran Mkrtchyan (1):
       tag: add tag.gpgSign config option to force all tags be GPG-signed
 
-Varun Naik (1):
-      read-cache.c: do not die if mmap fails
-
-Vishal Verma (1):
-      merge: refuse --commit with --squash
-
-Xin Li (1):
-      clone: respect user supplied origin name when setting up partial clone
-
-Ævar Arnfjörð Bjarmason (21):
+Ævar Arnfjörð Bjarmason (20):
       send-email: move the read_config() function above getopts
       send-email: rename the @bcclist variable for consistency
       send-email: do defaults -> config -> getopt in that order
@@ -602,7 +542,6 @@ Xin Li (1):
       send-email: remove cargo-culted multi-patch pattern in tests
       send-email: fix broken transferEncoding tests
       send-email: document --no-[to|cc|bcc]
-      hash-object doc: stop mentioning git-cvsimport
       send-email: fix regression in sendemail.identity parsing
       Revert "test-lib: whitelist GIT_TR2_* in the environment"
       config tests: simplify include cycle test
@@ -615,6 +554,204 @@ Xin Li (1):
       tests: make GIT_TEST_FAIL_PREREQS a boolean
       tests: mark two failing tests under FAIL_PREREQS
       clone: test for our behavior on odd objects/* content
+
+
+Version v2.22.1; changes since v2.22.0:
+---------------------------------------
+
+Beat Bolli (1):
+      unicode: update the width tables to Unicode 12.1
+
+Carlo Marcelo Arenas Belón (5):
+      fsmonitor: avoid signed integer overflow / infinite loop
+      wrapper: avoid undefined behaviour in macOS
+      xdiff: drop system includes in xutils.c
+      xdiff: remove duplicate headers from xhistogram.c
+      xdiff: remove duplicate headers from xpatience.c
+
+Chris Mayo (1):
+      send-email: update documentation of required Perl modules
+
+Denton Liu (2):
+      config/alias.txt: change " and ' to `
+      config/alias.txt: document alias accepting non-command first word
+
+Derrick Stolee (15):
+      commit-graph: fix the_repository reference
+      sha1-file: split OBJECT_INFO_FOR_PREFETCH
+      commit-graph: return with errors during write
+      commit-graph: collapse parameters into flags
+      commit-graph: remove Future Work section
+      commit-graph: create write_commit_graph_context
+      commit-graph: extract fill_oids_from_packs()
+      commit-graph: extract fill_oids_from_commit_hex()
+      commit-graph: extract fill_oids_from_all_packs()
+      commit-graph: extract count_distinct_commits()
+      commit-graph: extract copy_oids_to_commits()
+      commit-graph: extract write_commit_graph_file()
+      commit-graph: use raw_object_store when closing
+      packfile: close commit-graph in close_all_packs
+      packfile: rename close_all_packs to close_object_store
+
+Doug Ilijev (1):
+      README: fix rendering of text in angle brackets
+
+Dr. Adam Nielsen (1):
+      gitignore.txt: make slash-rules more readable
+
+Emily Shaffer (3):
+      grep: fail if call could output and name is null
+      doc: hint about GIT_DEBUGGER in CodingGuidelines
+      transport-helper: enforce atomic in push_refs_with_push
+
+Eric Wong (1):
+      server-info: do not list unlinked packs
+
+Felipe Contreras (5):
+      t5801 (remote-helpers): cleanup refspec stuff
+      t5801 (remote-helpers): add test to fetch tags
+      fetch: trivial cleanup
+      fetch: make the code more understandable
+      fetch: fix regression with transport helpers
+
+Jakub Wilk (1):
+      doc: don't use git.kernel.org as example gitweb URL
+
+Jeff King (10):
+      upload-pack: strip namespace from symref data
+      am: simplify prompt response handling
+      am: read interactive input from stdin
+      am: drop tty requirement for --interactive
+      am: fix --interactive HEAD tree resolution
+      interpret-trailers: load default config
+      verify-tag: drop signal.h include
+      wt-status.h: drop stdio.h include
+      delta-islands: respect progress flag
+      xdiff: clamp function context indices in post-image
+
+Johannes Schindelin (14):
+      bisect--helper: verify HEAD could be parsed before continuing
+      fill_stat_cache_info(): prepare for an fsmonitor fix
+      mark_fsmonitor_valid(): mark the index as changed if needed
+      bundle verify: error out if called without an object database
+      poll (mingw): allow compiling with GCC 8 and DEVELOPER=1
+      kwset: allow building with GCC 8
+      winansi: simplify loading the GetCurrentConsoleFontEx() function
+      config: avoid calling `labs()` on too-large data type
+      t3404: fix a typo
+      t0001: fix on case-insensitive filesystems
+      rebase --am: ignore rebase.rescheduleFailedExec
+      diff: munmap() file contents before running external diff
+      mingw: support spawning programs containing spaces in their names
+      clean: show an error message when the path is too long
+
+Jonathan Tan (5):
+      t5616: refactor packfile replacement
+      index-pack: prefetch missing REF_DELTA bases
+      t5616: use correct flag to check object is missing
+      t5616: cover case of client having delta base
+      t5551: test usage of chunked encoding explicitly
+
+Josh Steadmon (1):
+      trace2: correct trace2 field name documentation
+
+Junio C Hamano (6):
+      transport-helper: avoid var decl in for () loop control
+      rm: resolving by removal is not a warning-worthy event
+      CodingGuidelines: spell out post-C89 rules
+      Flush fixes up to the third batch post 2.22.0
+      Merge fixes made on the 'master' front
+      Git 2.22.1
+
+Martin Ågren (1):
+      RelNotes/2.21.1: typofix
+
+Matthew DeVore (3):
+      list-objects-filter: correct usage of ALLOC_GROW
+      url: do not read past end of buffer
+      url: do not allow %00 to represent NUL in URLs
+
+Miguel Ojeda (1):
+      clang-format: use git grep to generate the ForEachMacros list
+
+Mike Hommey (2):
+      dup() the input fd for fast-import used for remote helpers
+      Use xmmap_gently instead of xmmap in use_pack
+
+Mike Mueller (1):
+      p4 unshelve: fix "Not a valid object name HEAD0" on Windows
+
+Morian Sonnet (1):
+      submodule foreach: fix recursion of options
+
+Nguyễn Thái Ngọc Duy (3):
+      init: make --template path relative to $CWD
+      worktree add: be tolerant of corrupt worktrees
+      completion: do not cache if --git-completion-helper fails
+
+Paolo Bonzini (2):
+      request-pull: quote regex metacharacters in local ref
+      request-pull: warn if the remote object is not the same as the local one
+
+Philip Oakley (2):
+      doc branch: provide examples for listing remote tracking branches
+      .mailmap: update email address of Philip Oakley
+
+Phillip Wood (5):
+      rebase: fix a memory leak
+      rebase: warn if state directory cannot be removed
+      sequencer: return errors from sequencer_remove_state()
+      rebase --abort/--quit: cleanup refs/rewritten
+      add -p: fix checkout -p with pathological context
+
+Quentin Nerden (2):
+      docs: git-clone: refer to long form of options
+      docs: git-clone: list short form of options first
+
+René Scharfe (6):
+      cleanup: fix possible overflow errors in binary search, part 2
+      coccinelle: use COPY_ARRAY for copying arrays
+      use COPY_ARRAY for copying arrays
+      config: use unsigned_mult_overflows to check for overflows
+      config: don't multiply in parse_unit_factor()
+      config: simplify parsing of unit factors
+
+Robert Morgan (1):
+      gpg(docs): use correct --verify syntax
+
+SZEDER Gábor (11):
+      t3404: modernize here doc style
+      t3404: make the 'rebase.missingCommitsCheck=ignore' test more focused
+      pager: add a helper function to clear the last line in the terminal
+      t5551: use 'test_i18ngrep' to check translated output
+      rebase: fix garbled progress display with '-x'
+      progress: use term_clear_line()
+      Document that 'git -C ""' works and doesn't change directory
+      ci: don't update Homebrew
+      ci: disable Homebrew's auto cleanup
+      ci/lib.sh: update a comment about installed P4 and Git-LFS versions
+      Documentation/git-fsck.txt: include fsck.* config variables
+
+Simon Williams (1):
+      git-p4: allow unshelving of branched files
+
+Steven Roberts (1):
+      gpg-interface: do not scan past the end of buffer
+
+Thomas Gummerer (1):
+      stash: fix show referencing stash index
+
+Varun Naik (1):
+      read-cache.c: do not die if mmap fails
+
+Vishal Verma (1):
+      merge: refuse --commit with --squash
+
+Xin Li (1):
+      clone: respect user supplied origin name when setting up partial clone
+
+Ævar Arnfjörð Bjarmason (1):
+      hash-object doc: stop mentioning git-cvsimport
 
 
 Version v2.22.0; changes since v2.22.0-rc3:
