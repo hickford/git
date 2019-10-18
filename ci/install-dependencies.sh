@@ -49,11 +49,12 @@ osx-clang|osx-gcc)
 	;;
 StaticAnalysis)
 	sudo apt-get -q update
-	sudo apt-get -q -y install coccinelle
+	sudo apt-get -q -y install coccinelle libcurl4-openssl-dev libssl-dev \
+		libexpat-dev gettext
 	;;
 Documentation)
 	sudo apt-get -q update
-	sudo apt-get -q -y install asciidoc xmlto
+	sudo apt-get -q -y install asciidoc xmlto docbook-xsl-ns
 
 	test -n "$ALREADY_HAVE_ASCIIDOCTOR" ||
 	gem install --version 1.5.8 asciidoctor
