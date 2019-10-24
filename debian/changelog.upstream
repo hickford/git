@@ -1,3 +1,49 @@
+Version v2.24.0-rc1; changes since v2.24.0-rc0:
+-----------------------------------------------
+
+Bert Wesarg (1):
+      t4014: make output-directory tests self-contained
+
+Carlo Marcelo Arenas Belón (3):
+      grep: make PCRE1 aware of custom allocator
+      grep: make PCRE2 aware of custom allocator
+      grep: avoid leak of chartables in PCRE2
+
+Denton Liu (1):
+      t7419: change test_must_fail to ! for grep
+
+Derrick Stolee (1):
+      repo-settings: read an int for index.version
+
+Johannes Schindelin (3):
+      ci(visual-studio): use strict compile flags, and optimization
+      ci(visual-studio): actually run the tests in parallel
+      ci(osx): use new location of the `perforce` cask
+
+Junio C Hamano (2):
+      Eleventh batch
+      Git 2.24-rc1
+
+Maxim Belsky (1):
+      completion: clarify installation instruction for zsh
+
+Norman Rasmussen (1):
+      diff-highlight: fix a whitespace nit
+
+SZEDER Gábor (2):
+      test-progress: fix test failures on big-endian systems
+      ci: fix GCC install in the Travis CI GCC OSX job
+
+Stephen Boyd (1):
+      userdiff: fix some corner cases in dts regex
+
+William Baker (1):
+      fsmonitor: don't fill bitmap with entries to be removed
+
+brian m. carlson (1):
+      remote-curl: pass on atomic capability to remote side
+
+
 Version v2.24.0-rc0; changes since v2.23.0:
 -------------------------------------------
 
