@@ -1,3 +1,19 @@
+Version v2.24.0-rc2; changes since v2.24.0-rc1:
+-----------------------------------------------
+
+Johannes Schindelin (1):
+      mingw: avoid a buffer overrun in `needs_hiding()`
+
+Junio C Hamano (1):
+      Git 2.24-rc2
+
+Robert Luberda (1):
+      gitweb: correctly store previous rev in javascript-actions mode
+
+William Baker (1):
+      t7519-status-fsmonitor: improve comments
+
+
 Version v2.24.0-rc1; changes since v2.24.0-rc0:
 -----------------------------------------------
 
