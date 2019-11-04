@@ -1,3 +1,9 @@
+git (1:2.24.0-1) unstable; urgency=medium
+
+  * new upstream release (see RelNotes/2.24.0.txt).
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Sun, 03 Nov 2019 22:16:20 -0800
+
 git (1:2.24.0~rc2-1) unstable; urgency=low
 
   * new upstream release candidate.

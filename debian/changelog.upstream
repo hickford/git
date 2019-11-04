@@ -1,3 +1,74 @@
+Version v2.24.0; changes since v2.24.0-rc2:
+-------------------------------------------
+
+Alessandro Menti (2):
+      l10n: it.po: update the Italian translation for Git 2.24.0
+      l10n: it.po: update the Italian translation for Git 2.24.0 round #2
+
+Alexander Shopov (2):
+      l10n: bg.po: Updated Bulgarian translation (4693)
+      l10n: bg.po: Updated Bulgarian translation (4694)
+
+Bert Wesarg (2):
+      git-gui: use existing interface to query a path's attribute
+      git-gui: support for diff3 conflict style
+
+Christopher Diaz Riveros (1):
+      l10n: es: 2.24.0 round 2
+
+Derrick Stolee (2):
+      t5510-fetch.sh: demonstrate fetch.writeCommitGraph bug
+      commit-graph: fix writing first commit-graph during fetch
+
+Elijah Newren (2):
+      RelNotes/2.24.0: typofix
+      RelNotes/2.24.0: fix self-contradictory note
+
+Jean-Noël Avila (2):
+      l10n: fr 2.24.0 rnd 1
+      l10n: fr v2.24.0 rnd2
+
+Jiang Xin (3):
+      l10n: git.pot: v2.24.0 round 1 (35 new, 16 removed)
+      l10n: git.pot: v2.24.0 round 2 (1 new)
+      l10n: zh_CN: for git v2.24.0 l10n round 1~2
+
+Johannes Schindelin (1):
+      Fix build with core.autocrlf=true
+
+Jonathan Tan (1):
+      fetch: delay fetch_if_missing=0 until after config
+
+Jordi Mas (1):
+      l10n: Update Catalan translation
+
+Junio C Hamano (1):
+      Git 2.24
+
+Martin Ågren (2):
+      treewide: correct several "up-to-date" to "up to date"
+      manpage-bold-literal.xsl: match for namespaced "d:literal" in template
+
+Matthias Rüster (1):
+      l10n: de.po: Update German translation
+
+Peter Krefting (2):
+      l10n: sv.po: Update Swedish translation (4674t0f0u)
+      l10n: sv.po: Update Swedish translation (4695t0f0u)
+
+Pratyush Yadav (1):
+      git-gui: add a readme
+
+Thomas Klaeger (1):
+      git-gui (Windows): use git-bash.exe if it is available
+
+Trần Ngọc Quân (1):
+      l10n: vi(4694t): Updated translation for v2.24.0
+
+kdnakt (1):
+      git-gui: improve Japanese translation
+
+
 Version v2.24.0-rc2; changes since v2.24.0-rc1:
 -----------------------------------------------
 
