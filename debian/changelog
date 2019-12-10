@@ -1,3 +1,9 @@
+git (1:2.24.1-1) unstable; urgency=low
+
+  * update to use upstream tarball for 2.24.1.
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 10 Dec 2019 13:21:59 -0800
+
 git (1:2.24.0-2) unstable; urgency=high
 
   * new upstream point release (see RelNotes/2.24.1.txt).

@@ -1,3 +1,63 @@
+Version v2.24.1; changes since v2.24.0:
+---------------------------------------
+
+Garima Singh (2):
+      test-path-utils: offer to run a protectNTFS/protectHFS benchmark
+      tests: add a helper to stress test argument quoting
+
+Jeff King (7):
+      t9300: drop some useless uses of cat
+      t9300: create marks files for double-import-marks test
+      fast-import: tighten parsing of boolean command line options
+      fast-import: stop creating leading directories for import-marks
+      fast-import: delay creating leading directories for export-marks
+      fast-import: disallow "feature export-marks" by default
+      fast-import: disallow "feature import-marks" by default
+
+Johannes Schindelin (36):
+      clone --recurse-submodules: prevent name squatting on Windows
+      mingw: disallow backslash characters in tree objects' file names
+      path.c: document the purpose of `is_ntfs_dotgit()`
+      is_ntfs_dotgit(): only verify the leading segment
+      path: safeguard `.git` against NTFS Alternate Streams Accesses
+      is_ntfs_dotgit(): speed it up
+      mingw: fix quoting of arguments
+      path: also guard `.gitmodules` against NTFS Alternate Data Streams
+      protect_ntfs: turn on NTFS protection by default
+      Disallow dubiously-nested submodule git directories
+      quote-stress-test: accept arguments to test via the command-line
+      t6130/t9350: prepare for stringent Win32 path validation
+      quote-stress-test: allow skipping some trials
+      unpack-trees: let merged_entry() pass through do_add_entry()'s errors
+      mingw: refuse to access paths with illegal characters
+      quote-stress-test: offer to test quoting arguments for MSYS2 sh
+      mingw: refuse to access paths with trailing spaces or periods
+      mingw: handle `subst`-ed "DOS drives"
+      Git 2.14.6
+      Git 2.15.4
+      test-drop-caches: use `has_dos_drive_prefix()`
+      Git 2.16.6
+      Git 2.17.3
+      Git 2.18.2
+      Git 2.19.3
+      t7415: adjust test for dubiously-nested submodule gitdirs for v2.20.x
+      Git 2.20.2
+      mingw: detect when MSYS2's sh is to be spawned more robustly
+      mingw: use MSYS2 quoting even when spawning shell scripts
+      mingw: fix quoting of empty arguments for `sh`
+      t7415: drop v2.20.x-specific work-around
+      mingw: sh arguments need quoting in more circumstances
+      Git 2.21.1
+      Git 2.22.2
+      Git 2.23.1
+      Git 2.24.1
+
+Jonathan Nieder (3):
+      submodule: reject submodule.update = !command in .gitmodules
+      fsck: reject submodule.update = !command in .gitmodules
+      submodule: defend against submodule.update = !command in .gitmodules
+
+
 Version v2.24.0; changes since v2.24.0-rc2:
 -------------------------------------------
 
@@ -131,7 +191,7 @@ brian m. carlson (1):
       remote-curl: pass on atomic capability to remote side
 
 
-Version v2.24.0-rc0; changes since v2.23.0:
+Version v2.24.0-rc0; changes since v2.23.1:
 -------------------------------------------
 
 Adam Roben (1):
@@ -754,6 +814,65 @@ brian m. carlson (43):
       rebase tests: test linear branch topology
 
 
+Version v2.23.1; changes since v2.23.0:
+---------------------------------------
+
+Garima Singh (2):
+      test-path-utils: offer to run a protectNTFS/protectHFS benchmark
+      tests: add a helper to stress test argument quoting
+
+Jeff King (7):
+      t9300: drop some useless uses of cat
+      t9300: create marks files for double-import-marks test
+      fast-import: tighten parsing of boolean command line options
+      fast-import: stop creating leading directories for import-marks
+      fast-import: delay creating leading directories for export-marks
+      fast-import: disallow "feature export-marks" by default
+      fast-import: disallow "feature import-marks" by default
+
+Johannes Schindelin (35):
+      clone --recurse-submodules: prevent name squatting on Windows
+      mingw: disallow backslash characters in tree objects' file names
+      path.c: document the purpose of `is_ntfs_dotgit()`
+      is_ntfs_dotgit(): only verify the leading segment
+      path: safeguard `.git` against NTFS Alternate Streams Accesses
+      is_ntfs_dotgit(): speed it up
+      mingw: fix quoting of arguments
+      path: also guard `.gitmodules` against NTFS Alternate Data Streams
+      protect_ntfs: turn on NTFS protection by default
+      Disallow dubiously-nested submodule git directories
+      quote-stress-test: accept arguments to test via the command-line
+      t6130/t9350: prepare for stringent Win32 path validation
+      quote-stress-test: allow skipping some trials
+      unpack-trees: let merged_entry() pass through do_add_entry()'s errors
+      mingw: refuse to access paths with illegal characters
+      quote-stress-test: offer to test quoting arguments for MSYS2 sh
+      mingw: refuse to access paths with trailing spaces or periods
+      mingw: handle `subst`-ed "DOS drives"
+      Git 2.14.6
+      Git 2.15.4
+      test-drop-caches: use `has_dos_drive_prefix()`
+      Git 2.16.6
+      Git 2.17.3
+      Git 2.18.2
+      Git 2.19.3
+      t7415: adjust test for dubiously-nested submodule gitdirs for v2.20.x
+      Git 2.20.2
+      mingw: detect when MSYS2's sh is to be spawned more robustly
+      mingw: use MSYS2 quoting even when spawning shell scripts
+      mingw: fix quoting of empty arguments for `sh`
+      t7415: drop v2.20.x-specific work-around
+      mingw: sh arguments need quoting in more circumstances
+      Git 2.21.1
+      Git 2.22.2
+      Git 2.23.1
+
+Jonathan Nieder (3):
+      submodule: reject submodule.update = !command in .gitmodules
+      fsck: reject submodule.update = !command in .gitmodules
+      submodule: defend against submodule.update = !command in .gitmodules
+
+
 Version v2.23.0; changes since v2.23.0-rc2:
 -------------------------------------------
 
@@ -915,7 +1034,7 @@ brian m. carlson (10):
       t2203: avoid hard-coded object ID values
 
 
-Version v2.23.0-rc0; changes since v2.22.1:
+Version v2.23.0-rc0; changes since v2.22.2:
 -------------------------------------------
 
 Andrey Mazo (8):
@@ -1310,6 +1429,64 @@ Tigran Mkrtchyan (1):
       tests: make GIT_TEST_FAIL_PREREQS a boolean
       tests: mark two failing tests under FAIL_PREREQS
       clone: test for our behavior on odd objects/* content
+
+
+Version v2.22.2; changes since v2.22.1:
+---------------------------------------
+
+Garima Singh (2):
+      test-path-utils: offer to run a protectNTFS/protectHFS benchmark
+      tests: add a helper to stress test argument quoting
+
+Jeff King (7):
+      t9300: drop some useless uses of cat
+      t9300: create marks files for double-import-marks test
+      fast-import: tighten parsing of boolean command line options
+      fast-import: stop creating leading directories for import-marks
+      fast-import: delay creating leading directories for export-marks
+      fast-import: disallow "feature export-marks" by default
+      fast-import: disallow "feature import-marks" by default
+
+Johannes Schindelin (34):
+      clone --recurse-submodules: prevent name squatting on Windows
+      mingw: disallow backslash characters in tree objects' file names
+      path.c: document the purpose of `is_ntfs_dotgit()`
+      is_ntfs_dotgit(): only verify the leading segment
+      path: safeguard `.git` against NTFS Alternate Streams Accesses
+      is_ntfs_dotgit(): speed it up
+      mingw: fix quoting of arguments
+      path: also guard `.gitmodules` against NTFS Alternate Data Streams
+      protect_ntfs: turn on NTFS protection by default
+      Disallow dubiously-nested submodule git directories
+      quote-stress-test: accept arguments to test via the command-line
+      t6130/t9350: prepare for stringent Win32 path validation
+      quote-stress-test: allow skipping some trials
+      unpack-trees: let merged_entry() pass through do_add_entry()'s errors
+      mingw: refuse to access paths with illegal characters
+      quote-stress-test: offer to test quoting arguments for MSYS2 sh
+      mingw: refuse to access paths with trailing spaces or periods
+      mingw: handle `subst`-ed "DOS drives"
+      Git 2.14.6
+      Git 2.15.4
+      test-drop-caches: use `has_dos_drive_prefix()`
+      Git 2.16.6
+      Git 2.17.3
+      Git 2.18.2
+      Git 2.19.3
+      t7415: adjust test for dubiously-nested submodule gitdirs for v2.20.x
+      Git 2.20.2
+      mingw: detect when MSYS2's sh is to be spawned more robustly
+      mingw: use MSYS2 quoting even when spawning shell scripts
+      mingw: fix quoting of empty arguments for `sh`
+      t7415: drop v2.20.x-specific work-around
+      mingw: sh arguments need quoting in more circumstances
+      Git 2.21.1
+      Git 2.22.2
+
+Jonathan Nieder (3):
+      submodule: reject submodule.update = !command in .gitmodules
+      fsck: reject submodule.update = !command in .gitmodules
+      submodule: defend against submodule.update = !command in .gitmodules
 
 
 Version v2.22.1; changes since v2.22.0:
@@ -1715,7 +1892,7 @@ Todd Zullinger (1):
       mingw: enable DEP and ASLR
 
 
-Version v2.22.0-rc0; changes since v2.21.0:
+Version v2.22.0-rc0; changes since v2.21.1:
 -------------------------------------------
 
 Alban Gruin (18):
@@ -2483,6 +2660,63 @@ brian m. carlson (35):
       trace2: fix up a missing "leave" entry point
 
 
+Version v2.21.1; changes since v2.21.0:
+---------------------------------------
+
+Garima Singh (2):
+      test-path-utils: offer to run a protectNTFS/protectHFS benchmark
+      tests: add a helper to stress test argument quoting
+
+Jeff King (7):
+      t9300: drop some useless uses of cat
+      t9300: create marks files for double-import-marks test
+      fast-import: tighten parsing of boolean command line options
+      fast-import: stop creating leading directories for import-marks
+      fast-import: delay creating leading directories for export-marks
+      fast-import: disallow "feature export-marks" by default
+      fast-import: disallow "feature import-marks" by default
+
+Johannes Schindelin (33):
+      clone --recurse-submodules: prevent name squatting on Windows
+      mingw: disallow backslash characters in tree objects' file names
+      path.c: document the purpose of `is_ntfs_dotgit()`
+      is_ntfs_dotgit(): only verify the leading segment
+      path: safeguard `.git` against NTFS Alternate Streams Accesses
+      is_ntfs_dotgit(): speed it up
+      mingw: fix quoting of arguments
+      path: also guard `.gitmodules` against NTFS Alternate Data Streams
+      protect_ntfs: turn on NTFS protection by default
+      Disallow dubiously-nested submodule git directories
+      quote-stress-test: accept arguments to test via the command-line
+      t6130/t9350: prepare for stringent Win32 path validation
+      quote-stress-test: allow skipping some trials
+      unpack-trees: let merged_entry() pass through do_add_entry()'s errors
+      mingw: refuse to access paths with illegal characters
+      quote-stress-test: offer to test quoting arguments for MSYS2 sh
+      mingw: refuse to access paths with trailing spaces or periods
+      mingw: handle `subst`-ed "DOS drives"
+      Git 2.14.6
+      Git 2.15.4
+      test-drop-caches: use `has_dos_drive_prefix()`
+      Git 2.16.6
+      Git 2.17.3
+      Git 2.18.2
+      Git 2.19.3
+      t7415: adjust test for dubiously-nested submodule gitdirs for v2.20.x
+      Git 2.20.2
+      mingw: detect when MSYS2's sh is to be spawned more robustly
+      mingw: use MSYS2 quoting even when spawning shell scripts
+      mingw: fix quoting of empty arguments for `sh`
+      t7415: drop v2.20.x-specific work-around
+      mingw: sh arguments need quoting in more circumstances
+      Git 2.21.1
+
+Jonathan Nieder (3):
+      submodule: reject submodule.update = !command in .gitmodules
+      fsck: reject submodule.update = !command in .gitmodules
+      submodule: defend against submodule.update = !command in .gitmodules
+
+
 Version v2.21.0; changes since v2.21.0-rc2:
 -------------------------------------------
 
@@ -2649,7 +2883,7 @@ brian m. carlson (1):
       rebase: fix regression in rebase.useBuiltin=false test mode
 
 
-Version v2.21.0-rc0; changes since v2.20.1:
+Version v2.21.0-rc0; changes since v2.20.2:
 -------------------------------------------
 
 Arti Zirk (1):
@@ -3185,6 +3419,57 @@ brian m. carlson (19):
       diff-tree doc: correct & remove wrong documentation
 
 
+Version v2.20.2; changes since v2.20.1:
+---------------------------------------
+
+Garima Singh (2):
+      test-path-utils: offer to run a protectNTFS/protectHFS benchmark
+      tests: add a helper to stress test argument quoting
+
+Jeff King (7):
+      t9300: drop some useless uses of cat
+      t9300: create marks files for double-import-marks test
+      fast-import: tighten parsing of boolean command line options
+      fast-import: stop creating leading directories for import-marks
+      fast-import: delay creating leading directories for export-marks
+      fast-import: disallow "feature export-marks" by default
+      fast-import: disallow "feature import-marks" by default
+
+Johannes Schindelin (27):
+      clone --recurse-submodules: prevent name squatting on Windows
+      mingw: disallow backslash characters in tree objects' file names
+      path.c: document the purpose of `is_ntfs_dotgit()`
+      is_ntfs_dotgit(): only verify the leading segment
+      path: safeguard `.git` against NTFS Alternate Streams Accesses
+      is_ntfs_dotgit(): speed it up
+      mingw: fix quoting of arguments
+      path: also guard `.gitmodules` against NTFS Alternate Data Streams
+      protect_ntfs: turn on NTFS protection by default
+      Disallow dubiously-nested submodule git directories
+      quote-stress-test: accept arguments to test via the command-line
+      t6130/t9350: prepare for stringent Win32 path validation
+      quote-stress-test: allow skipping some trials
+      unpack-trees: let merged_entry() pass through do_add_entry()'s errors
+      mingw: refuse to access paths with illegal characters
+      quote-stress-test: offer to test quoting arguments for MSYS2 sh
+      mingw: refuse to access paths with trailing spaces or periods
+      mingw: handle `subst`-ed "DOS drives"
+      Git 2.14.6
+      Git 2.15.4
+      test-drop-caches: use `has_dos_drive_prefix()`
+      Git 2.16.6
+      Git 2.17.3
+      Git 2.18.2
+      Git 2.19.3
+      t7415: adjust test for dubiously-nested submodule gitdirs for v2.20.x
+      Git 2.20.2
+
+Jonathan Nieder (3):
+      submodule: reject submodule.update = !command in .gitmodules
+      fsck: reject submodule.update = !command in .gitmodules
+      submodule: defend against submodule.update = !command in .gitmodules
+
+
 Version v2.20.1; changes since v2.20.0:
 ---------------------------------------
 
@@ -3362,7 +3647,7 @@ Torsten Bögershausen (2):
       git-compat-util: prefer poll.h to sys/poll.h
 
 
-Version v2.20.0-rc0; changes since v2.19.2:
+Version v2.20.0-rc0; changes since v2.19.3:
 -------------------------------------------
 
 Aaron Lindsay (1):
@@ -4237,6 +4522,54 @@ brian m. carlson (26):
       tests: add a special setup where rebase.useBuiltin is off
 
 
+Version v2.19.3; changes since v2.19.2:
+---------------------------------------
+
+Garima Singh (2):
+      test-path-utils: offer to run a protectNTFS/protectHFS benchmark
+      tests: add a helper to stress test argument quoting
+
+Jeff King (7):
+      t9300: drop some useless uses of cat
+      t9300: create marks files for double-import-marks test
+      fast-import: tighten parsing of boolean command line options
+      fast-import: stop creating leading directories for import-marks
+      fast-import: delay creating leading directories for export-marks
+      fast-import: disallow "feature export-marks" by default
+      fast-import: disallow "feature import-marks" by default
+
+Johannes Schindelin (25):
+      clone --recurse-submodules: prevent name squatting on Windows
+      mingw: disallow backslash characters in tree objects' file names
+      path.c: document the purpose of `is_ntfs_dotgit()`
+      is_ntfs_dotgit(): only verify the leading segment
+      path: safeguard `.git` against NTFS Alternate Streams Accesses
+      is_ntfs_dotgit(): speed it up
+      mingw: fix quoting of arguments
+      path: also guard `.gitmodules` against NTFS Alternate Data Streams
+      protect_ntfs: turn on NTFS protection by default
+      Disallow dubiously-nested submodule git directories
+      quote-stress-test: accept arguments to test via the command-line
+      t6130/t9350: prepare for stringent Win32 path validation
+      quote-stress-test: allow skipping some trials
+      unpack-trees: let merged_entry() pass through do_add_entry()'s errors
+      mingw: refuse to access paths with illegal characters
+      quote-stress-test: offer to test quoting arguments for MSYS2 sh
+      mingw: refuse to access paths with trailing spaces or periods
+      mingw: handle `subst`-ed "DOS drives"
+      Git 2.14.6
+      Git 2.15.4
+      test-drop-caches: use `has_dos_drive_prefix()`
+      Git 2.16.6
+      Git 2.17.3
+      Git 2.18.2
+      Git 2.19.3
+
+Jonathan Nieder (2):
+      submodule: reject submodule.update = !command in .gitmodules
+      fsck: reject submodule.update = !command in .gitmodules
+
+
 Version v2.19.2; changes since v2.19.1:
 ---------------------------------------
 
@@ -4574,7 +4907,7 @@ Samuel Maftoul (1):
       refactor various if (x) FREE_AND_NULL(x) to just FREE_AND_NULL(x)
 
 
-Version v2.19.0-rc0; changes since v2.18.1:
+Version v2.19.0-rc0; changes since v2.18.2:
 -------------------------------------------
 
 Aaron Schrab (1):
@@ -5405,6 +5738,53 @@ brian m. carlson (21):
       completion: complete remote names too
 
 
+Version v2.18.2; changes since v2.18.1:
+---------------------------------------
+
+Garima Singh (2):
+      test-path-utils: offer to run a protectNTFS/protectHFS benchmark
+      tests: add a helper to stress test argument quoting
+
+Jeff King (7):
+      t9300: drop some useless uses of cat
+      t9300: create marks files for double-import-marks test
+      fast-import: tighten parsing of boolean command line options
+      fast-import: stop creating leading directories for import-marks
+      fast-import: delay creating leading directories for export-marks
+      fast-import: disallow "feature export-marks" by default
+      fast-import: disallow "feature import-marks" by default
+
+Johannes Schindelin (24):
+      clone --recurse-submodules: prevent name squatting on Windows
+      mingw: disallow backslash characters in tree objects' file names
+      path.c: document the purpose of `is_ntfs_dotgit()`
+      is_ntfs_dotgit(): only verify the leading segment
+      path: safeguard `.git` against NTFS Alternate Streams Accesses
+      is_ntfs_dotgit(): speed it up
+      mingw: fix quoting of arguments
+      path: also guard `.gitmodules` against NTFS Alternate Data Streams
+      protect_ntfs: turn on NTFS protection by default
+      Disallow dubiously-nested submodule git directories
+      quote-stress-test: accept arguments to test via the command-line
+      t6130/t9350: prepare for stringent Win32 path validation
+      quote-stress-test: allow skipping some trials
+      unpack-trees: let merged_entry() pass through do_add_entry()'s errors
+      mingw: refuse to access paths with illegal characters
+      quote-stress-test: offer to test quoting arguments for MSYS2 sh
+      mingw: refuse to access paths with trailing spaces or periods
+      mingw: handle `subst`-ed "DOS drives"
+      Git 2.14.6
+      Git 2.15.4
+      test-drop-caches: use `has_dos_drive_prefix()`
+      Git 2.16.6
+      Git 2.17.3
+      Git 2.18.2
+
+Jonathan Nieder (2):
+      submodule: reject submodule.update = !command in .gitmodules
+      fsck: reject submodule.update = !command in .gitmodules
+
+
 Version v2.18.1; changes since v2.18.0:
 ---------------------------------------
 
@@ -5626,7 +6006,7 @@ brian m. carlson (2):
       t3430: test clean-up
 
 
-Version v2.18.0-rc0; changes since v2.17.2:
+Version v2.18.0-rc0; changes since v2.17.3:
 -------------------------------------------
 
 Anders Kaseorg (1):
@@ -6527,6 +6907,52 @@ brian m. carlson (121):
       get_short_oid: sort ambiguous objects by type, then SHA-1
 
 
+Version v2.17.3; changes since v2.17.2:
+---------------------------------------
+
+Garima Singh (2):
+      test-path-utils: offer to run a protectNTFS/protectHFS benchmark
+      tests: add a helper to stress test argument quoting
+
+Jeff King (7):
+      t9300: drop some useless uses of cat
+      t9300: create marks files for double-import-marks test
+      fast-import: tighten parsing of boolean command line options
+      fast-import: stop creating leading directories for import-marks
+      fast-import: delay creating leading directories for export-marks
+      fast-import: disallow "feature export-marks" by default
+      fast-import: disallow "feature import-marks" by default
+
+Johannes Schindelin (23):
+      clone --recurse-submodules: prevent name squatting on Windows
+      mingw: disallow backslash characters in tree objects' file names
+      path.c: document the purpose of `is_ntfs_dotgit()`
+      is_ntfs_dotgit(): only verify the leading segment
+      path: safeguard `.git` against NTFS Alternate Streams Accesses
+      is_ntfs_dotgit(): speed it up
+      mingw: fix quoting of arguments
+      path: also guard `.gitmodules` against NTFS Alternate Data Streams
+      protect_ntfs: turn on NTFS protection by default
+      Disallow dubiously-nested submodule git directories
+      quote-stress-test: accept arguments to test via the command-line
+      t6130/t9350: prepare for stringent Win32 path validation
+      quote-stress-test: allow skipping some trials
+      unpack-trees: let merged_entry() pass through do_add_entry()'s errors
+      mingw: refuse to access paths with illegal characters
+      quote-stress-test: offer to test quoting arguments for MSYS2 sh
+      mingw: refuse to access paths with trailing spaces or periods
+      mingw: handle `subst`-ed "DOS drives"
+      Git 2.14.6
+      Git 2.15.4
+      test-drop-caches: use `has_dos_drive_prefix()`
+      Git 2.16.6
+      Git 2.17.3
+
+Jonathan Nieder (2):
+      submodule: reject submodule.update = !command in .gitmodules
+      fsck: reject submodule.update = !command in .gitmodules
+
+
 Version v2.17.2; changes since v2.17.1:
 ---------------------------------------
 
@@ -6691,7 +7117,7 @@ Todd Zullinger (2):
       completion: complete tags with git tag --delete/--verify
 
 
-Version v2.17.0-rc0; changes since v2.16.5:
+Version v2.17.0-rc0; changes since v2.16.6:
 -------------------------------------------
 
 Adam Borowski (1):
@@ -7169,6 +7595,50 @@ brian m. carlson (13):
       git manpage: note git-security@googlegroups.com
 
 
+Version v2.16.6; changes since v2.16.5:
+---------------------------------------
+
+Garima Singh (2):
+      test-path-utils: offer to run a protectNTFS/protectHFS benchmark
+      tests: add a helper to stress test argument quoting
+
+Jeff King (7):
+      t9300: drop some useless uses of cat
+      t9300: create marks files for double-import-marks test
+      fast-import: tighten parsing of boolean command line options
+      fast-import: stop creating leading directories for import-marks
+      fast-import: delay creating leading directories for export-marks
+      fast-import: disallow "feature export-marks" by default
+      fast-import: disallow "feature import-marks" by default
+
+Johannes Schindelin (22):
+      clone --recurse-submodules: prevent name squatting on Windows
+      mingw: disallow backslash characters in tree objects' file names
+      path.c: document the purpose of `is_ntfs_dotgit()`
+      is_ntfs_dotgit(): only verify the leading segment
+      path: safeguard `.git` against NTFS Alternate Streams Accesses
+      is_ntfs_dotgit(): speed it up
+      mingw: fix quoting of arguments
+      path: also guard `.gitmodules` against NTFS Alternate Data Streams
+      protect_ntfs: turn on NTFS protection by default
+      Disallow dubiously-nested submodule git directories
+      quote-stress-test: accept arguments to test via the command-line
+      t6130/t9350: prepare for stringent Win32 path validation
+      quote-stress-test: allow skipping some trials
+      unpack-trees: let merged_entry() pass through do_add_entry()'s errors
+      mingw: refuse to access paths with illegal characters
+      quote-stress-test: offer to test quoting arguments for MSYS2 sh
+      mingw: refuse to access paths with trailing spaces or periods
+      mingw: handle `subst`-ed "DOS drives"
+      Git 2.14.6
+      Git 2.15.4
+      test-drop-caches: use `has_dos_drive_prefix()`
+      Git 2.16.6
+
+Jonathan Nieder (1):
+      submodule: reject submodule.update = !command in .gitmodules
+
+
 Version v2.16.5; changes since v2.16.4:
 ---------------------------------------
 
@@ -7546,7 +8016,7 @@ Torsten Bögershausen (1):
       check-non-portable-shell.pl: `wc -l` may have leading WS
 
 
-Version v2.16.0-rc0; changes since v2.15.3:
+Version v2.16.0-rc0; changes since v2.15.4:
 -------------------------------------------
 
 Albert Astals Cid (1):
@@ -8035,6 +8505,48 @@ brian m. carlson (29):
       git-gui: prevent double UTF-8 conversion
 
 
+Version v2.15.4; changes since v2.15.3:
+---------------------------------------
+
+Garima Singh (2):
+      test-path-utils: offer to run a protectNTFS/protectHFS benchmark
+      tests: add a helper to stress test argument quoting
+
+Jeff King (7):
+      t9300: drop some useless uses of cat
+      t9300: create marks files for double-import-marks test
+      fast-import: tighten parsing of boolean command line options
+      fast-import: stop creating leading directories for import-marks
+      fast-import: delay creating leading directories for export-marks
+      fast-import: disallow "feature export-marks" by default
+      fast-import: disallow "feature import-marks" by default
+
+Johannes Schindelin (20):
+      clone --recurse-submodules: prevent name squatting on Windows
+      mingw: disallow backslash characters in tree objects' file names
+      path.c: document the purpose of `is_ntfs_dotgit()`
+      is_ntfs_dotgit(): only verify the leading segment
+      path: safeguard `.git` against NTFS Alternate Streams Accesses
+      is_ntfs_dotgit(): speed it up
+      mingw: fix quoting of arguments
+      path: also guard `.gitmodules` against NTFS Alternate Data Streams
+      protect_ntfs: turn on NTFS protection by default
+      Disallow dubiously-nested submodule git directories
+      quote-stress-test: accept arguments to test via the command-line
+      t6130/t9350: prepare for stringent Win32 path validation
+      quote-stress-test: allow skipping some trials
+      unpack-trees: let merged_entry() pass through do_add_entry()'s errors
+      mingw: refuse to access paths with illegal characters
+      quote-stress-test: offer to test quoting arguments for MSYS2 sh
+      mingw: refuse to access paths with trailing spaces or periods
+      mingw: handle `subst`-ed "DOS drives"
+      Git 2.14.6
+      Git 2.15.4
+
+Jonathan Nieder (1):
+      submodule: reject submodule.update = !command in .gitmodules
+
+
 Version v2.15.3; changes since v2.15.2:
 ---------------------------------------
 
@@ -8412,7 +8924,7 @@ Todd Zullinger (1):
       api-argv-array.txt: remove broken link to string-list API
 
 
-Version v2.15.0-rc0; changes since v2.14.5:
+Version v2.15.0-rc0; changes since v2.14.6:
 -------------------------------------------
 
 Brandon Casey (7):
@@ -8952,6 +9464,44 @@ brian m. carlson (12):
 
 Łukasz Gryglicki (1):
       merge: add a --signoff flag
+
+
+Version v2.14.6; changes since v2.14.5:
+---------------------------------------
+
+Garima Singh (2):
+      test-path-utils: offer to run a protectNTFS/protectHFS benchmark
+      tests: add a helper to stress test argument quoting
+
+Jeff King (7):
+      t9300: drop some useless uses of cat
+      t9300: create marks files for double-import-marks test
+      fast-import: tighten parsing of boolean command line options
+      fast-import: stop creating leading directories for import-marks
+      fast-import: delay creating leading directories for export-marks
+      fast-import: disallow "feature export-marks" by default
+      fast-import: disallow "feature import-marks" by default
+
+Johannes Schindelin (19):
+      clone --recurse-submodules: prevent name squatting on Windows
+      mingw: disallow backslash characters in tree objects' file names
+      path.c: document the purpose of `is_ntfs_dotgit()`
+      is_ntfs_dotgit(): only verify the leading segment
+      path: safeguard `.git` against NTFS Alternate Streams Accesses
+      is_ntfs_dotgit(): speed it up
+      mingw: fix quoting of arguments
+      path: also guard `.gitmodules` against NTFS Alternate Data Streams
+      protect_ntfs: turn on NTFS protection by default
+      Disallow dubiously-nested submodule git directories
+      quote-stress-test: accept arguments to test via the command-line
+      t6130/t9350: prepare for stringent Win32 path validation
+      quote-stress-test: allow skipping some trials
+      unpack-trees: let merged_entry() pass through do_add_entry()'s errors
+      mingw: refuse to access paths with illegal characters
+      quote-stress-test: offer to test quoting arguments for MSYS2 sh
+      mingw: refuse to access paths with trailing spaces or periods
+      mingw: handle `subst`-ed "DOS drives"
+      Git 2.14.6
 
 
 Version v2.14.5; changes since v2.14.4:
