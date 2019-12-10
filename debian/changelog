@@ -1,3 +1,23 @@
+git (1:2.24.0-2) unstable; urgency=high
+
+  * new upstream point release (see RelNotes/2.24.1.txt).
+    * Addresses the security issues CVE-2019-1348, CVE-2019-1349,
+      CVE-2019-1350, CVE-2019-1351, CVE-2019-1352, CVE-2019-1353,
+      CVE-2019-1354, and CVE-2019-1387.
+
+      Credit for finding these vulnerabilities goes to Microsoft
+      Security Response Center, in particular to Nicolas Joly. Fixes
+      were provided by Jeff King and Johannes Schindelin with help
+      from Garima Singh.
+
+    * Addresses CVE-2019-19604, arbitrary code execution via the
+      "update" field in .gitmodules.
+
+      Credit for finding this vulnerability goes to Joern
+      Schneeweisz from GitLab.
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 09 Dec 2019 06:20:25 +0000
+
 git (1:2.24.0-1) unstable; urgency=medium
 
   * new upstream release (see RelNotes/2.24.0.txt).

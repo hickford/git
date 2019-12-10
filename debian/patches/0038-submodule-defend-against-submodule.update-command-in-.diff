@@ -1,0 +1,33 @@
+From b46f885ba75c6c80b7f7ad6b2ddc6275592cb8d9 Mon Sep 17 00:00:00 2001
+From: Jonathan Nieder <jrnieder@gmail.com>
+Date: Thu, 5 Dec 2019 01:28:28 -0800
+Subject: submodule: defend against submodule.update = !command in .gitmodules
+
+In v2.15.4, we started to reject `submodule.update` settings in
+`.gitmodules`. Let's raise a BUG if it somehow still made it through
+from anywhere but the Git config.
+
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+Signed-off-by: Johannes Schindelin <Johannes.Schindelin@gmx.de>
+(cherry picked from commit c1547450748fcbac21675f2681506d2d80351a19)
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+---
+ builtin/submodule--helper.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/builtin/submodule--helper.c b/builtin/submodule--helper.c
+index b67bda0945..521b4b3aa8 100644
+--- a/builtin/submodule--helper.c
++++ b/builtin/submodule--helper.c
+@@ -1487,6 +1487,8 @@ static void determine_submodule_update_strategy(struct repository *r,
+ 			die(_("Invalid update mode '%s' configured for submodule path '%s'"),
+ 				val, path);
+ 	} else if (sub->update_strategy.type != SM_UPDATE_UNSPECIFIED) {
++		if (sub->update_strategy.type == SM_UPDATE_COMMAND)
++			BUG("how did we read update = !command from .gitmodules?");
+ 		out->type = sub->update_strategy.type;
+ 		out->command = sub->update_strategy.command;
+ 	} else
+-- 
+2.24.0.393.g34dc348eaf
+

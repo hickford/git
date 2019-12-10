@@ -1,0 +1,44 @@
+From 0f17833a6910f0be4599d040092f1cbbce661467 Mon Sep 17 00:00:00 2001
+From: Johannes Schindelin <johannes.schindelin@gmx.de>
+Date: Thu, 19 Sep 2019 23:38:33 +0200
+Subject: mingw: fix quoting of empty arguments for `sh`
+
+When constructing command-lines to spawn processes, it is an unfortunate
+but necessary decision to quote arguments differently: MSYS2 has
+different dequoting rules (inherited from Cygwin) than the rest of
+Windows.
+
+To accommodate that, Git's Windows compatibility layer has two separate
+quoting helpers, one for MSYS2 (which it uses exclusively when spawning
+`sh`) and the other for regular Windows executables.
+
+The MSYS2 one had an unfortunate bug where a `,` somehow slipped in,
+instead of the `;`. As a consequence, empty arguments would not be
+enclosed in a pair of double quotes, but the closing double quote was
+skipped.
+
+Let's fix this.
+
+Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>
+(cherry picked from commit 04522edbd4086cd9063a8e65664c11a87bb7d89e)
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+---
+ compat/mingw.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compat/mingw.c b/compat/mingw.c
+index abc4723487..8115fbafc7 100644
+--- a/compat/mingw.c
++++ b/compat/mingw.c
+@@ -1138,7 +1138,7 @@ static const char *quote_arg_msys2(const char *arg)
+ 	else if (!buf.len)
+ 		return arg;
+ 	else
+-		strbuf_add(&buf, p2, p - p2),
++		strbuf_add(&buf, p2, p - p2);
+ 
+ 	strbuf_addch(&buf, '"');
+ 	return strbuf_detach(&buf, 0);
+-- 
+2.24.0.393.g34dc348eaf
+

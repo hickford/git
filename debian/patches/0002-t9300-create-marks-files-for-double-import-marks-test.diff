@@ -1,0 +1,35 @@
+From 5434e1f530fa628664b8742091ed25db9f5b69fa Mon Sep 17 00:00:00 2001
+From: Jeff King <peff@peff.net>
+Date: Thu, 29 Aug 2019 13:43:23 -0400
+Subject: t9300: create marks files for double-import-marks test
+
+Our tests confirm that providing two "import-marks" options in a
+fast-import stream is an error. However, the invoked command would fail
+even without covering this case, because the marks files themselves do
+not actually exist.  Let's create the files to make sure we fail for the
+right reason (we actually do, because the option parsing happens before
+we open anything, but this future-proofs our test).
+
+Signed-off-by: Jeff King <peff@peff.net>
+(cherry picked from commit 816f806786e12435163c591942a204c5a3bdd795)
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+---
+ t/t9300-fast-import.sh | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/t/t9300-fast-import.sh b/t/t9300-fast-import.sh
+index 6555d38bcc..e6a0343c80 100755
+--- a/t/t9300-fast-import.sh
++++ b/t/t9300-fast-import.sh
+@@ -2144,6 +2144,8 @@ test_expect_success 'R: abort on receiving feature after data command' '
+ '
+ 
+ test_expect_success 'R: only one import-marks feature allowed per stream' '
++	>git.marks &&
++	>git2.marks &&
+ 	cat >input <<-EOF &&
+ 	feature import-marks=git.marks
+ 	feature import-marks=git2.marks
+-- 
+2.24.0.393.g34dc348eaf
+

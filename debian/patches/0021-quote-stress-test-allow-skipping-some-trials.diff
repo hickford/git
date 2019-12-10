@@ -1,0 +1,46 @@
+From a114c7d52238a28fd253fd123f136b19e33b3ad2 Mon Sep 17 00:00:00 2001
+From: Johannes Schindelin <johannes.schindelin@gmx.de>
+Date: Thu, 19 Sep 2019 23:46:31 +0200
+Subject: quote-stress-test: allow skipping some trials
+
+When the, say, 93rd trial run fails, it is a good idea to have a way to
+skip the first 92 trials and dig directly into the 93rd in a debugger.
+
+Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>
+(cherry picked from commit 7530a6287e20a74b9fe6d4ca3a66df0f0f5cc52c)
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+---
+ t/helper/test-run-command.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/t/helper/test-run-command.c b/t/helper/test-run-command.c
+index d8e622704c..b5227087bf 100644
+--- a/t/helper/test-run-command.c
++++ b/t/helper/test-run-command.c
+@@ -218,11 +218,12 @@ static int quote_stress_test(int argc, const char **argv)
+ 	 * were passed in.
+ 	 */
+ 	char special[] = ".?*\\^_\"'`{}()[]<>@~&+:;$%"; // \t\r\n\a";
+-	int i, j, k, trials = 100;
++	int i, j, k, trials = 100, skip = 0;
+ 	struct strbuf out = STRBUF_INIT;
+ 	struct argv_array args = ARGV_ARRAY_INIT;
+ 	struct option options[] = {
+ 		OPT_INTEGER('n', "trials", &trials, "Number of trials"),
++		OPT_INTEGER('s', "skip", &skip, "Skip <n> trials"),
+ 		OPT_END()
+ 	};
+ 	const char * const usage[] = {
+@@ -264,6 +265,9 @@ static int quote_stress_test(int argc, const char **argv)
+ 			}
+ 		}
+ 
++		if (i < skip)
++			continue;
++
+ 		cp.argv = args.argv;
+ 		strbuf_reset(&out);
+ 		if (pipe_command(&cp, NULL, 0, &out, 0, NULL, 0) < 0)
+-- 
+2.24.0.393.g34dc348eaf
+

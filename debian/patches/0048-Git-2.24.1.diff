@@ -1,0 +1,44 @@
+From 753f6dee8988ed3cb61a3dd103a6d2191b766636 Mon Sep 17 00:00:00 2001
+From: Johannes Schindelin <johannes.schindelin@gmx.de>
+Date: Wed, 4 Dec 2019 23:10:12 +0100
+Subject: Git 2.24.1
+
+Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>
+(cherry picked from commit 53a06cf39b756eddfe4a2a34da93e3d04eb7b728)
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+---
+ Documentation/RelNotes/2.24.1.txt | 8 ++++++++
+ GIT-VERSION-GEN                   | 2 +-
+ 2 files changed, 9 insertions(+), 1 deletions(-)
+ create mode 100644 Documentation/RelNotes/2.24.1.txt
+
+diff --git a/Documentation/RelNotes/2.24.1.txt b/Documentation/RelNotes/2.24.1.txt
+new file mode 100644
+index 0000000000..18104850fe
+--- /dev/null
++++ b/Documentation/RelNotes/2.24.1.txt
+@@ -0,0 +1,8 @@
++Git v2.24.1 Release Notes
++=========================
++
++This release merges up the fixes that appear in v2.14.6, v2.15.4,
++v2.17.3, v2.20.2 and in v2.21.1, addressing the security issues
++CVE-2019-1348, CVE-2019-1349, CVE-2019-1350, CVE-2019-1351,
++CVE-2019-1352, CVE-2019-1353, CVE-2019-1354, CVE-2019-1387, and
++CVE-2019-19604; see the release notes for those versions for details.
+diff --git a/GIT-VERSION-GEN b/GIT-VERSION-GEN
+index 5048d9bff6..0cd2c2846e 100755
+--- a/GIT-VERSION-GEN
++++ b/GIT-VERSION-GEN
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ 
+ GVF=GIT-VERSION-FILE
+-DEF_VER=v2.24.0
++DEF_VER=v2.24.1
+ 
+ LF='
+ '
+-- 
+2.24.0.393.g34dc348eaf
+

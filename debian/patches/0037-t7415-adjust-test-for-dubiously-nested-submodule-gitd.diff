@@ -1,0 +1,48 @@
+From 8a17431698b21d097dc880980f642b1eebbd86f5 Mon Sep 17 00:00:00 2001
+From: Johannes Schindelin <johannes.schindelin@gmx.de>
+Date: Wed, 4 Dec 2019 10:06:08 +0100
+Subject: t7415: adjust test for dubiously-nested submodule gitdirs for v2.20.x
+
+In v2.20.x, Git clones submodules recursively by first creating the
+submodules' gitdirs and _then_ "updating" the submodules. This can lead
+to the situation where the clone path is taken because the directory
+(while it exists already) is not a git directory, but then the clone
+fails because that gitdir is unexpectedly already a directory.
+
+This _also_ works around the vulnerability that was fixed in "Disallow
+dubiously-nested submodule git directories", but it produces a different
+error message than the one expected by the test case, therefore we
+adjust the test case accordingly.
+
+Note: as the two submodules "race each other", there are actually two
+possible error messages, therefore we have to teach the test case to
+expect _two_ possible (and good) outcomes in addition to the one it
+expected before.
+
+Note: this workaround is only necessary for the v2.20.x release train;
+The behavior changed again in v2.21.x so that the original test case's
+expectations are met again.
+
+Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>
+(cherry picked from commit 4cfc47de25be7be1cddb47dcfddab3f1f80e5c41)
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+---
+ t/t7415-submodule-names.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/t/t7415-submodule-names.sh b/t/t7415-submodule-names.sh
+index 905a557585..0f040e30a4 100755
+--- a/t/t7415-submodule-names.sh
++++ b/t/t7415-submodule-names.sh
+@@ -244,7 +244,7 @@ test_expect_success 'git dirs of sibling submodules must not be nested' '
+ 		git commit -m nested
+ 	) &&
+ 	test_must_fail git clone --recurse-submodules nested clone 2>err &&
+-	test_i18ngrep "is inside git dir" err
++	test_i18ngrep -E "(is inside git dir|hippo already exists|not a git repository: .*/hippo)" err
+ '
+ 
+ test_done
+-- 
+2.24.0.393.g34dc348eaf
+
