@@ -1,3 +1,28 @@
+Version v2.25.0-rc1; changes since v2.25.0-rc0:
+-----------------------------------------------
+
+Ben Keene (2):
+      git-p4: yes/no prompts should sanitize user text
+      git-p4: show detailed help when parsing options fail
+
+Ed Maste (1):
+      CI: add FreeBSD CI support via Cirrus-CI
+
+Elijah Newren (1):
+      rebase: fix saving of --signoff state for am-based rebases
+
+Johannes Schindelin (2):
+      mingw: short-circuit the conversion of `/dev/null` to UTF-16
+      mingw: refuse paths containing reserved names
+
+Johannes Sixt (1):
+      t3008: find test-tool through path lookup
+
+Junio C Hamano (2):
+      mailmap: mask accentless variant for Công Danh
+      Git 2.25-rc1
+
+
 Version v2.25.0-rc0; changes since v2.24.1:
 -------------------------------------------
 
@@ -159,22 +184,6 @@ Derrick Stolee (22):
 
 Dimitriy Ryazantcev (1):
       l10n: minor case fix in 'git branch' '--unset-upstream' description
-
-Doan Tran Cong Danh (14):
-      t3301: test diagnose messages for too few/many paramters
-      notes: fix minimum number of parameters to "copy" subcommand
-      t0028: eliminate non-standard usage of printf
-      configure.ac: define ICONV_OMITS_BOM if necessary
-      t3900: demonstrate git-rebase problem with multi encoding
-      sequencer: reencode to utf-8 before arrange rebase's todo list
-      sequencer: reencode revert/cherry-pick's todo list
-      sequencer: reencode squashing commit's message
-      sequencer: reencode old merge-commit message
-      sequencer: reencode commit message for am/rebase --show-current-patch
-      sequencer: handle rebase-merges for "onto" message
-      date.c: switch to reentrant {gm,local}time_r
-      archive-zip.c: switch to reentrant localtime_r
-      mingw: use {gm,local}time_s as backend for {gm,local}time_r
 
 Dominic Jäger (1):
       merge-strategies: fix typo "reflected to" to "reflected in"
@@ -598,6 +607,22 @@ r.burenkov (1):
 
 ryenus (1):
       fix-typo: consecutive-word duplications
+
+Đoàn Trần Công Danh (14):
+      t3301: test diagnose messages for too few/many paramters
+      notes: fix minimum number of parameters to "copy" subcommand
+      t0028: eliminate non-standard usage of printf
+      configure.ac: define ICONV_OMITS_BOM if necessary
+      t3900: demonstrate git-rebase problem with multi encoding
+      sequencer: reencode to utf-8 before arrange rebase's todo list
+      sequencer: reencode revert/cherry-pick's todo list
+      sequencer: reencode squashing commit's message
+      sequencer: reencode old merge-commit message
+      sequencer: reencode commit message for am/rebase --show-current-patch
+      sequencer: handle rebase-merges for "onto" message
+      date.c: switch to reentrant {gm,local}time_r
+      archive-zip.c: switch to reentrant localtime_r
+      mingw: use {gm,local}time_s as backend for {gm,local}time_r
 
 Łukasz Niemier (1):
       userdiff: add Elixir to supported userdiff languages
