@@ -1,3 +1,9 @@
+git (1:2.25.0~rc2-1) unstable; urgency=low
+
+  * new upstream release candidate.
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Wed, 08 Jan 2020 16:08:27 -0800
+
 git (1:2.25.0~rc1-1) unstable; urgency=low
 
   * new upstream release candidate.

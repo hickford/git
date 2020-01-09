@@ -1,3 +1,62 @@
+Version v2.25.0-rc2; changes since v2.25.0-rc1:
+-----------------------------------------------
+
+Denis Ovsienko (1):
+      gitweb: fix a couple spelling errors in comments
+
+Derrick Stolee (6):
+      sparse-checkout: list directories in cone mode
+      sparse-checkout: document interactions with submodules
+      sparse-checkout: use extern for global variables
+      commit-graph: prefer default size_mult when given zero
+      graph: drop assert() for merge with two collapsing parents
+      graph: fix lack of color in horizontal lines
+
+Elijah Newren (1):
+      merge-recursive: remove unnecessary oid_eq function
+
+Eric Wong (2):
+      packfile: remove redundant fcntl F_GETFD/F_SETFD
+      packfile: replace lseek+read with pread
+
+Johannes Berg (1):
+      multi-pack-index: correct configuration in documentation
+
+Johannes Schindelin (1):
+      mingw: only test index entries for backslashes, not tree entries
+
+Jonathan Gilbert (3):
+      git-gui: consolidate naming conventions
+      git-gui: update status bar to track operations
+      git-gui: revert untracked files by deleting them
+
+Junio C Hamano (2):
+      The final batch before -rc2
+      Git 2.25-rc2
+
+Kazuhiro Kato (1):
+      git gui: fix branch name encoding error
+
+Paul Menzel (1):
+      am: document that Date: can appear as an in-body header
+
+Philippe Blain (2):
+      doc: log, gitk: document accepted line-log diff formats
+      doc: log, gitk: line-log arguments must exist in starting revision
+
+Pratyush Yadav (1):
+      git-gui: allow closing console window with Escape
+
+Taylor Blau (1):
+      Documentation/git-sparse-checkout.txt: fix a typo
+
+Thomas Menzel (1):
+      doc: submodule: fix typo for command absorbgitdirs
+
+Zoli Szabó (1):
+      git-gui: allow opening currently selected file in default app
+
+
 Version v2.25.0-rc1; changes since v2.25.0-rc0:
 -----------------------------------------------
 
