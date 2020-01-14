@@ -1,8 +1,9 @@
-git (1:2.25.0-0.1) unstable; urgency=low
+git (1:2.25.0-1) unstable; urgency=low
 
   * new upstream release (see RelNotes/2.25.0.txt).
+  * build against Python 3 (thx Steve Langasek, closes: #948832).
 
- -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 14 Jan 2020 02:54:12 +0000
+ -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 14 Jan 2020 02:58:47 +0000
 
 git (1:2.25.0~rc2-1) unstable; urgency=low
 

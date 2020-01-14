@@ -13,6 +13,7 @@ OPTS =NO_OPENSSL=1 prefix=/usr gitexecdir=/usr/lib/git-core \
   SANE_TOOL_PATH= INSTALL=install TAR=tar \
   NO_CROSS_DIRECTORY_HARDLINKS=1 NO_INSTALL_HARDLINKS=1 \
   NO_PERL_CPAN_FALLBACKS=1 \
+  PYTHON_PATH=/usr/bin/python3 \
   DEFAULT_PAGER=pager DEFAULT_EDITOR=editor \
   CC='$(CC)' CFLAGS='$(CFLAGS)' LDFLAGS='$(LDFLAGS)'
 DOCS =html
