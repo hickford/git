@@ -1,3 +1,10 @@
+git (1:2.25.1-0.1) unstable; urgency=low
+
+  * new upstream point release (see RelNotes/2.25.1.txt).
+  * update debian/copyright.
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 18 Feb 2020 15:42:20 -0800
+
 git (1:2.25.0-1) unstable; urgency=low
 
   * new upstream release (see RelNotes/2.25.0.txt).

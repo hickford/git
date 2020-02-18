@@ -1,3 +1,131 @@
+Version v2.25.1; changes since v2.25.0:
+---------------------------------------
+
+Denton Liu (2):
+      .mailmap: fix erroneous authorship for Johannes Schindelin
+      .mailmap: map Yi-Jyun Pan's email
+
+Derrick Stolee (3):
+      unpack-trees: correctly compute result count
+      clean: demonstrate a bug with pathspecs
+      fetch: document and test --refmap=""
+
+Elijah Newren (2):
+      string-list: note in docs that callers can specify sorting function
+      dir: treat_leading_path() and read_directory_recursive(), round 2
+
+Emily Shaffer (2):
+      unpack-trees: watch for out-of-range index position
+      submodule: add newline on invalid submodule error
+
+Heba Waly (2):
+      commit: honor advice.statusHints when rejecting an empty commit
+      doc/gitcore-tutorial: fix prose to match example command
+
+Jacques Bodin-Hullin (1):
+      parse-options: lose an unnecessary space in an error message
+
+Jeff King (7):
+      restore: invalidate cache-tree when removing entries with --staged
+      transport: don't flush when disconnecting stateless-rpc helper
+      dir: restructure in a way to avoid passing around a struct dirent
+      dir: point treat_leading_path() warning to the right place
+      Makefile: use compat regex with SANITIZE=address
+      t4018: drop "debugging" cat from hunk-header tests
+      t7800: don't rely on reuse_worktree_file()
+
+Johannes Berg (1):
+      pack-format: correct multi-pack-index description
+
+Johannes Schindelin (3):
+      msvc: accommodate for vcpkg's upgrade to OpenSSL v1.1.x
+      ci: ignore rubygems warning in the "Documentation" job
+      convert: fix typo
+
+Jonathan Tan (2):
+      sha1-file: remove OBJECT_INFO_SKIP_CACHED
+      t5616: make robust to delta base change
+
+Junio C Hamano (2):
+      .mailmap: fix GGG authoship screwup
+      Git 2.25.1
+
+Kyle Meyer (1):
+      submodule foreach: replace $path with $sm_path in example
+
+Martin Ågren (2):
+      git-filter-branch.txt: wrap "maths" notation in backticks
+      diff-options.txt: avoid "regex" overload in example
+
+Masaya Suzuki (1):
+      doc: describe Git bundle format
+
+Philippe Blain (1):
+      grep: ignore --recurse-submodules if --no-index is given
+
+Ralf Thielow (1):
+      submodule.c: mark more strings for translation
+
+brian m. carlson (7):
+      run-command: avoid undefined behavior in exists_in_PATH
+      docs: use "currently" for the present time
+      doc: move author and committer information to git-commit(1)
+      docs: expand on possible and recommended user config options
+      doc: provide guidance on user.name format
+      doc: dissuade users from trying to ignore tracked files
+      docs: mention when increasing http.postBuffer is valuable
+
+
+Version v2.25.0; changes since v2.25.0-rc2:
+-------------------------------------------
+
+Alessandro Menti (1):
+      l10n: it.po: update the Italian translation for Git 2.25.0
+
+Alexander Shopov (1):
+      l10n: bg.po: Updated Bulgarian translation (4800t)
+
+Christopher Diaz Riveros (1):
+      l10n: es: 2.25.0 round #1
+
+Jean-Noël Avila (1):
+      l10n: fr.po v2.25.0 rnd 1
+
+Jiang Xin (2):
+      l10n: git.pot: v2.25.0 round 1 (119 new, 13 removed)
+      l10n: zh_CN: for git v2.25.0 l10n round 1
+
+Johannes Schindelin (1):
+      mingw: safeguard better against backslashes in file names
+
+Jordi Mas (2):
+      l10n: Update Catalan translation
+      l10n: Update Catalan translation
+
+Junio C Hamano (2):
+      Revert "Merge branch 'ra/rebase-i-more-options'"
+      Git 2.25
+
+Martin Ågren (1):
+      config/advice.txt: fix description list separator
+
+Matthias Rüster (1):
+      l10n: de.po: Update German translation v2.25.0 round 1
+
+Peter Krefting (1):
+      l10n: sv.po: Update Swedish translation (4800t0f0u)
+
+Thomas Braun (1):
+      l10n: de.po: Reword generation numbers
+
+Trần Ngọc Quân (1):
+      l10n: vi(4800t): Updated Vietnamese translation v2.25.0
+
+Yi-Jyun Pan (2):
+      l10n: zh_TW: add translation for v2.24.0
+      l10n: zh_TW.po: update translation for v2.25.0 round 1
+
+
 Version v2.25.0-rc2; changes since v2.25.0-rc1:
 -----------------------------------------------
 
