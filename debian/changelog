@@ -1,4 +1,4 @@
-git (1:2.25.1-0.1) unstable; urgency=low
+git (1:2.25.1-1) unstable; urgency=low
 
   * new upstream point release (see RelNotes/2.25.1.txt).
   * update debian/copyright.
@@ -10,7 +10,7 @@ git (1:2.25.1-0.1) unstable; urgency=low
     --build-options" more predictable when building for i386 on an
     amd64 machine (thx to Ceridwen for detecting this in reprotest).
 
- -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 18 Feb 2020 15:42:20 -0800
+ -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 18 Feb 2020 17:26:36 -0800
 
 git (1:2.25.0-1) unstable; urgency=low
 
