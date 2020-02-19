@@ -2,6 +2,9 @@ git (1:2.25.1-0.1) unstable; urgency=low
 
   * new upstream point release (see RelNotes/2.25.1.txt).
   * update debian/copyright.
+  * debian/control: remove Gerrit Pape from the Maintainer field,
+    as requested. Thanks to Gerrit for putting together this
+    package in a way that has been pleasant to maintain.
 
  -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 18 Feb 2020 15:42:20 -0800
 

@@ -1,8 +1,8 @@
 Source: git
 Section: vcs
 Priority: optional
-Maintainer: Gerrit Pape <pape@smarden.org>
-Uploaders: Jonathan Nieder <jrnieder@gmail.com>, Anders Kaseorg <andersk@mit.edu>
+Maintainer: Jonathan Nieder <jrnieder@gmail.com>
+Uploaders: Anders Kaseorg <andersk@mit.edu>
 Build-Depends: libz-dev, gettext,
  libpcre2-dev | libpcre3-dev,
  libcurl4-gnutls-dev, libexpat1-dev,
