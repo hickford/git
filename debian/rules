@@ -4,6 +4,7 @@ CC =gcc
 CPPFLAGS :=$(shell dpkg-buildflags --get CPPFLAGS)
 CFLAGS :=-Wall $(shell dpkg-buildflags --get CFLAGS) $(CPPFLAGS)
 LDFLAGS :=$(shell dpkg-buildflags --get LDFLAGS)
+HOST_CPU := $(shell dpkg-architecture -qDEB_HOST_GNU_CPU)
 TEST =test
 TEST_OPTS =
 OPTS =NO_OPENSSL=1 prefix=/usr gitexecdir=/usr/lib/git-core \
@@ -15,7 +16,8 @@ OPTS =NO_OPENSSL=1 prefix=/usr gitexecdir=/usr/lib/git-core \
   NO_PERL_CPAN_FALLBACKS=1 \
   PYTHON_PATH=/usr/bin/python3 \
   DEFAULT_PAGER=pager DEFAULT_EDITOR=editor \
-  CC='$(CC)' CFLAGS='$(CFLAGS)' LDFLAGS='$(LDFLAGS)'
+  CC='$(CC)' CFLAGS='$(CFLAGS)' LDFLAGS='$(LDFLAGS)' \
+  HOST_CPU='$(HOST_CPU)'
 DOCS =html
 DOC_OPTS =prefix=/usr htmldir=/usr/share/doc/git/html \
   ASCIIDOC8=1 ASCIIDOC_NO_ROFF=1

@@ -5,6 +5,10 @@ git (1:2.25.1-0.1) unstable; urgency=low
   * debian/control: remove Gerrit Pape from the Maintainer field,
     as requested. Thanks to Gerrit for putting together this
     package in a way that has been pleasant to maintain.
+  * debian/rules: use "dpkg-architecture" instead of "uname -m" to
+    retrieve host arch.  This makes the resulting "git version
+    --build-options" more predictable when building for i386 on an
+    amd64 machine (thx to Ceridwen for detecting this in reprotest).
 
  -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 18 Feb 2020 15:42:20 -0800
 
