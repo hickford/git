@@ -998,10 +998,13 @@ static int update_file_flags(struct merge_options *opt,
 		free(buf);
 	}
 update_index:
-	if (!ret && update_cache)
-		if (add_cacheinfo(opt, contents, path, 0, update_wd,
+	if (!ret && update_cache) {
+		int refresh = (!opt->priv->call_depth &&
+			       contents->mode != S_IFGITLINK);
+		if (add_cacheinfo(opt, contents, path, 0, refresh,
 				  ADD_CACHE_OK_TO_ADD))
 			return -1;
+	}
 	return ret;
 }
 
@@ -1557,35 +1560,6 @@ static int handle_file_collision(struct merge_options *opt,
 					     b, a);
 	}
 
-	/*
-	 * In the recursive case, we just opt to undo renames
-	 */
-	if (opt->priv->call_depth && (prev_path1 || prev_path2)) {
-		/* Put first file (a->oid, a->mode) in its original spot */
-		if (prev_path1) {
-			if (update_file(opt, 1, a, prev_path1))
-				return -1;
-		} else {
-			if (update_file(opt, 1, a, collide_path))
-				return -1;
-		}
-
-		/* Put second file (b->oid, b->mode) in its original spot */
-		if (prev_path2) {
-			if (update_file(opt, 1, b, prev_path2))
-				return -1;
-		} else {
-			if (update_file(opt, 1, b, collide_path))
-				return -1;
-		}
-
-		/* Don't leave something at collision path if unrenaming both */
-		if (prev_path1 && prev_path2)
-			remove_file(opt, 1, collide_path, 0);
-
-		return 0;
-	}
-
 	/* Remove rename sources if rename/add or rename/rename(2to1) */
 	if (prev_path1)
 		remove_file(opt, 1, prev_path1,
@@ -1712,6 +1686,14 @@ static char *find_path_for_conflict(struct merge_options *opt,
 	return new_path;
 }
 
+/*
+ * Toggle the stage number between "ours" and "theirs" (2 and 3).
+ */
+static inline int flip_stage(int stage)
+{
+	return (2 + 3) - stage;
+}
+
 static int handle_rename_rename_1to2(struct merge_options *opt,
 				     struct rename_conflict_info *ci)
 {
@@ -1738,85 +1720,56 @@ static int handle_rename_rename_1to2(struct merge_options *opt,
 		return -1;
 	free(path_desc);
 
-	if (opt->priv->call_depth) {
-		/*
-		 * FIXME: For rename/add-source conflicts (if we could detect
-		 * such), this is wrong.  We should instead find a unique
-		 * pathname and then either rename the add-source file to that
-		 * unique path, or use that unique path instead of src here.
-		 */
-		if (update_file(opt, 0, &mfi.blob, o->path))
+	if (opt->priv->call_depth)
+		remove_file_from_index(opt->repo->index, o->path);
+
+	/*
+	 * For each destination path, we need to see if there is a
+	 * rename/add collision.  If not, we can write the file out
+	 * to the specified location.
+	 */
+	add = &ci->ren1->dst_entry->stages[flip_stage(2)];
+	if (is_valid(add)) {
+		add->path = mfi.blob.path = a->path;
+		if (handle_file_collision(opt, a->path,
+					  NULL, NULL,
+					  ci->ren1->branch,
+					  ci->ren2->branch,
+					  &mfi.blob, add) < 0)
 			return -1;
-
-		/*
-		 * Above, we put the merged content at the merge-base's
-		 * path.  Now we usually need to delete both a->path and
-		 * b->path.  However, the rename on each side of the merge
-		 * could also be involved in a rename/add conflict.  In
-		 * such cases, we should keep the added file around,
-		 * resolving the conflict at that path in its favor.
-		 */
-		add = &ci->ren1->dst_entry->stages[2 ^ 1];
-		if (is_valid(add)) {
-			if (update_file(opt, 0, add, a->path))
-				return -1;
-		}
-		else
-			remove_file_from_index(opt->repo->index, a->path);
-		add = &ci->ren2->dst_entry->stages[3 ^ 1];
-		if (is_valid(add)) {
-			if (update_file(opt, 0, add, b->path))
-				return -1;
-		}
-		else
-			remove_file_from_index(opt->repo->index, b->path);
 	} else {
-		/*
-		 * For each destination path, we need to see if there is a
-		 * rename/add collision.  If not, we can write the file out
-		 * to the specified location.
-		 */
-		add = &ci->ren1->dst_entry->stages[2 ^ 1];
-		if (is_valid(add)) {
-			add->path = mfi.blob.path = a->path;
-			if (handle_file_collision(opt, a->path,
-						  NULL, NULL,
-						  ci->ren1->branch,
-						  ci->ren2->branch,
-						  &mfi.blob, add) < 0)
-				return -1;
-		} else {
-			char *new_path = find_path_for_conflict(opt, a->path,
-								ci->ren1->branch,
-								ci->ren2->branch);
-			if (update_file(opt, 0, &mfi.blob,
-					new_path ? new_path : a->path))
-				return -1;
-			free(new_path);
-			if (update_stages(opt, a->path, NULL, a, NULL))
-				return -1;
-		}
+		char *new_path = find_path_for_conflict(opt, a->path,
+							ci->ren1->branch,
+							ci->ren2->branch);
+		if (update_file(opt, 0, &mfi.blob,
+				new_path ? new_path : a->path))
+			return -1;
+		free(new_path);
+		if (!opt->priv->call_depth &&
+		    update_stages(opt, a->path, NULL, a, NULL))
+			return -1;
+	}
 
-		add = &ci->ren2->dst_entry->stages[3 ^ 1];
-		if (is_valid(add)) {
-			add->path = mfi.blob.path = b->path;
-			if (handle_file_collision(opt, b->path,
-						  NULL, NULL,
-						  ci->ren1->branch,
-						  ci->ren2->branch,
-						  add, &mfi.blob) < 0)
-				return -1;
-		} else {
-			char *new_path = find_path_for_conflict(opt, b->path,
-								ci->ren2->branch,
-								ci->ren1->branch);
-			if (update_file(opt, 0, &mfi.blob,
-					new_path ? new_path : b->path))
-				return -1;
-			free(new_path);
-			if (update_stages(opt, b->path, NULL, NULL, b))
-				return -1;
-		}
+	add = &ci->ren2->dst_entry->stages[flip_stage(3)];
+	if (is_valid(add)) {
+		add->path = mfi.blob.path = b->path;
+		if (handle_file_collision(opt, b->path,
+					  NULL, NULL,
+					  ci->ren1->branch,
+					  ci->ren2->branch,
+					  add, &mfi.blob) < 0)
+			return -1;
+	} else {
+		char *new_path = find_path_for_conflict(opt, b->path,
+							ci->ren2->branch,
+							ci->ren1->branch);
+		if (update_file(opt, 0, &mfi.blob,
+				new_path ? new_path : b->path))
+			return -1;
+		free(new_path);
+		if (!opt->priv->call_depth &&
+		    update_stages(opt, b->path, NULL, NULL, b))
+			return -1;
 	}
 
 	return 0;
@@ -1846,7 +1799,7 @@ static int handle_rename_rename_2to1(struct merge_options *opt,
 	path_side_1_desc = xstrfmt("version of %s from %s", path, a->path);
 	path_side_2_desc = xstrfmt("version of %s from %s", path, b->path);
 	ostage1 = ci->ren1->branch == opt->branch1 ? 3 : 2;
-	ostage2 = ostage1 ^ 1;
+	ostage2 = flip_stage(ostage1);
 	ci->ren1->src_entry->stages[ostage1].path = a->path;
 	ci->ren2->src_entry->stages[ostage2].path = b->path;
 	if (merge_mode_and_contents(opt, a, c1,
