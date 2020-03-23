@@ -1,3 +1,90 @@
+Version v2.26.0; changes since v2.26.0-rc2:
+-------------------------------------------
+
+Alessandro Menti (2):
+      l10n: it.po: update the Italian translation for Git 2.26.0 round 1
+      l10n: it.po: update the Italian translation for Git 2.26.0 round 2
+
+Alexander Shopov (2):
+      l10n: bg.po: Updated Bulgarian translation (4835t)
+      l10n: bg.po: Updated Bulgarian translation (4839t)
+
+Beat Bolli (1):
+      unicode: update the width tables to Unicode 13.0
+
+Christian Stimming (3):
+      git-gui: update pot template and German translation to current source code
+      git-gui: extend translation glossary template with more terms
+      git-gui: update German translation
+
+Christopher Diaz Riveros (1):
+      l10n: es: 2.26.0 round#2
+
+Elijah Newren (1):
+      RelNotes/2.26.0: fix various typos
+
+Emir Sarı (5):
+      l10n: tr: Add Turkish translation team info
+      l10n: tr: Add Turkish translations
+      l10n: tr: Add glossary for Turkish translations
+      l10n: tr: v2.26.0 round 2
+      l10n: tr: Fix a couple of ambiguities
+
+Fangyi Zhou (1):
+      l10n: zh_CN: Revise v2.26.0 translation
+
+Jean-Noël Avila (2):
+      l10n: fr v2.26.0 rnd1
+      l10n: fr : v2.26.0 rnd 2
+
+Jiang Xin (4):
+      l10n: git.pot: v2.26.0 round 1 (73 new, 38 removed)
+      l10n: git.pot: v2.26.0 round 2 (7 new, 2 removed)
+      l10n: zh_CN: for git v2.26.0 l10n round 1 and 2
+      l10n: tr.po: change file mode to 644
+
+Jordi Mas (3):
+      l10n: Update Catalan translation
+      l10n: Update Catalan translation
+      l10n: Update Catalan translation
+
+Junio C Hamano (2):
+      Git 2.25.2
+      Git 2.26
+
+Luke Bonanomi (1):
+      git-gui--askpass: coerce answers to UTF-8 on Windows
+
+Matthias Rüster (1):
+      l10n: de.po: Update German translation for Git 2.26.0
+
+Peter Krefting (2):
+      l10n: sv.po: Update Swedish translation (4835t0f0u)
+      l10n: sv.po: Update Swedish translation (4839t0f0u)
+
+Pratyush Yadav (4):
+      git-gui: add missing close bracket
+      git-gui: fix error popup when doing blame -> "Show History Context"
+      git-gui: reduce Tcl version requirement from 8.6 to 8.5
+      git-gui: create a new namespace for chord script evaluation
+
+Ralf Thielow (1):
+      l10n: de.po: add missing space
+
+Trần Ngọc Quân (1):
+      l10n: vi(4839t): Updated Vietnamese translation for v2.26.0
+
+Yi-Jyun Pan (2):
+      l10n: zh_TW.po: v2.26.0 round 1 (11 untranslated)
+      l10n: zh_TW.po: v2.26.0 round 2 (0 untranslated)
+
+brian m. carlson (1):
+      t3419: prevent failure when run with EXPENSIVE
+
+Đoàn Trần Công Danh (1):
+      l10n: vi: fix translation + grammar
+
+
 Version v2.26.0-rc2; changes since v2.26.0-rc1:
 -----------------------------------------------
 
@@ -75,7 +162,7 @@ René Scharfe (1):
       remote-curl: show progress for fetches over dumb HTTP
 
 
-Version v2.26.0-rc0; changes since v2.25.1:
+Version v2.26.0-rc0; changes since v2.25.2:
 -------------------------------------------
 
 Abhishek Kumar (2):
@@ -105,9 +192,6 @@ Bert Wesarg (6):
       remote rename/remove: handle branch.<name>.pushRemote config values
       config: provide access to the current line number
       remote rename/remove: gently handle remote.pushDefault config
-
-David Turner (1):
-      git rm submodule: succeed if .gitmodules index stat info is zero
 
 Denton Liu (32):
       t/lib-git-p4: use test_path_is_missing()
@@ -143,7 +227,7 @@ Denton Liu (32):
       t3507: use test_path_is_missing()
       t4124: only mark git command with test_must_fail
 
-Derrick Stolee (23):
+Derrick Stolee (21):
       graph: add test to demonstrate horizontal line bug
       graph: fix collapse of multiple edges
       t1091: use check_files to reduce boilerplate
@@ -165,11 +249,8 @@ Derrick Stolee (23):
       sparse-checkout: create 'add' subcommand
       sparse-checkout: work with Windows paths
       sparse-checkout: allow one-character directories in cone mode
-      partial-clone: demonstrate bugs in partial fetch
-      partial-clone: avoid fetching when looking for objects
 
-Elijah Newren (24):
-      unpack-trees: exit check_updates() early if updates are not wanted
+Elijah Newren (20):
       git-rebase.txt: update description of --allow-empty-message
       t3404: directly test the behavior of interest
       rebase (interactive-backend): make --keep-empty the default
@@ -190,15 +271,11 @@ Elijah Newren (24):
       rebase: make the backend configurable via config setting
       rebase: change the default backend from "am" to "merge"
       rebase: rename the two primary rebase backends
-      check-ignore: fix documentation and implementation to match
-      t3433: new rebase testcase documenting a stat-dirty-like failure
-      merge-recursive: fix the refresh logic in update_file_flags
 
-Emily Shaffer (6):
+Emily Shaffer (5):
       fetch: emphasize failure during submodule fetch
       MyFirstContribution: add avenues for getting help
       MyFirstContribution: rephrase contact info
-      prefix_path: show gitdir when arg is outside repo
       submodule--helper: use C99 named initializer
       clone: pass --single-branch during --recurse-submodules
 
@@ -230,7 +307,7 @@ Heba Waly (3):
       git: update documentation for --git-dir
       add: change advice config variables used by the add API
 
-Jeff King (61):
+Jeff King (52):
       builtin/pack-objects: report reused packfile objects
       packfile: expose get_delta_base()
       ewah/bitmap: introduce bitmap_word_alloc()
@@ -245,12 +322,8 @@ Jeff King (61):
       pack-bitmap: don't rely on bitmap_git->reuse_objects
       sparse-checkout: fix documentation typo for core.sparseCheckoutCone
       verify_filename(): handle backslashes in "wildcards are pathspecs" rule
-      merge-recursive: silence -Wxor-used-as-pow warning
       t1400: avoid "test" string comparisons
       t1506: drop space after redirection operator
-      avoid computing zero offsets from NULL pointer
-      xdiff: avoid computing non-zero offset from NULL pointer
-      obstack: avoid computing offsets from NULL pointer
       doc: drop "explicitly given" from push.default description
       sha1-name: mark get_oid() error messages for translation
       normalize_path_copy(): document "dst" size expectations
@@ -258,7 +331,6 @@ Jeff King (61):
       traverse_trees(): use stack array for name entries
       diff: move diff.wsErrorHighlight to "basic" config
       tree-walk.c: break circular dependency with unpack-trees
-      index-pack: downgrade twice-resolved REF_DELTA to die()
       mailinfo: treat header values as C strings
       mailinfo: simplify parsing of header values
       mailinfo: be more liberal with header whitespace
@@ -278,10 +350,6 @@ Jeff King (61):
       pack-bitmap: implement BLOB_NONE filtering
       pack-bitmap: implement BLOB_LIMIT filtering
       pack-objects: support filters with bitmaps
-      doc: move credential helper info into gitcredentials(7)
-      doc/config/push: use longer "--" line for preformatted example
-      doc-diff: use single-colon rule in rendering Makefile
-      run-command.h: fix mis-indented struct member
       nth_packed_object_oid(): use customary integer return
       pack-objects: read delta base oid into object_id struct
       pack-objects: convert oe_set_delta_ext() to use object_id
@@ -293,11 +361,7 @@ Jeff King (61):
       packed_object_info(): use object_id internally for delta base
       packfile: drop nth_packed_object_sha1()
 
-Johan Herland (2):
-      t3305: check notes fanout more carefully and robustly
-      notes.c: fix off-by-one error when decreasing notes fanout
-
-Johannes Schindelin (30):
+Johannes Schindelin (19):
       built-in add -p: prepare for patch modes other than "stage"
       built-in add -p: implement the "stash" and "reset" patch modes
       legacy stash -p: respect the add.interactive.usebuiltin setting
@@ -315,18 +379,7 @@ Johannes Schindelin (30):
       built-in add -p: handle Escape sequences in interactive.singlekey mode
       built-in add -p: handle Escape sequences more efficiently
       ci: include the built-in `git add -i` in the `linux-gcc` job
-      built-in add -i: do not try to `patch`/`diff` an empty list of files
-      built-in add -i: accept open-ended ranges again
-      parse_insn_line(): improve error message when parsing failed
-      rebase -i: re-fix short SHA-1 collision
-      rebase -i: also avoid SHA-1 collisions with missingCommitsCheck
-      tests: fix --write-junit-xml with subshells
       t9001, t9116: avoid pipes
-      t5580: test cloning without file://, test fetching via UNC paths
-      mingw: add a helper function to attach GDB to the current process
-      t/lib-httpd: avoid using macOS' sed
-      ci: prevent `perforce` from being quarantined
-      Azure Pipeline: switch to the latest agent pools
       t5537: adjust test_oid label
 
 Johannes Sixt (1):
@@ -347,9 +400,8 @@ Jonathan Tan (2):
       connected: verify promisor-ness of partial clone
       fetch: forgo full connectivity check if --filter
 
-Junio C Hamano (13):
+Junio C Hamano (11):
       The first batch post 2.25 cycle
-      merge-recursive: use subtraction to flip stage
       The second batch
       C: use skip_prefix() to avoid hardcoded string length
       The third batch for 2.26
@@ -358,7 +410,6 @@ Junio C Hamano (13):
       The sixth batch for 2.26
       rev-list --count: comment on the use of count_right++
       The seventh batch for 2.26
-      Revert "gpg-interface: prefer check_signature() for GPG verification"
       The eighth batch for 2.26
       Git 2.26-rc0
 
@@ -433,12 +484,6 @@ Peter Kaestle (3):
       t7400: add a testcase for submodule status on empty dirs
       submodule: fix status of initialized but not cloned submodules
       t7400: testcase for submodule status on unregistered inner git repos
-
-Philippe Blain (4):
-      t7410: rename to t2405-worktree-submodule.sh
-      t2405: use git -C and test_commit -C instead of subshells
-      t2405: clarify test descriptions and simplify test
-      submodule.c: use get_git_dir() instead of get_git_common_dir()
 
 Pranit Bauva (7):
       bisect--helper: return error codes from `cmd_bisect__helper()`
@@ -541,6 +586,76 @@ brian m. carlson (46):
       t0300: add tests for some additional cases
       credential: use the last matching username in the config
       credential: allow wildcard patterns when matching config
+
+
+Version v2.25.2; changes since v2.25.1:
+---------------------------------------
+
+Alexandr Miloslavskiy (1):
+      mingw: workaround for hangs when sending STDIN
+
+Beat Bolli (1):
+      unicode: update the width tables to Unicode 13.0
+
+David Turner (1):
+      git rm submodule: succeed if .gitmodules index stat info is zero
+
+Derrick Stolee (2):
+      partial-clone: demonstrate bugs in partial fetch
+      partial-clone: avoid fetching when looking for objects
+
+Elijah Newren (4):
+      unpack-trees: exit check_updates() early if updates are not wanted
+      check-ignore: fix documentation and implementation to match
+      t3433: new rebase testcase documenting a stat-dirty-like failure
+      merge-recursive: fix the refresh logic in update_file_flags
+
+Emily Shaffer (2):
+      prefix_path: show gitdir when arg is outside repo
+      prefix_path: show gitdir if worktree unavailable
+
+Harald van Dijk (1):
+      show_one_mergetag: print non-parent in hex form.
+
+Jeff King (9):
+      merge-recursive: silence -Wxor-used-as-pow warning
+      avoid computing zero offsets from NULL pointer
+      xdiff: avoid computing non-zero offset from NULL pointer
+      obstack: avoid computing offsets from NULL pointer
+      index-pack: downgrade twice-resolved REF_DELTA to die()
+      doc: move credential helper info into gitcredentials(7)
+      doc/config/push: use longer "--" line for preformatted example
+      doc-diff: use single-colon rule in rendering Makefile
+      run-command.h: fix mis-indented struct member
+
+Johan Herland (2):
+      t3305: check notes fanout more carefully and robustly
+      notes.c: fix off-by-one error when decreasing notes fanout
+
+Johannes Schindelin (11):
+      built-in add -i: do not try to `patch`/`diff` an empty list of files
+      built-in add -i: accept open-ended ranges again
+      parse_insn_line(): improve error message when parsing failed
+      rebase -i: re-fix short SHA-1 collision
+      rebase -i: also avoid SHA-1 collisions with missingCommitsCheck
+      tests: fix --write-junit-xml with subshells
+      t5580: test cloning without file://, test fetching via UNC paths
+      mingw: add a helper function to attach GDB to the current process
+      t/lib-httpd: avoid using macOS' sed
+      ci: prevent `perforce` from being quarantined
+      Azure Pipeline: switch to the latest agent pools
+
+Junio C Hamano (4):
+      merge-recursive: use subtraction to flip stage
+      Documentation: clarify that `-h` alone stands for `help`
+      Revert "gpg-interface: prefer check_signature() for GPG verification"
+      Git 2.25.2
+
+Philippe Blain (4):
+      t7410: rename to t2405-worktree-submodule.sh
+      t2405: use git -C and test_commit -C instead of subshells
+      t2405: clarify test descriptions and simplify test
+      submodule.c: use get_git_dir() instead of get_git_common_dir()
 
 
 Version v2.25.1; changes since v2.25.0:
