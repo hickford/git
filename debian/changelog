@@ -1,3 +1,9 @@
+git (1:2.26.0-1.1) unstable; urgency=low
+
+  * rebase --merge: honor GIT_REFLOG_ACTION (closes: #955152).
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 14 Apr 2020 10:02:28 -0700
+
 git (1:2.26.0-1) unstable; urgency=low
 
   * new upstream release (see RelNotes/2.26.0.txt).
