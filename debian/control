@@ -329,7 +329,7 @@ Multi-Arch: foreign
 Depends: ${misc:Depends}, git (>> ${source:Upstream-Version}), git (<< ${source:Upstream-Version}-.),
  git-doc, git-el, git-cvs, git-mediawiki, git-svn,
  git-email, git-gui, gitk, gitweb
-Recommends: git-daemon-run | git-daemon-sysvinit
+Suggests: git-daemon-run | git-daemon-sysvinit
 Description: fast, scalable, distributed revision control system (all subpackages)
  Git is popular version control system designed to handle very large
  projects with speed and efficiency; it is used for many high profile

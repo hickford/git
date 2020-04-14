@@ -1,4 +1,4 @@
-git (1:2.26.0-1.1) unstable; urgency=low
+git (1:2.26.0-2) unstable; urgency=low
 
   * fixes to the (newly default) rebase --merge backend:
     * honor GIT_REFLOG_ACTION (thx Ian Jackson and Elijah Newren;
@@ -6,8 +6,12 @@ git (1:2.26.0-1.1) unstable; urgency=low
     * avoid "nothing to do" error when fast-forwarding a branch with
       rebase.abbreviateCommands=true (thx Jan Alexander Steffens and
       Alban Gruin).
+  * debian/control: downgrade Recommends by git-all on git-daemon-run
+    to Suggests. The git-all package is a "batteries included" full
+    installation of Git. Automatically running a daemon is not useful
+    to most of its users.
 
- -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 14 Apr 2020 10:02:28 -0700
+ -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 14 Apr 2020 10:09:37 -0700
 
 git (1:2.26.0-1) unstable; urgency=low
 
