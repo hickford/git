@@ -1,6 +1,11 @@
 git (1:2.26.0-1.1) unstable; urgency=low
 
-  * rebase --merge: honor GIT_REFLOG_ACTION (closes: #955152).
+  * fixes to the (newly default) rebase --merge backend:
+    * honor GIT_REFLOG_ACTION (thx Ian Jackson and Elijah Newren;
+      closes: #955152).
+    * avoid "nothing to do" error when fast-forwarding a branch with
+      rebase.abbreviateCommands=true (thx Jan Alexander Steffens and
+      Alban Gruin).
 
  -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 14 Apr 2020 10:02:28 -0700
 
