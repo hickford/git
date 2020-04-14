@@ -1,4 +1,4 @@
-From fcf1eaf8f85f2033de2781406d51cbfea3992e46 Mon Sep 17 00:00:00 2001
+From 0329acb1aa4444da4ee1007674c469c2e63dcf48 Mon Sep 17 00:00:00 2001
 From: Elijah Newren <newren@gmail.com>
 Date: Tue, 7 Apr 2020 16:59:23 +0000
 Subject: sequencer: honor GIT_REFLOG_ACTION

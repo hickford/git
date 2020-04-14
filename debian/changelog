@@ -1,3 +1,19 @@
+git (1:2.26.1-1) unstable; urgency=high
+
+  * new upstream point release (see RelNotes/2.26.1.txt).
+    * Addresses the security issue CVE-2020-5260.
+
+      With a crafted URL that contains a newline, the credential
+      helper machinery can be fooled to supply credential information
+      for the wrong host.  The attack has been made impossible by
+      forbidding a newline character in any value passed via the
+      credential protocol.
+
+      Thanks to Felix Wilhelm of Google Project Zero for finding
+      this vulnerability and Jeff King for fixing it.
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 14 Apr 2020 10:29:38 -0700
+
 git (1:2.26.0-2) unstable; urgency=low
 
   * fixes to the (newly default) rebase --merge backend:

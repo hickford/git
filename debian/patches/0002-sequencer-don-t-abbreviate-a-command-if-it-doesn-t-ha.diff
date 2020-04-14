@@ -1,4 +1,4 @@
-From daa1950fb2a54be14fedeaf9f701ed9f186c759c Mon Sep 17 00:00:00 2001
+From b35ddbf9a817dc1d47f2ca888beedfbf526ffe21 Mon Sep 17 00:00:00 2001
 From: Alban Gruin <alban.gruin@gmail.com>
 Date: Mon, 30 Mar 2020 14:42:35 +0200
 Subject: sequencer: don't abbreviate a command if it doesn't have a short form

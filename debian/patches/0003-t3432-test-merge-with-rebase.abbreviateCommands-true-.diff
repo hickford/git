@@ -1,4 +1,4 @@
-From 86879e8ec89989db00f0a738e5efc40dbff74d5f Mon Sep 17 00:00:00 2001
+From 248f9225b2f2deaea6d01fa803f49473e05dd371 Mon Sep 17 00:00:00 2001
 From: Alban Gruin <alban.gruin@gmail.com>
 Date: Mon, 30 Mar 2020 14:42:36 +0200
 Subject: t3432: test `--merge' with `rebase.abbreviateCommands = true', too
