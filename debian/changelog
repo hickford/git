@@ -1,3 +1,31 @@
+git (1:2.26.2-1) unstable; urgency=high
+
+  * new upstream point release (see RelNotes/2.26.2.txt).
+    * Addresses the security issue CVE-2020-11008.
+
+      With a crafted URL that contains a newline or empty host, or
+      lacks a scheme, the credential helper machinery can be fooled
+      into providing credential information that is not appropriate
+      for the protocol in use and host being contacted.
+
+      Unlike the vulnerability fixed in 2.26.1, the credentials are
+      not for a host of the attacker's choosing.  Instead, they are
+      for an unspecified host, based on how the configured
+      credential helper handles an absent "host" parameter.
+
+      The attack has been made impossible by refusing to work with
+      underspecified credential patterns.
+
+      Thanks to Carlo Arenas for reporting that Git was still
+      vulnerable, Felix Wilhelm for providing the proof of concept
+      demonstrating this issue, and Jeff King for promptly providing
+      a corrected fix.
+
+      Tested using the proof of concept at
+      https://crbug.com/project-zero/2021.
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 20 Apr 2020 10:44:09 -0700
+
 git (1:2.26.1-1) unstable; urgency=high
 
   * new upstream point release (see RelNotes/2.26.1.txt).
