@@ -226,17 +226,20 @@ struct worktree *find_worktree(struct worktree **list,
 
 struct worktree *find_worktree_by_path(struct worktree **list, const char *p)
 {
+	struct strbuf wt_path = STRBUF_INIT;
 	char *path = real_pathdup(p, 0);
 
 	if (!path)
 		return NULL;
 	for (; *list; list++) {
-		const char *wt_path = real_path_if_valid((*list)->path);
+		if (!strbuf_realpath(&wt_path, (*list)->path, 0))
+			continue;
 
-		if (wt_path && !fspathcmp(path, wt_path))
+		if (!fspathcmp(path, wt_path.buf))
 			break;
 	}
 	free(path);
+	strbuf_release(&wt_path);
 	return *list;
 }
 
@@ -285,6 +288,7 @@ int validate_worktree(const struct worktree *wt, struct strbuf *errmsg,
 		      unsigned flags)
 {
 	struct strbuf wt_path = STRBUF_INIT;
+	struct strbuf realpath = STRBUF_INIT;
 	char *path = NULL;
 	int err, ret = -1;
 
@@ -336,7 +340,8 @@ int validate_worktree(const struct worktree *wt, struct strbuf *errmsg,
 		goto done;
 	}
 
-	ret = fspathcmp(path, real_path(git_common_path("worktrees/%s", wt->id)));
+	strbuf_realpath(&realpath, git_common_path("worktrees/%s", wt->id), 1);
+	ret = fspathcmp(path, realpath.buf);
 
 	if (ret)
 		strbuf_addf_gently(errmsg, _("'%s' does not point back to '%s'"),
@@ -344,6 +349,7 @@ int validate_worktree(const struct worktree *wt, struct strbuf *errmsg,
 done:
 	free(path);
 	strbuf_release(&wt_path);
+	strbuf_release(&realpath);
 	return ret;
 }
 
@@ -450,7 +456,7 @@ const struct worktree *find_shared_symref(const char *symref,
 int submodule_uses_worktrees(const char *path)
 {
 	char *submodule_gitdir;
-	struct strbuf sb = STRBUF_INIT;
+	struct strbuf sb = STRBUF_INIT, err = STRBUF_INIT;
 	DIR *dir;
 	struct dirent *d;
 	int ret = 0;
@@ -464,18 +470,16 @@ int submodule_uses_worktrees(const char *path)
 	get_common_dir_noenv(&sb, submodule_gitdir);
 	free(submodule_gitdir);
 
-	/*
-	 * The check below is only known to be good for repository format
-	 * version 0 at the time of writing this code.
-	 */
 	strbuf_addstr(&sb, "/config");
 	read_repository_format(&format, sb.buf);
-	if (format.version != 0) {
+	if (verify_repository_format(&format, &err)) {
+		strbuf_release(&err);
 		strbuf_release(&sb);
 		clear_repository_format(&format);
 		return 1;
 	}
 	clear_repository_format(&format);
+	strbuf_release(&err);
 
 	/* Replace config by worktrees. */
 	strbuf_setlen(&sb, sb.len - strlen("config"));

@@ -29,6 +29,8 @@
 #include "prio-queue.h"
 #include "hashmap.h"
 #include "utf8.h"
+#include "bloom.h"
+#include "json-writer.h"
 
 volatile show_early_output_fn_t show_early_output;
 
@@ -624,11 +626,133 @@ static void file_change(struct diff_options *options,
 	options->flags.has_changes = 1;
 }
 
+static int bloom_filter_atexit_registered;
+static unsigned int count_bloom_filter_maybe;
+static unsigned int count_bloom_filter_definitely_not;
+static unsigned int count_bloom_filter_false_positive;
+static unsigned int count_bloom_filter_not_present;
+static unsigned int count_bloom_filter_length_zero;
+
+static void trace2_bloom_filter_statistics_atexit(void)
+{
+	struct json_writer jw = JSON_WRITER_INIT;
+
+	jw_object_begin(&jw, 0);
+	jw_object_intmax(&jw, "filter_not_present", count_bloom_filter_not_present);
+	jw_object_intmax(&jw, "zero_length_filter", count_bloom_filter_length_zero);
+	jw_object_intmax(&jw, "maybe", count_bloom_filter_maybe);
+	jw_object_intmax(&jw, "definitely_not", count_bloom_filter_definitely_not);
+	jw_object_intmax(&jw, "false_positive", count_bloom_filter_false_positive);
+	jw_end(&jw);
+
+	trace2_data_json("bloom", the_repository, "statistics", &jw);
+
+	jw_release(&jw);
+}
+
+static int forbid_bloom_filters(struct pathspec *spec)
+{
+	if (spec->has_wildcard)
+		return 1;
+	if (spec->nr > 1)
+		return 1;
+	if (spec->magic & ~PATHSPEC_LITERAL)
+		return 1;
+	if (spec->nr && (spec->items[0].magic & ~PATHSPEC_LITERAL))
+		return 1;
+
+	return 0;
+}
+
+static void prepare_to_use_bloom_filter(struct rev_info *revs)
+{
+	struct pathspec_item *pi;
+	char *path_alloc = NULL;
+	const char *path;
+	int last_index;
+	int len;
+
+	if (!revs->commits)
+		return;
+
+	if (forbid_bloom_filters(&revs->prune_data))
+		return;
+
+	repo_parse_commit(revs->repo, revs->commits->item);
+
+	if (!revs->repo->objects->commit_graph)
+		return;
+
+	revs->bloom_filter_settings = revs->repo->objects->commit_graph->bloom_filter_settings;
+	if (!revs->bloom_filter_settings)
+		return;
+
+	pi = &revs->pruning.pathspec.items[0];
+	last_index = pi->len - 1;
+
+	/* remove single trailing slash from path, if needed */
+	if (pi->match[last_index] == '/') {
+	    path_alloc = xstrdup(pi->match);
+	    path_alloc[last_index] = '\0';
+	    path = path_alloc;
+	} else
+	    path = pi->match;
+
+	len = strlen(path);
+
+	revs->bloom_key = xmalloc(sizeof(struct bloom_key));
+	fill_bloom_key(path, len, revs->bloom_key, revs->bloom_filter_settings);
+
+	if (trace2_is_enabled() && !bloom_filter_atexit_registered) {
+		atexit(trace2_bloom_filter_statistics_atexit);
+		bloom_filter_atexit_registered = 1;
+	}
+
+	free(path_alloc);
+}
+
+static int check_maybe_different_in_bloom_filter(struct rev_info *revs,
+						 struct commit *commit)
+{
+	struct bloom_filter *filter;
+	int result;
+
+	if (!revs->repo->objects->commit_graph)
+		return -1;
+
+	if (commit->generation == GENERATION_NUMBER_INFINITY)
+		return -1;
+
+	filter = get_bloom_filter(revs->repo, commit, 0);
+
+	if (!filter) {
+		count_bloom_filter_not_present++;
+		return -1;
+	}
+
+	if (!filter->len) {
+		count_bloom_filter_length_zero++;
+		return -1;
+	}
+
+	result = bloom_filter_contains(filter,
+				       revs->bloom_key,
+				       revs->bloom_filter_settings);
+
+	if (result)
+		count_bloom_filter_maybe++;
+	else
+		count_bloom_filter_definitely_not++;
+
+	return result;
+}
+
 static int rev_compare_tree(struct rev_info *revs,
-			    struct commit *parent, struct commit *commit)
+			    struct commit *parent, struct commit *commit, int nth_parent)
 {
 	struct tree *t1 = get_commit_tree(parent);
 	struct tree *t2 = get_commit_tree(commit);
+	int bloom_ret = 1;
 
 	if (!t1)
 		return REV_TREE_NEW;
@@ -653,11 +777,23 @@ static int rev_compare_tree(struct rev_info *revs,
 			return REV_TREE_SAME;
 	}
 
+	if (revs->bloom_key && !nth_parent) {
+		bloom_ret = check_maybe_different_in_bloom_filter(revs, commit);
+
+		if (bloom_ret == 0)
+			return REV_TREE_SAME;
+	}
+
 	tree_difference = REV_TREE_SAME;
 	revs->pruning.flags.has_changes = 0;
 	if (diff_tree_oid(&t1->object.oid, &t2->object.oid, "",
 			   &revs->pruning) < 0)
 		return REV_TREE_DIFFERENT;
+
+	if (!nth_parent)
+		if (bloom_ret == 1 && tree_difference == REV_TREE_SAME)
+			count_bloom_filter_false_positive++;
+
 	return tree_difference;
 }
 
@@ -855,7 +991,7 @@ static void try_to_simplify_commit(struct rev_info *revs, struct commit *commit)
 			die("cannot simplify commit %s (because of %s)",
 			    oid_to_hex(&commit->object.oid),
 			    oid_to_hex(&p->object.oid));
-		switch (rev_compare_tree(revs, p, commit)) {
+		switch (rev_compare_tree(revs, p, commit, nth_parent)) {
 		case REV_TREE_SAME:
 			if (!revs->simplify_history || !relevant_commit(p)) {
 				/* Even if a merge with an uninteresting
@@ -870,7 +1006,19 @@ static void try_to_simplify_commit(struct rev_info *revs, struct commit *commit)
 			}
 			parent->next = NULL;
 			commit->parents = parent;
-			commit->object.flags |= TREESAME;
+
+			/*
+			 * A merge commit is a "diversion" if it is not
+			 * TREESAME to its first parent but is TREESAME
+			 * to a later parent. In the simplified history,
+			 * we "divert" the history walk to the later
+			 * parent. These commits are shown when "show_pulls"
+			 * is enabled, so do not mark the object as
+			 * TREESAME here.
+			 */
+			if (!revs->show_pulls || !nth_parent)
+				commit->object.flags |= TREESAME;
+
 			return;
 
 		case REV_TREE_NEW:
@@ -897,6 +1045,10 @@ static void try_to_simplify_commit(struct rev_info *revs, struct commit *commit)
 				relevant_change = 1;
 			else
 				irrelevant_change = 1;
+
+			if (!nth_parent)
+				commit->object.flags |= PULL_MERGE;
+
 			continue;
 		}
 		die("bad tree compare for commit %s", oid_to_hex(&commit->object.oid));
@@ -2241,6 +2393,10 @@ static int handle_revision_opt(struct rev_info *revs, int argc, const char **arg
 		revs->topo_order = 1;
 		revs->rewrite_parents = 1;
 		revs->graph = graph_init(revs);
+	} else if (!strcmp(arg, "--encode-email-headers")) {
+		revs->encode_email_headers = 1;
+	} else if (!strcmp(arg, "--no-encode-email-headers")) {
+		revs->encode_email_headers = 0;
 	} else if (!strcmp(arg, "--root")) {
 		revs->show_root_diff = 1;
 	} else if (!strcmp(arg, "--no-commit-id")) {
@@ -2265,6 +2421,8 @@ static int handle_revision_opt(struct rev_info *revs, int argc, const char **arg
 	} else if (!strcmp(arg, "--full-diff")) {
 		revs->diff = 1;
 		revs->full_diff = 1;
+	} else if (!strcmp(arg, "--show-pulls")) {
+		revs->show_pulls = 1;
 	} else if (!strcmp(arg, "--full-history")) {
 		revs->simplify_history = 0;
 	} else if (!strcmp(arg, "--relative-date")) {
@@ -3019,7 +3177,8 @@ static struct commit_list **simplify_one(struct rev_info *revs, struct commit *c
 	if (!cnt ||
 	    (commit->object.flags & UNINTERESTING) ||
 	    !(commit->object.flags & TREESAME) ||
-	    (parent = one_relevant_parent(revs, commit->parents)) == NULL)
+	    (parent = one_relevant_parent(revs, commit->parents)) == NULL ||
+	    (revs->show_pulls && (commit->object.flags & PULL_MERGE)))
 		st->simplified = commit;
 	else {
 		pst = locate_simplify_state(revs, parent);
@@ -3362,6 +3521,8 @@ int prepare_revision_walk(struct rev_info *revs)
 				       FOR_EACH_OBJECT_PROMISOR_ONLY);
 	}
 
+	if (revs->pruning.pathspec.nr == 1 && !revs->reflog_info)
+		prepare_to_use_bloom_filter(revs);
 	if (revs->no_walk != REVISION_WALK_NO_WALK_UNSORTED)
 		commit_list_sort_by_date(&revs->commits);
 	if (revs->no_walk)
@@ -3379,6 +3540,7 @@ int prepare_revision_walk(struct rev_info *revs)
 		simplify_merges(revs);
 	if (revs->children.name)
 		set_children(revs);
+
 	return 0;
 }
 
@@ -3602,6 +3764,10 @@ enum commit_action get_commit_action(struct rev_info *revs, struct commit *commi
 			/* drop merges unless we want parenthood */
 			if (!want_ancestry(revs))
 				return commit_ignore;
+
+			if (revs->show_pulls && (commit->object.flags & PULL_MERGE))
+				return commit_show;
+
 			/*
 			 * If we want ancestry, then need to keep any merges
 			 * between relevant commits to tie together topology.

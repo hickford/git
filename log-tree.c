@@ -81,6 +81,56 @@ const struct name_decoration *get_name_decoration(const struct object *obj)
 	return lookup_decoration(&name_decoration, obj);
 }
 
+static int match_ref_pattern(const char *refname,
+			     const struct string_list_item *item)
+{
+	int matched = 0;
+	if (item->util == NULL) {
+		if (!wildmatch(item->string, refname, 0))
+			matched = 1;
+	} else {
+		const char *rest;
+		if (skip_prefix(refname, item->string, &rest) &&
+		    (!*rest || *rest == '/'))
+			matched = 1;
+	}
+	return matched;
+}
+
+static int ref_filter_match(const char *refname,
+			    const struct decoration_filter *filter)
+{
+	struct string_list_item *item;
+	const struct string_list *exclude_patterns = filter->exclude_ref_pattern;
+	const struct string_list *include_patterns = filter->include_ref_pattern;
+	const struct string_list *exclude_patterns_config =
+				filter->exclude_ref_config_pattern;
+
+	if (exclude_patterns && exclude_patterns->nr) {
+		for_each_string_list_item(item, exclude_patterns) {
+			if (match_ref_pattern(refname, item))
+				return 0;
+		}
+	}
+
+	if (include_patterns && include_patterns->nr) {
+		for_each_string_list_item(item, include_patterns) {
+			if (match_ref_pattern(refname, item))
+				return 1;
+		}
+		return 0;
+	}
+
+	if (exclude_patterns_config && exclude_patterns_config->nr) {
+		for_each_string_list_item(item, exclude_patterns_config) {
+			if (match_ref_pattern(refname, item))
+				return 0;
+		}
+	}
+
+	return 1;
+}
+
 static int add_ref_decoration(const char *refname, const struct object_id *oid,
 			      int flags, void *cb_data)
 {
@@ -88,9 +138,7 @@ static int add_ref_decoration(const char *refname, const struct object_id *oid,
 	enum decoration_type type = DECORATION_NONE;
 	struct decoration_filter *filter = (struct decoration_filter *)cb_data;
 
-	if (filter && !ref_filter_match(refname,
-			      filter->include_ref_pattern,
-			      filter->exclude_ref_pattern))
+	if (filter && !ref_filter_match(refname, filter))
 		return 0;
 
 	if (starts_with(refname, git_replace_ref_base)) {
@@ -153,6 +201,9 @@ void load_ref_decorations(struct decoration_filter *filter, int flags)
 				normalize_glob_ref(item, NULL, item->string);
 			}
 			for_each_string_list_item(item, filter->include_ref_pattern) {
+				normalize_glob_ref(item, NULL, item->string);
+			}
+			for_each_string_list_item(item, filter->exclude_ref_config_pattern) {
 				normalize_glob_ref(item, NULL, item->string);
 			}
 		}
@@ -449,22 +500,21 @@ static void show_signature(struct rev_info *opt, struct commit *commit)
 {
 	struct strbuf payload = STRBUF_INIT;
 	struct strbuf signature = STRBUF_INIT;
-	struct strbuf gpg_output = STRBUF_INIT;
+	struct signature_check sigc = { 0 };
 	int status;
 
 	if (parse_signed_commit(commit, &payload, &signature) <= 0)
 		goto out;
 
-	status = verify_signed_buffer(payload.buf, payload.len,
-				      signature.buf, signature.len,
-				      &gpg_output, NULL);
-	if (status && !gpg_output.len)
-		strbuf_addstr(&gpg_output, "No signature\n");
-
-	show_sig_lines(opt, status, gpg_output.buf);
+	status = check_signature(payload.buf, payload.len, signature.buf,
+				 signature.len, &sigc);
+	if (status && !sigc.gpg_output)
+		show_sig_lines(opt, status, "No signature\n");
+	else
+		show_sig_lines(opt, status, sigc.gpg_output);
+	signature_check_clear(&sigc);
 
  out:
-	strbuf_release(&gpg_output);
 	strbuf_release(&payload);
 	strbuf_release(&signature);
 }
@@ -497,8 +547,9 @@ static int show_one_mergetag(struct commit *commit,
 	struct object_id oid;
 	struct tag *tag;
 	struct strbuf verify_message;
+	struct signature_check sigc = { 0 };
 	int status, nth;
-	size_t payload_size, gpg_message_offset;
+	size_t payload_size;
 
 	hash_object_file(the_hash_algo, extra->value, extra->len,
 			 type_name(OBJ_TAG), &oid);
@@ -520,19 +571,19 @@ static int show_one_mergetag(struct commit *commit,
 	else
 		strbuf_addf(&verify_message,
 			    "parent #%d, tagged '%s'\n", nth + 1, tag->tag);
-	gpg_message_offset = verify_message.len;
 
 	payload_size = parse_signature(extra->value, extra->len);
 	status = -1;
 	if (extra->len > payload_size) {
 		/* could have a good signature */
-		if (!verify_signed_buffer(extra->value, payload_size,
-					  extra->value + payload_size,
-					  extra->len - payload_size,
-					  &verify_message, NULL))
-			status = 0; /* good */
-		else if (verify_message.len <= gpg_message_offset)
+		status = check_signature(extra->value, payload_size,
+					 extra->value + payload_size,
+					 extra->len - payload_size, &sigc);
+		if (sigc.gpg_output)
+			strbuf_addstr(&verify_message, sigc.gpg_output);
+		else
 			strbuf_addstr(&verify_message, "No signature\n");
+		signature_check_clear(&sigc);
 		/* otherwise we couldn't verify, which is shown as bad */
 	}
 
@@ -693,6 +744,7 @@ void show_log(struct rev_info *opt)
 	ctx.abbrev = opt->diffopt.abbrev;
 	ctx.after_subject = extra_headers;
 	ctx.preserve_subject = opt->preserve_subject;
+	ctx.encode_email_headers = opt->encode_email_headers;
 	ctx.reflog_info = opt->reflog_info;
 	ctx.fmt = opt->commit_format;
 	ctx.mailmap = opt->mailmap;

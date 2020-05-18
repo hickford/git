@@ -133,6 +133,30 @@ test_expect_success 'other worktree HEAD link pointing at a funny place' '
 	test_i18ngrep "worktrees/other/HEAD points to something strange" out
 '
 
+test_expect_success 'commit with multiple signatures is okay' '
+	git cat-file commit HEAD >basis &&
+	cat >sigs <<-EOF &&
+	gpgsig -----BEGIN PGP SIGNATURE-----
+	  VGhpcyBpcyBub3QgcmVhbGx5IGEgc2lnbmF0dXJlLg==
+	  -----END PGP SIGNATURE-----
+	gpgsig-sha256 -----BEGIN PGP SIGNATURE-----
+	  VGhpcyBpcyBub3QgcmVhbGx5IGEgc2lnbmF0dXJlLg==
+	  -----END PGP SIGNATURE-----
+	EOF
+	sed -e "/^committer/q" basis >okay &&
+	cat sigs >>okay &&
+	echo >>okay &&
+	sed -e "1,/^$/d" basis >>okay &&
+	cat okay &&
+	new=$(git hash-object -t commit -w --stdin <okay) &&
+	test_when_finished "remove_object $new" &&
+	git update-ref refs/heads/bogus "$new" &&
+	test_when_finished "git update-ref -d refs/heads/bogus" &&
+	git fsck 2>out &&
+	cat out &&
+	! grep "commit $new" out
+'
+
 test_expect_success 'email without @ is okay' '
 	git cat-file commit HEAD >basis &&
 	sed "s/@/AT/" basis >okay &&
@@ -230,6 +254,22 @@ test_expect_success 'tree object with duplicate entries' '
 		git hash-object -w -t tree --stdin
 	) &&
 	test_must_fail git fsck 2>out &&
+	test_i18ngrep "error in tree .*contains duplicate file entries" out
+'
+
+test_expect_success 'tree object with dublicate names' '
+	test_when_finished "remove_object \$blob" &&
+	test_when_finished "remove_object \$tree" &&
+	test_when_finished "remove_object \$badtree" &&
+	blob=$(echo blob | git hash-object -w --stdin) &&
+	printf "100644 blob %s\t%s\n" $blob x.2 >tree &&
+	tree=$(git mktree <tree) &&
+	printf "100644 blob %s\t%s\n" $blob x.1 >badtree &&
+	printf "100644 blob %s\t%s\n" $blob x >>badtree &&
+	printf "040000 tree %s\t%s\n" $tree x >>badtree &&
+	badtree=$(git mktree <badtree) &&
+	test_must_fail git fsck 2>out &&
+	test_i18ngrep "$badtree" out &&
 	test_i18ngrep "error in tree .*contains duplicate file entries" out
 '
 

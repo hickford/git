@@ -78,20 +78,23 @@ then
 	exit 1
 fi
 
-# Parse options while taking care to leave $@ intact, so we will still
-# have all the original command line options when executing the test
-# script again for '--tee' and '--verbose-log' below.
 store_arg_to=
-prev_opt=
-for opt
-do
-	if test -n "$store_arg_to"
+opt_required_arg=
+# $1: option string
+# $2: name of the var where the arg will be stored
+mark_option_requires_arg () {
+	if test -n "$opt_required_arg"
 	then
-		eval $store_arg_to=\$opt
-		store_arg_to=
-		prev_opt=
-		continue
+		echo "error: options that require args cannot be bundled" \
+			"together: '$opt_required_arg' and '$1'" >&2
+		exit 1
 	fi
+	opt_required_arg=$1
+	store_arg_to=$2
+}
+
+parse_option () {
+	local opt="$1"
 
 	case "$opt" in
 	-d|--d|--de|--deb|--debu|--debug)
@@ -101,7 +104,7 @@ do
 	-l|--l|--lo|--lon|--long|--long-|--long-t|--long-te|--long-tes|--long-test|--long-tests)
 		GIT_TEST_LONG=t; export GIT_TEST_LONG ;;
 	-r)
-		store_arg_to=run_list
+		mark_option_requires_arg "$opt" run_list
 		;;
 	--run=*)
 		run_list=${opt#--*=} ;;
@@ -185,12 +188,42 @@ do
 	*)
 		echo "error: unknown test option '$opt'" >&2; exit 1 ;;
 	esac
+}
 
-	prev_opt=$opt
+# Parse options while taking care to leave $@ intact, so we will still
+# have all the original command line options when executing the test
+# script again for '--tee' and '--verbose-log' later.
+for opt
+do
+	if test -n "$store_arg_to"
+	then
+		eval $store_arg_to=\$opt
+		store_arg_to=
+		opt_required_arg=
+		continue
+	fi
+
+	case "$opt" in
+	--*|-?)
+		parse_option "$opt" ;;
+	-?*)
+		# bundled short options must be fed separately to parse_option
+		opt=${opt#-}
+		while test -n "$opt"
+		do
+			extra=${opt#?}
+			this=${opt%$extra}
+			opt=$extra
+			parse_option "-$this"
+		done
+		;;
+	*)
+		echo "error: unknown test option '$opt'" >&2; exit 1 ;;
+	esac
 done
 if test -n "$store_arg_to"
 then
-	echo "error: $prev_opt requires an argument" >&2
+	echo "error: $opt_required_arg requires an argument" >&2
 	exit 1
 fi
 
@@ -494,21 +527,6 @@ case $(echo $GIT_TRACE |tr "[A-Z]" "[a-z]") in
 	;;
 esac
 
-# Convenience
-#
-# A regexp to match 5, 35 and 40 hexdigits
-_x05='[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]'
-_x35="$_x05$_x05$_x05$_x05$_x05$_x05$_x05"
-_x40="$_x35$_x05"
-
-# Zero SHA-1
-_z40=0000000000000000000000000000000000000000
-
-OID_REGEX="$_x40"
-ZERO_OID=$_z40
-EMPTY_TREE=4b825dc642cb6eb9a060e54bf8d69288fbee4904
-EMPTY_BLOB=e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
-
 # Line feed
 LF='
 '
@@ -657,6 +675,20 @@ die () {
 	fi
 }
 
+file_lineno () {
+	test -z "$GIT_TEST_FRAMEWORK_SELFTEST" && test -n "$BASH" || return 0
+	eval '
+		local i
+		for i in ${!BASH_SOURCE[*]}
+		do
+			case $i,"${BASH_SOURCE[$i]##*/}" in
+			0,t[0-9]*.sh) echo "t/${BASH_SOURCE[$i]}:$LINENO: ${1+$1: }"; return;;
+			*,t[0-9]*.sh) echo "t/${BASH_SOURCE[$i]}:${BASH_LINENO[$(($i-1))]}: ${1+$1: }"; return;;
+			esac
+		done
+	'
+}
+
 GIT_EXIT_OK=
 trap 'die' EXIT
 # Disable '-x' tracing, because with some shells, notably dash, it
@@ -702,7 +734,7 @@ test_failure_ () {
 		write_junit_xml_testcase "$1" "      $junit_insert"
 	fi
 	test_failure=$(($test_failure + 1))
-	say_color error "not ok $test_count - $1"
+	say_color error "$(file_lineno error)not ok $test_count - $1"
 	shift
 	printf '%s\n' "$*" | sed -e 's/^/#	/'
 	test "$immediate" = "" || { finalize_junit_xml; GIT_EXIT_OK=t; exit 1; }
@@ -882,6 +914,7 @@ maybe_setup_valgrind () {
 	fi
 }
 
+trace_level_=0
 want_trace () {
 	test "$trace" = t && {
 		test "$verbose" = t || test "$verbose_log" = t
@@ -895,7 +928,7 @@ want_trace () {
 test_eval_inner_ () {
 	# Do not add anything extra (including LF) after '$*'
 	eval "
-		want_trace && set -x
+		want_trace && trace_level_=$(($trace_level_+1)) && set -x
 		$*"
 }
 
@@ -926,7 +959,8 @@ test_eval_ () {
 		test_eval_ret_=$?
 		if want_trace
 		then
-			set +x
+			test 1 = $trace_level_ && set +x
+			trace_level_=$(($trace_level_-1))
 		fi
 	} 2>/dev/null 4>&2
 
@@ -1085,6 +1119,7 @@ finalize_junit_xml () {
 		junit_time=$(test-tool date getnanos $junit_suite_start)
 		sed -e "s/\(<testsuite.*\) time=\"[^\"]*\"/\1/" \
 			-e "s/<testsuite [^>]*/& time=\"$junit_time\"/" \
+			-e '/^ *<\/testsuite/d' \
 			<"$junit_xml_path" >"$junit_xml_path.new"
 		mv "$junit_xml_path.new" "$junit_xml_path"
 
@@ -1383,6 +1418,20 @@ then
 	fi
 fi
 
+# Convenience
+# A regexp to match 5, 35 and 40 hexdigits
+_x05='[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]'
+_x35="$_x05$_x05$_x05$_x05$_x05$_x05$_x05"
+_x40="$_x35$_x05"
+
+test_oid_init
+
+ZERO_OID=$(test_oid zero)
+OID_REGEX=$(echo $ZERO_OID | sed -e 's/0/[0-9a-f]/g')
+EMPTY_TREE=$(test_oid empty_tree)
+EMPTY_BLOB=$(test_oid empty_blob)
+_z40=$ZERO_OID
+
 # Provide an implementation of the 'yes' utility; the upper bound
 # limit is there to help Windows that cannot stop this loop from
 # wasting cycles when the downstream stops reading, so do not be
@@ -1617,6 +1666,15 @@ run_with_limited_stack () {
 test_lazy_prereq ULIMIT_STACK_SIZE '
 	test_have_prereq !MINGW,!CYGWIN &&
 	run_with_limited_stack true
+'
+
+run_with_limited_open_files () {
+	(ulimit -n 32 && "$@")
+}
+
+test_lazy_prereq ULIMIT_FILE_DESCRIPTORS '
+	test_have_prereq !MINGW,!CYGWIN &&
+	run_with_limited_open_files true
 '
 
 build_option () {

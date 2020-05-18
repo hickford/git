@@ -3,6 +3,8 @@
 test_description='commit graph'
 . ./test-lib.sh
 
+GIT_TEST_COMMIT_GRAPH_CHANGED_PATHS=0
+
 test_expect_success 'setup full repo' '
 	mkdir full &&
 	cd "$TRASH_DIRECTORY/full" &&
@@ -10,6 +12,10 @@ test_expect_success 'setup full repo' '
 	git config core.commitGraph true &&
 	objdir=".git/objects" &&
 	test_oid_init
+'
+
+test_expect_success POSIXPERM 'tweak umask for modebit tests' '
+	umask 022
 '
 
 test_expect_success 'verify graph with no graph file' '
@@ -43,7 +49,7 @@ test_expect_success 'create commits and repack' '
 test_expect_success 'exit with correct error on bad input to --stdin-commits' '
 	cd "$TRASH_DIRECTORY/full" &&
 	echo HEAD | test_expect_code 1 git commit-graph write --stdin-commits 2>stderr &&
-	test_i18ngrep "invalid commit object id" stderr &&
+	test_i18ngrep "unexpected non-hex object ID: HEAD" stderr &&
 	# valid tree OID, but not a commit OID
 	git rev-parse HEAD^{tree} | test_expect_code 1 git commit-graph write --stdin-commits 2>stderr &&
 	test_i18ngrep "invalid commit object id" stderr
@@ -94,6 +100,13 @@ test_expect_success 'write graph' '
 	git commit-graph write &&
 	test_path_is_file $objdir/info/commit-graph &&
 	graph_read_expect "3"
+'
+
+test_expect_success POSIXPERM 'write graph has correct permissions' '
+	test_path_is_file $objdir/info/commit-graph &&
+	echo "-r--r--r--" >expect &&
+	test_modebits $objdir/info/commit-graph >actual &&
+	test_cmp expect actual
 '
 
 graph_git_behavior 'graph exists' full commits/3 commits/1
@@ -421,7 +434,8 @@ GRAPH_BYTE_FOOTER=$(($GRAPH_OCTOPUS_DATA_OFFSET + 4 * $NUM_OCTOPUS_EDGES))
 corrupt_graph_setup() {
 	cd "$TRASH_DIRECTORY/full" &&
 	test_when_finished mv commit-graph-backup $objdir/info/commit-graph &&
-	cp $objdir/info/commit-graph commit-graph-backup
+	cp $objdir/info/commit-graph commit-graph-backup &&
+	chmod u+w $objdir/info/commit-graph
 }
 
 corrupt_graph_verify() {
@@ -435,6 +449,7 @@ corrupt_graph_verify() {
 	fi &&
 	git status --short &&
 	GIT_TEST_COMMIT_GRAPH_DIE_ON_LOAD=true git commit-graph write &&
+	chmod u+w $objdir/info/commit-graph &&
 	git commit-graph verify
 }
 

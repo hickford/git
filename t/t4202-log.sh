@@ -742,7 +742,23 @@ test_expect_success 'decorate-refs with glob' '
 	octopus-a (octopus-a)
 	reach
 	EOF
+	cat >expect.no-decorate <<-\EOF &&
+	Merge-tag-reach
+	Merge-tags-octopus-a-and-octopus-b
+	seventh
+	octopus-b
+	octopus-a
+	reach
+	EOF
 	git log -n6 --decorate=short --pretty="tformat:%f%d" \
+		--decorate-refs="heads/octopus*" >actual &&
+	test_cmp expect.decorate actual &&
+	git log -n6 --decorate=short --pretty="tformat:%f%d" \
+		--decorate-refs-exclude="heads/octopus*" \
+		--decorate-refs="heads/octopus*" >actual &&
+	test_cmp expect.no-decorate actual &&
+	git -c log.excludeDecoration="heads/octopus*" log \
+		-n6 --decorate=short --pretty="tformat:%f%d" \
 		--decorate-refs="heads/octopus*" >actual &&
 	test_cmp expect.decorate actual
 '
@@ -787,6 +803,9 @@ test_expect_success 'decorate-refs-exclude with glob' '
 	EOF
 	git log -n6 --decorate=short --pretty="tformat:%f%d" \
 		--decorate-refs-exclude="heads/octopus*" >actual &&
+	test_cmp expect.decorate actual &&
+	git -c log.excludeDecoration="heads/octopus*" log \
+		-n6 --decorate=short --pretty="tformat:%f%d" >actual &&
 	test_cmp expect.decorate actual
 '
 
@@ -801,6 +820,9 @@ test_expect_success 'decorate-refs-exclude without globs' '
 	EOF
 	git log -n6 --decorate=short --pretty="tformat:%f%d" \
 		--decorate-refs-exclude="tags/reach" >actual &&
+	test_cmp expect.decorate actual &&
+	git -c log.excludeDecoration="tags/reach" log \
+		-n6 --decorate=short --pretty="tformat:%f%d" >actual &&
 	test_cmp expect.decorate actual
 '
 
@@ -816,11 +838,19 @@ test_expect_success 'multiple decorate-refs-exclude' '
 	git log -n6 --decorate=short --pretty="tformat:%f%d" \
 		--decorate-refs-exclude="heads/octopus*" \
 		--decorate-refs-exclude="tags/reach" >actual &&
+	test_cmp expect.decorate actual &&
+	git -c log.excludeDecoration="heads/octopus*" \
+		-c log.excludeDecoration="tags/reach" log \
+		-n6 --decorate=short --pretty="tformat:%f%d" >actual &&
+	test_cmp expect.decorate actual &&
+	git -c log.excludeDecoration="heads/octopus*" log \
+		--decorate-refs-exclude="tags/reach" \
+		-n6 --decorate=short --pretty="tformat:%f%d" >actual &&
 	test_cmp expect.decorate actual
 '
 
 test_expect_success 'decorate-refs and decorate-refs-exclude' '
-	cat >expect.decorate <<-\EOF &&
+	cat >expect.no-decorate <<-\EOF &&
 	Merge-tag-reach (master)
 	Merge-tags-octopus-a-and-octopus-b
 	seventh
@@ -831,6 +861,21 @@ test_expect_success 'decorate-refs and decorate-refs-exclude' '
 	git log -n6 --decorate=short --pretty="tformat:%f%d" \
 		--decorate-refs="heads/*" \
 		--decorate-refs-exclude="heads/oc*" >actual &&
+	test_cmp expect.no-decorate actual
+'
+
+test_expect_success 'deocrate-refs and log.excludeDecoration' '
+	cat >expect.decorate <<-\EOF &&
+	Merge-tag-reach (master)
+	Merge-tags-octopus-a-and-octopus-b
+	seventh
+	octopus-b (octopus-b)
+	octopus-a (octopus-a)
+	reach (reach)
+	EOF
+	git -c log.excludeDecoration="heads/oc*" log \
+		--decorate-refs="heads/*" \
+		-n6 --decorate=short --pretty="tformat:%f%d" >actual &&
 	test_cmp expect.decorate actual
 '
 
@@ -845,6 +890,10 @@ test_expect_success 'decorate-refs-exclude and simplify-by-decoration' '
 	EOF
 	git log -n6 --decorate=short --pretty="tformat:%f%d" \
 		--decorate-refs-exclude="*octopus*" \
+		--simplify-by-decoration >actual &&
+	test_cmp expect.decorate actual &&
+	git -c log.excludeDecoration="*octopus*" log \
+		-n6 --decorate=short --pretty="tformat:%f%d" \
 		--simplify-by-decoration >actual &&
 	test_cmp expect.decorate actual
 '
@@ -1627,6 +1676,66 @@ test_expect_success GPG 'log --graph --show-signature for merged tag in shallow 
 	grep "tag signed_tag_shallow names a non-parent $hash" actual
 '
 
+test_expect_success GPG 'log --graph --show-signature for merged tag with missing key' '
+	test_when_finished "git reset --hard && git checkout master" &&
+	git checkout -b plain-nokey master &&
+	echo aaa >bar &&
+	git add bar &&
+	git commit -m bar_commit &&
+	git checkout -b tagged-nokey master &&
+	echo bbb >baz &&
+	git add baz &&
+	git commit -m baz_commit &&
+	git tag -s -m signed_tag_msg signed_tag_nokey &&
+	git checkout plain-nokey &&
+	git merge --no-ff -m msg signed_tag_nokey &&
+	GNUPGHOME=. git log --graph --show-signature -n1 plain-nokey >actual &&
+	grep "^|\\\  merged tag" actual &&
+	grep "^| | gpg: Signature made" actual &&
+	grep "^| | gpg: Can'"'"'t check signature: \(public key not found\|No public key\)" actual
+'
+
+test_expect_success GPG 'log --graph --show-signature for merged tag with bad signature' '
+	test_when_finished "git reset --hard && git checkout master" &&
+	git checkout -b plain-bad master &&
+	echo aaa >bar &&
+	git add bar &&
+	git commit -m bar_commit &&
+	git checkout -b tagged-bad master &&
+	echo bbb >baz &&
+	git add baz &&
+	git commit -m baz_commit &&
+	git tag -s -m signed_tag_msg signed_tag_bad &&
+	git cat-file tag signed_tag_bad >raw &&
+	sed -e "s/signed_tag_msg/forged/" raw >forged &&
+	git hash-object -w -t tag forged >forged.tag &&
+	git checkout plain-bad &&
+	git merge --no-ff -m msg "$(cat forged.tag)" &&
+	git log --graph --show-signature -n1 plain-bad >actual &&
+	grep "^|\\\  merged tag" actual &&
+	grep "^| | gpg: Signature made" actual &&
+	grep "^| | gpg: BAD signature from" actual
+'
+
+test_expect_success GPG 'log --show-signature for merged tag with GPG failure' '
+	test_when_finished "git reset --hard && git checkout master" &&
+	git checkout -b plain-fail master &&
+	echo aaa >bar &&
+	git add bar &&
+	git commit -m bar_commit &&
+	git checkout -b tagged-fail master &&
+	echo bbb >baz &&
+	git add baz &&
+	git commit -m baz_commit &&
+	git tag -s -m signed_tag_msg signed_tag_fail &&
+	git checkout plain-fail &&
+	git merge --no-ff -m msg signed_tag_fail &&
+	TMPDIR="$(pwd)/bogus" git log --show-signature -n1 plain-fail >actual &&
+	grep "^merged tag" actual &&
+	grep "^No signature" actual &&
+	! grep "^gpg: Signature made" actual
+'
+
 test_expect_success GPGSM 'log --graph --show-signature for merged tag x509' '
 	test_when_finished "git reset --hard && git checkout master" &&
 	test_config gpg.format x509 &&
@@ -1647,6 +1756,51 @@ test_expect_success GPGSM 'log --graph --show-signature for merged tag x509' '
 	grep "^| | gpgsm: Signature made" actual &&
 	grep "^| | gpgsm: Good signature" actual
 '
+
+test_expect_success GPGSM 'log --graph --show-signature for merged tag x509 missing key' '
+	test_when_finished "git reset --hard && git checkout master" &&
+	test_config gpg.format x509 &&
+	test_config user.signingkey $GIT_COMMITTER_EMAIL &&
+	git checkout -b plain-x509-nokey master &&
+	echo aaa >bar &&
+	git add bar &&
+	git commit -m bar_commit &&
+	git checkout -b tagged-x509-nokey master &&
+	echo bbb >baz &&
+	git add baz &&
+	git commit -m baz_commit &&
+	git tag -s -m signed_tag_msg signed_tag_x509_nokey &&
+	git checkout plain-x509-nokey &&
+	git merge --no-ff -m msg signed_tag_x509_nokey &&
+	GNUPGHOME=. git log --graph --show-signature -n1 plain-x509-nokey >actual &&
+	grep "^|\\\  merged tag" actual &&
+	grep "^| | gpgsm: certificate not found" actual
+'
+
+test_expect_success GPGSM 'log --graph --show-signature for merged tag x509 bad signature' '
+	test_when_finished "git reset --hard && git checkout master" &&
+	test_config gpg.format x509 &&
+	test_config user.signingkey $GIT_COMMITTER_EMAIL &&
+	git checkout -b plain-x509-bad master &&
+	echo aaa >bar &&
+	git add bar &&
+	git commit -m bar_commit &&
+	git checkout -b tagged-x509-bad master &&
+	echo bbb >baz &&
+	git add baz &&
+	git commit -m baz_commit &&
+	git tag -s -m signed_tag_msg signed_tag_x509_bad &&
+	git cat-file tag signed_tag_x509_bad >raw &&
+	sed -e "s/signed_tag_msg/forged/" raw >forged &&
+	git hash-object -w -t tag forged >forged.tag &&
+	git checkout plain-x509-bad &&
+	git merge --no-ff -m msg "$(cat forged.tag)" &&
+	git log --graph --show-signature -n1 plain-x509-bad >actual &&
+	grep "^|\\\  merged tag" actual &&
+	grep "^| | gpgsm: Signature made" actual &&
+	grep "^| | gpgsm: invalid signature" actual
+'
+
 
 test_expect_success GPG '--no-show-signature overrides --show-signature' '
 	git log -1 --show-signature --no-show-signature signed >actual &&

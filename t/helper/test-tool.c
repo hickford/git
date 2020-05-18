@@ -14,6 +14,8 @@ struct test_cmd {
 };
 
 static struct test_cmd cmds[] = {
+	{ "advise", cmd__advise_if_enabled },
+	{ "bloom", cmd__bloom },
 	{ "chmtime", cmd__chmtime },
 	{ "config", cmd__config },
 	{ "ctype", cmd__ctype },
@@ -36,6 +38,7 @@ static struct test_cmd cmds[] = {
 	{ "match-trees", cmd__match_trees },
 	{ "mergesort", cmd__mergesort },
 	{ "mktemp", cmd__mktemp },
+	{ "oid-array", cmd__oid_array },
 	{ "oidmap", cmd__oidmap },
 	{ "online-cpus", cmd__online_cpus },
 	{ "parse-options", cmd__parse_options },
@@ -56,7 +59,6 @@ static struct test_cmd cmds[] = {
 	{ "scrap-cache-tree", cmd__scrap_cache_tree },
 	{ "serve-v2", cmd__serve_v2 },
 	{ "sha1", cmd__sha1 },
-	{ "sha1-array", cmd__sha1_array },
 	{ "sha256", cmd__sha256 },
 	{ "sigchain", cmd__sigchain },
 	{ "strcmp-offset", cmd__strcmp_offset },
@@ -111,6 +113,7 @@ int cmd_main(int argc, const char **argv)
 			argc--;
 			trace2_cmd_name(cmds[i].name);
 			trace2_cmd_list_config();
+			trace2_cmd_list_env_vars();
 			return cmds[i].fn(argc, argv);
 		}
 	}
