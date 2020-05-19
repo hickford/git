@@ -1,3 +1,0 @@
-0001-sequencer-honor-GIT_REFLOG_ACTION.diff
-0002-sequencer-don-t-abbreviate-a-command-if-it-doesn-t-ha.diff
-0003-t3432-test-merge-with-rebase.abbreviateCommands-true-.diff

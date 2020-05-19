@@ -1,3 +1,577 @@
+Version v2.27.0-rc0; changes since v2.26.2:
+-------------------------------------------
+
+Alban Gruin (3):
+      sequencer: mark messages for translation
+      sequencer: don't abbreviate a command if it doesn't have a short form
+      t3432: test `--merge' with `rebase.abbreviateCommands = true', too
+
+Alex Henrie (1):
+      pull: warn if the user didn't say whether to rebase or to merge
+
+Alexandr Miloslavskiy (4):
+      set_git_dir: fix crash when used with real_path()
+      real_path: remove unsafe API
+      real_path_if_valid(): remove unsafe API
+      get_superproject_working_tree(): return strbuf
+
+Andras Kucsma (1):
+      run-command: trigger PATH lookup properly on Cygwin
+
+Andrei Rybak (2):
+      t9500: remove spaces after redirect operators
+      t: fix whitespace around &&
+
+Andrew Oakley (1):
+      git-p4: recover from inconsistent perforce history
+
+Ash Holland (1):
+      userdiff: support Markdown
+
+Ben Keene (8):
+      git-p4: change the expansion test from basestring to list
+      git-p4: rewrite prompt to be Windows compatible
+      git-p4: create new function run_git_hook
+      git-p4: add p4-pre-submit exit text
+      git-p4: add --no-verify option
+      git-p4: restructure code in submit
+      git-p4: add p4 submit hooks
+      git-p4: add RCS keyword status message
+
+Carlo Marcelo Arenas Belón (8):
+      credential-store: ignore bogus lines from store file
+      credential: update description for credential_from_url_gently
+      credential: correct order of parameters for credential_match
+      builtin/receive-pack: avoid generic function name hmac()
+      t/t0000-basic: make sure subtests also use TEST_SHELL_PATH
+      t/test_lib: avoid naked bash arrays in file_lineno
+      credential: update gitcredentials documentation
+      credential: document protocol updates
+
+Christian Couder (1):
+      upload-pack: clear filter_options for each v2 fetch command
+
+Christopher Warrington (1):
+      bisect: allow CRLF line endings in "git bisect replay" input
+
+Damien Robert (6):
+      midx.c: fix an integer underflow
+      doc: list all commands affected by submodule.recurse
+      doc: document --recurse-submodules for reset and restore
+      doc: explain how to deactivate submodule.recurse completely
+      doc: be more precise on (fetch|push).recurseSubmodules
+      doc: --recurse-submodules mostly applies to active submodules
+
+Denton Liu (45):
+      Makefile: ASCII-sort += lists
+      t7600: use test_write_lines()
+      Lib-ify fmt-merge-msg
+      Lib-ify prune-packed
+      t5512: don't use `test_must_fail test_cmp`
+      t5512: stop losing git exit code in here-docs
+      t5512: stop losing return codes of git commands
+      t5550: simplify no matching line check
+      t5607: reorder `nongit test_must_fail`
+      t5612: don't use `test_must_fail test_cmp`
+      t5612: stop losing return codes of git commands
+      t5801: teach compare_refs() to accept !
+      wrapper: indent with tabs
+      sequencer: stop leaking buf
+      sequencer: make file exists check more efficient
+      sequencer: make read_oneliner() accept flags
+      sequencer: configurably warn on non-existent files
+      sequencer: make read_oneliner() extern
+      rebase: use read_oneliner()
+      sequencer: make apply_autostash() accept a path
+      sequencer: rename stash_sha1 to stash_oid
+      rebase: use apply_autostash() from sequencer.c
+      rebase: generify reset_head()
+      reset: extract reset_head() from rebase
+      rebase: extract create_autostash()
+      rebase: generify create_autostash()
+      sequencer: extract perform_autostash() from rebase
+      sequencer: unlink autostash in apply_autostash()
+      sequencer: implement save_autostash()
+      sequencer: implement apply_autostash_oid()
+      merge: teach --autostash option
+      t5520: make test_pull_autostash() accept expect_parent_num
+      pull: pass --autostash to merge
+      t6030: use test_path_is_missing()
+      t7408: replace incorrect uses of test_must_fail
+      t7508: don't use `test_must_fail test_cmp`
+      t9141: use test_path_is_missing()
+      t9160: use test_path_is_missing()
+      t9164: use test_must_fail only on git commands
+      t9819: don't use test_must_fail with p4
+      Use OPT_CALLBACK and OPT_CALLBACK_F
+      push: unset PARSE_OPT_OPTARG for --recurse-submodules
+      rebase: save autostash entry into stash reflog on --quit
+      switch: fix errors and comments related to -c and -C
+      Doc: reference the "stash list" in autostash docs
+
+Derrick Stolee (25):
+      connected.c: reprepare packs for corner cases
+      config: set pack.useSparse=true by default
+      pack-objects: flip the use of GIT_TEST_PACK_SPARSE
+      clone: document --filter options
+      diff: halt tree-diff early after max_changes
+      dir: refactor treat_directory to clarify control flow
+      commit-graph: fix buggy --expire-time option
+      t5319: replace 'touch -m' with 'test-tool chmtime'
+      bloom: ignore renames when computing changed paths
+      revision: --show-pulls adds helpful merges
+      log-tree: make ref_filter_match() a helper method
+      log: add log.excludeDecoration config option
+      revision: complicated pathspecs disable filters
+      tests: write commit-graph with Bloom filters
+      blame: use changed-path Bloom filters
+      multi-pack-index: close file descriptor after mmap
+      bloom: fix whitespace around tab length
+      test-bloom: fix usage typo
+      sparse-checkout: stop blocking empty workdirs
+      unpack-trees: avoid array out-of-bounds error
+      multi-pack-index: respect repack.packKeptObjects=false
+      bloom: parse commit before computing filters
+      Documentation: changed-path Bloom filters use byte words
+      bloom: de-duplicate directory entries
+      bloom: use num_changes not nr for limit detection
+
+Elijah Newren (37):
+      oidset: remove unnecessary include
+      unpack-trees: fix minor typo in comment
+      unpack-trees: remove unused error type
+      unpack-trees: simplify verify_absent_sparse()
+      unpack-trees: simplify pattern_list freeing
+      t1091: make some tests a little more defensive against failures
+      unpack-trees: allow check_updates() to work on a different index
+      unpack-trees: do not mark a dirty path with SKIP_WORKTREE
+      unpack-trees: pull sparse-checkout pattern reading into a new function
+      unpack-trees: add a new update_sparsity() function
+      sparse-checkout: use new update_sparsity() function
+      sparse-checkout: use improved unpack_trees porcelain messages
+      unpack-trees: move ERROR_WOULD_LOSE_SUBMODULE earlier
+      unpack-trees: rename ERROR_* fields meant for warnings to WARNING_*
+      unpack-trees: split display_error_msgs() into two
+      unpack-trees: make sparse path messages sound like warnings
+      unpack-trees: provide warnings on sparse updates for unmerged paths too
+      unpack-trees: failure to set SKIP_WORKTREE bits always just a warning
+      sparse-checkout: provide a new reapply subcommand
+      pull: avoid running both merge and rebase
+      t7063: more thorough status checking
+      t3000: add more testcases testing a variety of ls-files issues
+      dir: fix simple typo in comment
+      dir: consolidate treat_path() and treat_one_path()
+      dir: fix broken comment
+      dir: fix confusion based on variable tense
+      dir: replace exponential algorithm with a linear one
+      dir: include DIR_KEEP_UNTRACKED_CONTENTS handling in treat_directory()
+      dir: replace double pathspec matching with single in treat_directory()
+      Fix error-prone fill_directory() API; make it only return matches
+      completion: fix 'git add' on paths under an untracked directory
+      git-rebase.txt: add another hook to the hooks section, and explain more
+      sequencer: honor GIT_REFLOG_ACTION
+      rebase -i: mark commits that begin empty in todo editor
+      rebase: reinstate --no-keep-empty
+      rebase: fix an incompatible-options error message
+      rebase: display an error if --root and --fork-point are both provided
+
+Emily Shaffer (8):
+      help: move list_config_help to builtin/help
+      bugreport: add tool to generate debugging info
+      bugreport: gather git version and build info
+      bugreport: add uname info
+      bugreport: add compiler info
+      bugreport: drop extraneous includes
+      bugreport: collect list of populated hooks
+      trace2: log progress time and throughput
+
+Emma Brooks (3):
+      format-patch: teach --no-encode-email-headers
+      Documentation: explain "mboxrd" pretty format
+      gitweb: Recognize *-to and Closes/Fixes trailers
+
+Eric Sunshine (1):
+      restore: default to HEAD when combining --staged and --worktree
+
+Garima Singh (13):
+      commit-graph: define and use MAX_NUM_CHUNKS
+      bloom.c: add the murmur3 hash implementation
+      bloom.c: introduce core Bloom filter constructs
+      bloom.c: core Bloom filter implementation for changed paths.
+      commit-graph: compute Bloom filters for changed paths
+      commit-graph: examine commits by generation number
+      commit-graph: write Bloom filters to commit graph file
+      commit-graph: reuse existing Bloom filters during write
+      commit-graph: add --changed-paths option to write subcommand
+      revision.c: use Bloom filters to speed up path based revision walks
+      revision.c: add trace2 stats around Bloom filter usage
+      t4216: add end to end tests for git log with Bloom filters
+      commit-graph: add GIT_TEST_COMMIT_GRAPH_CHANGED_PATHS test flag
+
+Hans Jerry Illikainen (2):
+      t: increase test coverage of signature verification output
+      gpg-interface: prefer check_signature() for GPG verification
+
+Heba Waly (4):
+      advice: extract vadvise() from advise()
+      advice: change "setupStreamFailure" to "setUpstreamFailure"
+      advice: revamp advise API
+      tag: use new advice API to check visibility
+
+Jeff King (41):
+      t3419: drop EXPENSIVE tests
+      t/lib-credential.sh: drop shebang line
+      t/lib-*.sh: drop executable bit
+      test-lib-functions: make packetize() more efficient
+      upload-pack: handle unexpected delim packets
+      p5310: stop timing non-bitmap pack-to-disk
+      Makefile: avoid running curl-config multiple times
+      Makefile: use curl-config --cflags
+      test-lib-functions: simplify packetize() stdin code
+      commit-graph: examine changed-path objects in pack order
+      oid_array: use size_t for count and allocation
+      oid_array: use size_t for iteration
+      oid_array: rename source file from sha1-array
+      test-tool: rename sha1-array to oid-array
+      bisect: stop referring to sha1_array
+      ref-filter: stop referring to "sha1 array"
+      oidset: stop referring to sha1-array
+      clone: use "quick" lookup while following tags
+      Makefile: avoid running curl-config unnecessarily
+      fast-import: replace custom hash with hashmap.c
+      repository: mark the "refs" pointer as private
+      remote: drop auto-strlen behavior of make_branch() and make_rewrite()
+      parse_config_key(): return subsection len as size_t
+      config: drop useless length variable in write_pair()
+      git_config_parse_key(): return baselen as size_t
+      config: use size_t to store parsed variable baselen
+      config: reject parsing of files over INT_MAX
+      credential: treat "?" and "#" in URLs as end of host
+      blame: drop unused parameter from maybe_changed_path
+      test-bloom: fix some whitespace issues
+      test-bloom: check that we have expected arguments
+      commit-graph: close descriptors after mmap
+      t0000: disable GIT_TEST_FAIL_PREREQS in sub-tests
+      gitcredentials(7): clarify quoting of helper examples
+      gitcredentials(7): make shell-snippet example more realistic
+      CodingGuidelines: drop arithmetic expansion advice to use "$x"
+      ref-filter: apply --ignore-case to all sorting keys
+      ref-filter: apply fallback refname sort only after all user sorts
+      list-objects-filter: treat NULL filter_options as "disabled"
+      pack-bitmap: pass object filter to fill-in traversal
+      ci: allow per-branch config for GitHub Actions
+
+Jessica Clarke (1):
+      config.mak.uname: Define FREAD_READS_DIRECTORIES for GNU/Hurd
+
+Jiang Xin (5):
+      send-pack: fix inconsistent porcelain output
+      t5543: never report what we do not push
+      send-pack: mark failure of atomic push properly
+      transport-helper: mark failure for atomic push
+      transport-helper: new method reject_atomic_push()
+
+Johannes Schindelin (36):
+      cherry-pick: add test for `--skip` advice in `git commit`
+      tests(junit-xml): avoid invalid XML
+      import-tars: ignore the global PAX header
+      tests(gpg): allow the gpg-agent to start on Windows
+      t/lib-gpg.sh: stop pretending to be a stand-alone script
+      tests: do not let lazy prereqs inside `test_expect_*` turn off tracing
+      tests: turn GPG, GPGSM and RFC1991 into lazy prereqs
+      tests: increase the verbosity of the GPG-related prereqs
+      MyFirstObjectWalk: remove unnecessary conditional statement
+      t0007: fix a typo
+      ci/lib: if CI type is unknown, show the environment variables
+      ci/lib: allow running in GitHub Actions
+      ci: fix the `jobname` of the `GETTEXT_POISON` job
+      subtree: fix build with AsciiDoctor 2
+      mingw: do not treat `COM0` as a reserved file name
+      t3904: fix incorrect demonstration of a bug
+      stash -p: (partially) fix bug concerning split hunks
+      mingw: help debugging by optionally executing bash with strace
+      interactive: refactor code asking the user for interactive input
+      ci: run gem with sudo to install asciidoctor
+      README: add a build badge for the GitHub Actions runs
+      ci: retire the Azure Pipelines definition
+      tests: when run in Bash, annotate test failures with file name/line number
+      ci: add a problem matcher for GitHub Actions
+      ci: let GitHub Actions upload failed tests' directories
+      t: consolidate the `is_hidden` functions
+      mingw: make test_path_is_hidden more robust
+      t: restrict `is_hidden` to be called only on Windows
+      credential: fix grammar
+      credential: optionally allow partial URLs in credential_from_url_gently()
+      credential: optionally allow partial URLs in credential_from_url_gently()
+      credential: handle `credential.<partial-URL>.<key>` again
+      macOS/brew: let the build find gettext headers/libraries/msgfmt
+      push: anonymize URLs in error messages and warnings
+      credential: handle `credential.<partial-URL>.<key>` again
+      rebase --autosquash: fix a potential segfault
+
+Jonathan Nieder (1):
+      Revert "fetch: default to protocol version 2"
+
+Jonathan Tan (11):
+      connected: always use partial clone optimization
+      promisor-remote: accept 0 as oid_nr in function
+      diff: make diff_populate_filespec_options struct
+      diff: refactor object read
+      diff: restrict when prefetching occurs
+      rebase --merge: optionally skip upstreamed commits
+      fetch-pack: return enum from process_acks()
+      fetch-pack: in protocol v2, in_vain only after ACK
+      fetch-pack: in protocol v2, reset in_vain upon ACK
+      commit-graph: avoid memory leaks
+      t5500: count objects through stderr, not trace
+
+Jorge Lopez Silva (2):
+      http: add client cert support for HTTPS proxies
+      http: add environment variable support for HTTPS proxies
+
+Josh Steadmon (1):
+      trace2: teach Git to log environment variables
+
+Julien Moutinho (1):
+      gitweb: fix UTF-8 encoding when using CGI::Fast
+
+Junio C Hamano (26):
+      rebase: --fork-point regression fix
+      describe: force long format for a name based on a mislocated tag
+      update how-to-maintain-git
+      parse-options: teach "git cmd -h" to show alias as alias
+      clone: reorder --recursive/--recurse-submodules
+      log: give --[no-]use-mailmap a more sensible synonym --[no-]mailmap
+      separate tar.* config to its own source file
+      The first batch post 2.26 cycle
+      The second batch post 2.26 cycle
+      t/README: suggest how to leave test early with failure
+      CodingGuidelines: allow ${#posix} == strlen($posix)
+      sha1-name: do not assume that the ref store is initialized
+      receive-pack: compilation fix
+      The third batch
+      The fourth batch
+      credential-store: document the file format a bit more
+      Revert "commit-graph.c: introduce '--[no-]check-oids'"
+      The fifth batch
+      The sixth batch
+      The seventh batch
+      auto-gc: extract a reusable helper from "git fetch"
+      auto-gc: pass --quiet down from am, commit, merge and rebase
+      CodingGuidelines: do not ==/!= compare with 0 or '\0' or NULL
+      The eighth batch
+      The ninth batch
+      Git 2.27-rc0
+
+Li Xuejiang (1):
+      git-submodule.sh: setup uninitialized variables
+
+Martin Ågren (9):
+      Doc: drop support for docbook-xsl before 1.71.1
+      Doc: drop support for docbook-xsl before 1.72.0
+      Doc: drop support for docbook-xsl before 1.73.0
+      manpage-bold-literal.xsl: stop using git.docbook.backslash
+      manpage-normal.xsl: fold in manpage-base.xsl
+      INSTALL: drop support for docbook-xsl before 1.74
+      user-manual.conf: don't specify [listingblock]
+      config.txt: move closing "----" to cover entire listing
+      merge: use skip_prefix to parse config key
+
+Matheus Tavares (3):
+      test-lib: allow short options to be bundled
+      grep: follow conventions for printing paths w/ unusual chars
+      config doc: fix reference to config.worktree info
+
+Matthias Aßhauer (1):
+      mingw: use modern strftime implementation if possible
+
+Michael F. Schönitzer (1):
+      docs: fix minor glitch in illustration
+
+Nathan Sanders (1):
+      mingw: cope with the Isilon network file system
+
+Patrick Steinhardt (9):
+      refs: fix segfault when aborting empty transaction
+      git-update-ref.txt: add missing word
+      strbuf: provide function to append whole lines
+      update-ref: organize commands in an array
+      update-ref: drop unused argument for `parse_refname`
+      update-ref: pass end pointer instead of strbuf
+      update-ref: move transaction handling into `update_refs_stdin()`
+      update-ref: read commands in a line-wise fashion
+      update-ref: implement interactive transaction handling
+
+Philippe Blain (9):
+      t7112: remove mention of KNOWN_FAILURE_SUBMODULE_RECURSIVE_NESTED
+      t/lib-submodule-update: remove outdated test description
+      t/lib-submodule-update: move a test to the right section
+      unpack-trees: remove outdated description for verify_clean_submodule
+      unpack-trees: check for missing submodule directory in merged_entry
+      t/lib-submodule-update: add test removing nested submodules
+      git-rebase.txt: fix typo
+      pull doc: refer to a specific section in 'fetch' doc
+      pull doc: correct outdated description of an example
+
+Phillip Wood (6):
+      t3404: use test_cmp_rev
+      cherry-pick: check commit error messages
+      sequencer: write CHERRY_PICK_HEAD for reword and edit
+      commit: use enum value for multiple cherry-picks
+      commit: encapsulate determine_whence() for sequencer
+      commit: give correct advice for empty commit during a rebase
+
+René Scharfe (4):
+      pull: document more passthru options
+      pull: remove --update-head-ok from documentation
+      pull: pass documented fetch options on
+      fsck: report non-consecutive duplicate names in trees
+
+SZEDER Gábor (4):
+      ci: use python3 in linux-gcc and osx-gcc and python2 elsewhere
+      commit-slab: clarify slabname##_peek()'s return value
+      ci: make MAKEFLAGS available inside the Docker container in the Linux32 job
+      completion: offer '--(no-)patch' among 'git log' options
+
+Shourya Shukla (4):
+      submodule--helper.c: Rename 'cb_foreach' to 'foreach_cb'
+      gitfaq: files in .gitignore are tracked
+      gitfaq: fetching and pulling a repository
+      submodule: port subcommand 'set-url' from shell to C
+
+Son Luong Ngoc (1):
+      midx: teach "git multi-pack-index repack" honor "git repack" configurations
+
+Taylor Blau (24):
+      t/helper/test-read-graph.c: support commit-graph chains
+      builtin/commit-graph.c: support for '--split[=<strategy>]'
+      builtin/commit-graph.c: introduce split strategy 'no-merge'
+      builtin/commit-graph.c: introduce split strategy 'replace'
+      oidset: introduce 'oidset_size'
+      commit-graph.h: replace 'commit_hex' with 'commits'
+      commit-graph.c: introduce '--[no-]check-oids'
+      diff-tree.c: load notes machinery when required
+      commit-graph.c: don't use discarded graph_name in error
+      t/test-lib.sh: make ULIMIT_FILE_DESCRIPTORS available to tests
+      commit-graph.c: gracefully handle file descriptor exhaustion
+      t5537: use test_write_lines and indented heredocs for readability
+      shallow.c: use '{commit,rollback}_shallow_file'
+      tempfile.c: introduce 'create_tempfile_mode'
+      lockfile.c: introduce 'hold_lock_file_for_update_mode'
+      commit-graph.c: write non-split graphs as read-only
+      commit-graph.c: ensure graph layers respect core.sharedRepository
+      commit-graph.c: make 'commit-graph-chain's read-only
+      commit: make 'commit_graft_pos' non-static
+      shallow: extract a header file for shallow-related functions
+      shallow.h: document '{commit,rollback}_shallow_file'
+      shallow: use struct 'shallow_lock' for additional safety
+      pack-bitmap.c: make object filtering functions generic
+      pack-bitmap.c: support 'tree:0' filtering
+
+Terry Moschou (1):
+      complete: zsh: add missing sub cmd completion candidates
+
+Thomas Gummerer (2):
+      stash: get git_stash_config at the top level
+      stash: remove the stash.useBuiltin setting
+
+Vasil Dimov (2):
+      range-diff: fix a crash in parsing git-log output
+      range-diff: avoid negative string precision
+
+Yang Zhao (12):
+      git-p4: make python2.7 the oldest supported version
+      git-p4: remove string type aliasing
+      git-p4: encode/decode communication with p4 for python3
+      git-p4: encode/decode communication with git for python3
+      git-p4: convert path to unicode before processing them
+      git-p4: open .gitp4-usercache.txt in text mode
+      git-p4: use marshal format version 2 when sending to p4
+      git-p4: fix freezing while waiting for fast-import progress
+      git-p4: use functools.reduce instead of reduce
+      git-p4: use dict.items() iteration for python3 compatibility
+      git-p4: simplify regex pattern generation for parsing diff-tree
+      git-p4: use python3's input() everywhere
+
+brian m. carlson (34):
+      builtin/pack-objects: make hash agnostic
+      hash: implement and use a context cloning function
+      hex: introduce parsing variants taking hash algorithms
+      hex: add functions to parse hex object IDs in any algorithm
+      repository: require a build flag to use SHA-256
+      t: use hash-specific lookup tables to define test constants
+      t6300: abstract away SHA-1-specific constants
+      t6300: make hash algorithm independent
+      t/helper/test-dump-split-index: initialize git repository
+      t/helper: initialize repository if necessary
+      t/helper: make repository tests hash independent
+      setup: allow check_repository_format to read repository format
+      builtin/init-db: allow specifying hash algorithm on command line
+      builtin/init-db: add environment variable for new repo hash
+      init-db: move writing repo version into a function
+      worktree: allow repository version 1
+      commit: use expected signature header for SHA-256
+      fast-import: permit reading multiple marks files
+      fast-import: add helper function for inserting mark object entries
+      fast-import: make find_marks work on any mark set
+      fast-import: add a generic function to iterate over marks
+      fast-import: add options for rewriting submodules
+      builtin/checkout: pass branch info down to checkout_worktree
+      convert: permit passing additional metadata to filter processes
+      convert: provide additional metadata to filters
+      builtin/checkout: compute checkout metadata for checkouts
+      builtin/clone: compute checkout metadata for clones
+      builtin/rebase: compute checkout metadata for rebases
+      builtin/reset: compute checkout metadata for reset
+      t0021: test filter metadata for additional cases
+      docs: add a FAQ
+      builtin/receive-pack: use constant-time comparison for HMAC value
+      credential: fix matching URLs with multiple levels in path
+      docs: document credential.helper allowed values
+
+luciano.rocha@booking.com (1):
+      freshen_file(): use NULL `times' for implicit current-time
+
+Đoàn Trần Công Danh (34):
+      t4061: use POSIX compliant regex(7)
+      test-lib-functions: test_cmp: eval $GIT_TEST_CMP
+      t5003: drop the subshell in test_lazy_prereq
+      t5003: skip conversion test if unzip -a is unavailable
+      t5616: use rev-parse instead to get HEAD's object_id
+      t7063: drop non-POSIX argument "-ls" from find(1)
+      t4124: tweak test so that non-compliant diff(1) can also be used
+      t5703: feed raw data into test-tool unpack-sideband
+      rebase.c: honour --no-gpg-sign
+      cherry-pick/revert: honour --no-gpg-sign in all case
+      Documentation: document am --no-gpg-sign
+      Documentation: reword commit --no-gpg-sign
+      Documentation: merge commit-tree --[no-]gpg-sign
+      Documentation: document merge option --no-gpg-sign
+      ci/lib-docker: preserve required environment variables
+      ci/linux32: parameterise command to switch arch
+      ci: refactor docker runner script
+      ci/linux32: libify install-dependencies step
+      travis: build and test on Linux with musl libc and busybox
+      ci/lib: set TERM environment variable if not exist
+      ci: explicit install all required packages
+      ci: configure GitHub Actions for CI/PR
+      t4254: merge 2 steps of a single test
+      mailinfo.c: avoid strlen on strings that can contains NUL
+      mailinfo: disallow NUL character in mail's header
+      date.c: s/is_date/set_date/
+      date.c: validate and set time in a helper function
+      date.c: skip fractional second part of ISO-8601
+      date.c: allow compact version of ISO-8601 datetime
+      test-parse-pathspec-file.c: s/0/NULL/ for pointer type
+      compat/regex: move stdlib.h up in inclusion chain
+      graph.c: limit linkage of internal variable
+      progress.c: silence cgcc suggestion about internal linkage
+      bloom: fix `make sparse` warning
+
+마누엘 (1):
+      interactive: explicitly `fflush` stdout before expecting input
+
+
 Version v2.26.2; changes since v2.26.1:
 ---------------------------------------
 
