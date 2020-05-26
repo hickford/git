@@ -675,20 +675,6 @@ die () {
 	fi
 }
 
-file_lineno () {
-	test -z "$GIT_TEST_FRAMEWORK_SELFTEST" && test -n "$BASH" || return 0
-	eval '
-		local i
-		for i in ${!BASH_SOURCE[*]}
-		do
-			case $i,"${BASH_SOURCE[$i]##*/}" in
-			0,t[0-9]*.sh) echo "t/${BASH_SOURCE[$i]}:$LINENO: ${1+$1: }"; return;;
-			*,t[0-9]*.sh) echo "t/${BASH_SOURCE[$i]}:${BASH_LINENO[$(($i-1))]}: ${1+$1: }"; return;;
-			esac
-		done
-	'
-}
-
 GIT_EXIT_OK=
 trap 'die' EXIT
 # Disable '-x' tracing, because with some shells, notably dash, it
@@ -734,7 +720,7 @@ test_failure_ () {
 		write_junit_xml_testcase "$1" "      $junit_insert"
 	fi
 	test_failure=$(($test_failure + 1))
-	say_color error "$(file_lineno error)not ok $test_count - $1"
+	say_color error "not ok $test_count - $1"
 	shift
 	printf '%s\n' "$*" | sed -e 's/^/#	/'
 	test "$immediate" = "" || { finalize_junit_xml; GIT_EXIT_OK=t; exit 1; }
@@ -1516,6 +1502,14 @@ FreeBSD)
 	;;
 esac
 
+# Detect arches where a few things don't work
+uname_m=$(uname -m)
+case $uname_m in
+parisc* | hppa*)
+	test_set_prereq HPPA
+	;;
+esac
+
 ( COLUMNS=1 && test $COLUMNS = 1 ) && test_set_prereq COLUMNS_CAN_BE_1
 test -z "$NO_PERL" && test_set_prereq PERL
 test -z "$NO_PTHREADS" && test_set_prereq PTHREADS
@@ -1655,7 +1649,7 @@ run_with_limited_cmdline () {
 }
 
 test_lazy_prereq CMDLINE_LIMIT '
-	test_have_prereq !MINGW,!CYGWIN &&
+	test_have_prereq !HPPA,!MINGW,!CYGWIN &&
 	run_with_limited_cmdline true
 '
 
@@ -1664,7 +1658,7 @@ run_with_limited_stack () {
 }
 
 test_lazy_prereq ULIMIT_STACK_SIZE '
-	test_have_prereq !MINGW,!CYGWIN &&
+	test_have_prereq !HPPA,!MINGW,!CYGWIN &&
 	run_with_limited_stack true
 '
 
