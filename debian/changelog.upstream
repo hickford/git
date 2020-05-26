@@ -1,3 +1,79 @@
+Version v2.27.0-rc2; changes since v2.27.0-rc1:
+-----------------------------------------------
+
+Ansgar Röber (1):
+      Subject: git-gui: fix syntax error because of missing semicolon
+
+Carlo Marcelo Arenas Belón (3):
+      t4216: avoid unnecessary subshell in test_bloom_filters_not_used
+      t5520: avoid alternation in grep's BRE (not POSIX)
+      bisect: avoid tailing CR characters from revision in replay
+
+Derrick Stolee (1):
+      fsck: use ERROR_MULTI_PACK_INDEX
+
+Greg Price (1):
+      tests: skip small-stack tests on hppa architecture
+
+Ismael Luceno (1):
+      git-gui: Handle Ctrl + BS/Del in the commit msg
+
+Jonathan Tan (1):
+      t4067: make rename detection test output raw diff
+
+Junio C Hamano (2):
+      Hopefully final batch before 2.27-rc2
+      Git 2.27-rc2
+
+Martin Ågren (5):
+      date-formats.txt: fix list continuation
+      git-commit-graph.txt: fix grammo
+      git-commit-graph.txt: fix list rendering
+      git-credential.txt: use list continuation
+      git-sparse-checkout.txt: add missing '
+
+Philippe Blain (1):
+      command-list.txt: add gitfaq to the list of guides
+
+Todd Zullinger (1):
+      gitfaq: avoid validation error with older asciidoc
+
+Đoàn Trần Công Danh (1):
+      t5703: replace "grep -a" usage by perl
+
+
+Version v2.27.0-rc1; changes since v2.27.0-rc0:
+-----------------------------------------------
+
+Abhishek Kumar (1):
+      commit-slab-decl.h: update include guard
+
+Carlo Marcelo Arenas Belón (1):
+      compat: remove gmtime
+
+Derrick Stolee (1):
+      progress: call trace2_region_leave() only after calling _enter()
+
+Elijah Newren (2):
+      merge-recursive: fix rename/rename(1to2) for working tree with a binary
+      unpack-trees: also allow get_progress() to work on a different index
+
+Johannes Schindelin (1):
+      ci: avoid pounding on the poor ci-artifacts container
+
+Junio C Hamano (4):
+      Revert "t/test_lib: avoid naked bash arrays in file_lineno"
+      Revert "ci: add a problem matcher for GitHub Actions"
+      Revert "tests: when run in Bash, annotate test failures with file name/line number"
+      Git 2.27-rc1
+
+Todd Zullinger (1):
+      git-bugreport.txt: adjust reference to strftime(3)
+
+Đoàn Trần Công Danh (1):
+      t1509: correct i18n test
+
+
 Version v2.27.0-rc0; changes since v2.26.2:
 -------------------------------------------
 
