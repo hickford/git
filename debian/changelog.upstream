@@ -1,3 +1,69 @@
+Version v2.27.0; changes since v2.27.0-rc2:
+-------------------------------------------
+
+Alessandro Menti (2):
+      l10n: it.po: update the Italian translation for Git 2.27.0 round 1
+      l10n: it.po: update for Git 2.27.0 round #2
+
+Alexander Shopov (2):
+      l10n: bg.po: Updated Bulgarian translation (4868t)
+      l10n: bg.po: Updated Bulgarian translation (4875t)
+
+Carlo Marcelo Arenas Belón (1):
+      t: avoid alternation (not POSIX) in grep's BRE
+
+Christopher Diaz Riveros (1):
+      l10n: es: 2.27.0 round 1
+
+Emir Sarı (2):
+      l10n: tr: v2.27.0 round 1
+      l10n: tr: v2.27.0 round 2
+
+Jan Engelhardt (1):
+      l10n: de.po: Fix typo in the German translation of octopus
+
+Jean-Noël Avila (2):
+      l10n: fr v2.27.0 rnd 1
+      l10n: fr.po v2.27.0 rnd 2
+
+Jiang Xin (3):
+      l10n: git.pot: v2.27.0 round 1 (72 new, 37 removed)
+      l10n: git.pot: v2.27.0 round 2 (+1)
+      l10n: zh_CN: for git v2.27.0 l10n round 1~2
+
+Jordi Mas (3):
+      l10n: Update Catalan translation
+      l10n: Update Catalan translation
+      l10n: Update Catalan translation
+
+Junio C Hamano (1):
+      Git 2.27
+
+Martin Ågren (1):
+      rev-list-options.txt: start a list for `show-pulls`
+
+Matthias Rüster (1):
+      l10n: de.po: Update German translation for Git 2.27.0
+
+Peter Krefting (2):
+      l10n: sv.po: Update Swedish translation (4839t0f0u)
+      l10n: sv.po: Update Swedish translation (4875t0f0u)
+
+Toon Claes (1):
+      Documentation: correct hash environment variable
+
+Trần Ngọc Quân (2):
+      l10n: vi(4874t): Updated Vietnamses translation for 2.27.0
+      l10n: vi(4875t): Updated Vietnamses translation for 2.27.0rd2
+
+Yi-Jyun Pan (2):
+      l10n: zh_TW.po: v2.27.0 round 1 (0 untranslated)
+      l10n: zh_TW.po: v2.27.0 round 2 (0 untranslated)
+
+Đoàn Trần Công Danh (1):
+      ci/config: correct instruction for CI preferences
+
+
 Version v2.27.0-rc2; changes since v2.27.0-rc1:
 -----------------------------------------------
 
