@@ -9,6 +9,7 @@
 static void get_system_info(struct strbuf *sys_info)
 {
 	struct utsname uname_info;
+	char *shell = NULL;
 
 	/* get git version from native cmd */
 	strbuf_addstr(sys_info, _("git version:\n"));
@@ -29,8 +30,13 @@ static void get_system_info(struct strbuf *sys_info)
 
 	strbuf_addstr(sys_info, _("compiler info: "));
 	get_compiler_info(sys_info);
+
 	strbuf_addstr(sys_info, _("libc info: "));
 	get_libc_info(sys_info);
+
+	shell = getenv("SHELL");
+	strbuf_addf(sys_info, "$SHELL (typically, interactive shell): %s\n",
+		    shell ? shell : "<unset>");
 }
 
 static void get_populated_hooks(struct strbuf *hook_info, int nongit)
@@ -174,7 +180,9 @@ int cmd_main(int argc, const char **argv)
 		die(_("couldn't create a new file at '%s'"), report_path.buf);
 	}
 
-	strbuf_write_fd(&buffer, report);
+	if (write_in_full(report, buffer.buf, buffer.len) < 0)
+		die_errno(_("unable to write to %s"), report_path.buf);
+
 	close(report);
 
 	/*

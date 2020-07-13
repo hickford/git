@@ -621,9 +621,7 @@ static int reset_tree(struct tree *tree, const struct checkout_opts *o,
 	opts.src_index = &the_index;
 	opts.dst_index = &the_index;
 	init_checkout_metadata(&opts.meta, info->refname,
-			       info->commit ? &info->commit->object.oid :
-			       is_null_oid(&info->oid) ? &tree->object.oid :
-			       &info->oid,
+			       info->commit ? &info->commit->object.oid : &null_oid,
 			       NULL);
 	parse_tree(tree);
 	init_tree_desc(&tree_desc, tree->buffer, tree->size);
@@ -1689,7 +1687,7 @@ static int checkout_main(int argc, const char **argv, const char *prefix,
 		 * Try to give more helpful suggestion.
 		 * new_branch && argc > 1 will be caught later.
 		 */
-		if (opts->new_branch && argc == 1)
+		if (opts->new_branch && argc == 1 && !new_branch_info.commit)
 			die(_("'%s' is not a commit and a branch '%s' cannot be created from it"),
 				argv[0], opts->new_branch);
 

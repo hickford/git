@@ -99,6 +99,10 @@ static int update_working_directory(struct pattern_list *pl)
 	struct lock_file lock_file = LOCK_INIT;
 	struct repository *r = the_repository;
 
+	/* If no branch has been checked out, there are no updates to make. */
+	if (is_index_unborn(r->index))
+		return UPDATE_SPARSITY_SUCCESS;
+
 	memset(&o, 0, sizeof(o));
 	o.verbose_update = isatty(2);
 	o.update = 1;
@@ -249,6 +253,8 @@ static int set_config(enum sparse_checkout_mode mode)
 {
 	const char *config_path;
 
+	if (upgrade_repository_format(1) < 0)
+		die(_("unable to upgrade repository format to enable worktreeConfig"));
 	if (git_config_set_gently("extensions.worktreeConfig", "true")) {
 		error(_("failed to set extensions.worktreeConfig setting"));
 		return 1;

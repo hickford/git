@@ -628,7 +628,7 @@ int path_inside_repo(const char *prefix, const char *path);
 
 int init_db(const char *git_dir, const char *real_git_dir,
 	    const char *template_dir, int hash_algo,
-	    unsigned int flags);
+	    const char *initial_branch, unsigned int flags);
 void initialize_repository_version(int hash_algo);
 
 void sanitize_stdfds(void);
@@ -1042,6 +1042,7 @@ struct repository_format {
 	int worktree_config;
 	int is_bare;
 	int hash_algo;
+	int has_extensions;
 	char *work_tree;
 	struct string_list unknown_extensions;
 };

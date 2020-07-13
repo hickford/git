@@ -1758,8 +1758,13 @@ int cmd_fetch(int argc, const char **argv, const char *prefix)
 
 	/* Record the command line for the reflog */
 	strbuf_addstr(&default_rla, "fetch");
-	for (i = 1; i < argc; i++)
-		strbuf_addf(&default_rla, " %s", argv[i]);
+	for (i = 1; i < argc; i++) {
+		/* This handles non-URLs gracefully */
+		char *anon = transport_anonymize_url(argv[i]);
+
+		strbuf_addf(&default_rla, " %s", anon);
+		free(anon);
+	}
 
 	fetch_config_from_gitmodules(&submodule_fetch_jobs_config,
 				     &recurse_submodules);
@@ -1789,9 +1794,6 @@ int cmd_fetch(int argc, const char **argv, const char *prefix)
 		die(_("depth %s is not a positive number"), depth);
 	if (depth || deepen_since || deepen_not.nr)
 		deepen = 1;
-
-	if (filter_options.choice && !has_promisor_remote())
-		die("--filter can only be used when extensions.partialClone is set");
 
 	if (all) {
 		if (argc == 1)

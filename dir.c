@@ -193,6 +193,10 @@ int fill_directory(struct dir_struct *dir,
 	const char *prefix;
 	size_t prefix_len;
 
+	unsigned exclusive_flags = DIR_SHOW_IGNORED | DIR_SHOW_IGNORED_TOO;
+	if ((dir->flags & exclusive_flags) == exclusive_flags)
+		BUG("DIR_SHOW_IGNORED and DIR_SHOW_IGNORED_TOO are exclusive");
+
 	/*
 	 * Calculate common prefix for the pathspec, and
 	 * use that to optimize the directory walk
@@ -364,7 +368,8 @@ static int match_pathspec_item(const struct index_state *istate,
 		return MATCHED_FNMATCH;
 
 	/* Perform checks to see if "name" is a leading string of the pathspec */
-	if (flags & DO_MATCH_LEADING_PATHSPEC) {
+	if ( (flags & DO_MATCH_LEADING_PATHSPEC) &&
+	    !(flags & DO_MATCH_EXCLUDE)) {
 		/* name is a literal prefix of the pathspec */
 		int offset = name[namelen-1] == '/' ? 1 : 0;
 		if ((namelen < matchlen) &&
@@ -401,6 +406,10 @@ static int match_pathspec_item(const struct index_state *istate,
 }
 
 /*
+ * do_match_pathspec() is meant to ONLY be called by
+ * match_pathspec_with_flags(); calling it directly risks pathspecs
+ * like ':!unwanted_path' being ignored.
+ *
  * Given a name and a list of pathspecs, returns the nature of the
  * closest (i.e. most specific) match of the name to any of the
  * pathspecs.
@@ -486,13 +495,12 @@ static int do_match_pathspec(const struct index_state *istate,
 	return retval;
 }
 
-int match_pathspec(const struct index_state *istate,
-		   const struct pathspec *ps,
-		   const char *name, int namelen,
-		   int prefix, char *seen, int is_dir)
+static int match_pathspec_with_flags(const struct index_state *istate,
+				     const struct pathspec *ps,
+				     const char *name, int namelen,
+				     int prefix, char *seen, unsigned flags)
 {
 	int positive, negative;
-	unsigned flags = is_dir ? DO_MATCH_DIRECTORY : 0;
 	positive = do_match_pathspec(istate, ps, name, namelen,
 				     prefix, seen, flags);
 	if (!(ps->magic & PATHSPEC_EXCLUDE) || !positive)
@@ -503,6 +511,16 @@ int match_pathspec(const struct index_state *istate,
 	return negative ? 0 : positive;
 }
 
+int match_pathspec(const struct index_state *istate,
+		   const struct pathspec *ps,
+		   const char *name, int namelen,
+		   int prefix, char *seen, int is_dir)
+{
+	unsigned flags = is_dir ? DO_MATCH_DIRECTORY : 0;
+	return match_pathspec_with_flags(istate, ps, name, namelen,
+					 prefix, seen, flags);
+}
+
 /**
  * Check if a submodule is a superset of the pathspec
  */
@@ -511,11 +529,11 @@ int submodule_path_match(const struct index_state *istate,
 			 const char *submodule_name,
 			 char *seen)
 {
-	int matched = do_match_pathspec(istate, ps, submodule_name,
-					strlen(submodule_name),
-					0, seen,
-					DO_MATCH_DIRECTORY |
-					DO_MATCH_LEADING_PATHSPEC);
+	int matched = match_pathspec_with_flags(istate, ps, submodule_name,
+						strlen(submodule_name),
+						0, seen,
+						DO_MATCH_DIRECTORY |
+						DO_MATCH_LEADING_PATHSPEC);
 	return matched;
 }
 
@@ -1757,9 +1775,11 @@ static enum path_treatment treat_directory(struct dir_struct *dir,
 	 * for matching patterns.
 	 */
 	if (pathspec && !excluded) {
-		matches_how = do_match_pathspec(istate, pathspec, dirname, len,
-						0 /* prefix */, NULL /* seen */,
-						DO_MATCH_LEADING_PATHSPEC);
+		matches_how = match_pathspec_with_flags(istate, pathspec,
+							dirname, len,
+							0 /* prefix */,
+							NULL /* seen */,
+							DO_MATCH_LEADING_PATHSPEC);
 		if (!matches_how)
 			return path_none;
 	}
@@ -1820,7 +1840,7 @@ static enum path_treatment treat_directory(struct dir_struct *dir,
 	 * to recurse into untracked/ignored directories if either of the
 	 * following bits is set:
 	 *   - DIR_SHOW_IGNORED_TOO (because then we need to determine if
-	 *                           there are ignored directories below)
+	 *                           there are ignored entries below)
 	 *   - DIR_HIDE_EMPTY_DIRECTORIES (because we have to determine if
 	 *                                 the directory is empty)
 	 */
@@ -1838,10 +1858,11 @@ static enum path_treatment treat_directory(struct dir_struct *dir,
 		return path_excluded;
 
 	/*
-	 * If we have we don't want to know the all the paths under an
-	 * untracked or ignored directory, we still need to go into the
-	 * directory to determine if it is empty (because an empty directory
-	 * should be path_none instead of path_excluded or path_untracked).
+	 * Even if we don't want to know all the paths under an untracked or
+	 * ignored directory, we may still need to go into the directory to
+	 * determine if it is empty (because with DIR_HIDE_EMPTY_DIRECTORIES,
+	 * an empty directory should be path_none instead of path_excluded or
+	 * path_untracked).
 	 */
 	check_only = ((dir->flags & DIR_HIDE_EMPTY_DIRECTORIES) &&
 		      !(dir->flags & DIR_SHOW_IGNORED_TOO));
@@ -2191,9 +2212,9 @@ static enum path_treatment treat_path(struct dir_struct *dir,
 		if (excluded)
 			return path_excluded;
 		if (pathspec &&
-		    !do_match_pathspec(istate, pathspec, path->buf, path->len,
-				       0 /* prefix */, NULL /* seen */,
-				       0 /* flags */))
+		    !match_pathspec(istate, pathspec, path->buf, path->len,
+				    0 /* prefix */, NULL /* seen */,
+				    0 /* is_dir */))
 			return path_none;
 		return path_untracked;
 	}

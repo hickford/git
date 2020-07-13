@@ -48,8 +48,8 @@ test_expect_success REMOTE_SVN 'simple fetch' '
 '
 
 test_debug '
-	cat .git/refs/svn/svnsim/master
-	cat .git/refs/remotes/svnsim/master
+	git show-ref -s refs/svn/svnsim/master
+	git show-ref -s refs/remotes/svnsim/master
 '
 
 test_expect_success REMOTE_SVN 'repeated fetch, nothing shall change' '
@@ -82,6 +82,12 @@ test_expect_success REMOTE_SVN 'incremental imports must lead to the same head' 
 	unset SVNRMAX &&
 	git fetch svnsim &&
 	test_cmp master.good .git/refs/remotes/svnsim/master
+'
+
+test_expect_success REMOTE_SVN 'respects configured default initial branch' '
+	git -c init.defaultBranch=trunk remote add -f trunk \
+		"testsvn::file://$TEST_DIRECTORY/t9154/svn.dump" &&
+	git rev-parse --verify refs/remotes/trunk/trunk
 '
 
 test_debug 'git branch -a'

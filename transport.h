@@ -5,8 +5,7 @@
 #include "run-command.h"
 #include "remote.h"
 #include "list-objects-filter-options.h"
-
-struct string_list;
+#include "string-list.h"
 
 struct git_transport_options {
 	unsigned thin : 1;
@@ -98,7 +97,8 @@ struct transport {
 	 */
 	const struct string_list *server_options;
 
-	char *pack_lockfile;
+	struct string_list pack_lockfiles;
+
 	signed verbose : 3;
 	/**
 	 * Transports should not set this directly, and should use this
@@ -115,6 +115,8 @@ struct transport {
 	struct git_transport_options *smart_options;
 
 	enum transport_family family;
+
+	const struct git_hash_algo *hash_algo;
 };
 
 #define TRANSPORT_PUSH_ALL			(1<<0)
@@ -243,6 +245,12 @@ int transport_push(struct repository *repo,
 const struct ref *transport_get_remote_refs(struct transport *transport,
 					    const struct argv_array *ref_prefixes);
 
+/*
+ * Fetch the hash algorithm used by a remote.
+ *
+ * This can only be called after fetching the remote refs.
+ */
+const struct git_hash_algo *transport_get_hash_algo(struct transport *transport);
 int transport_fetch_refs(struct transport *transport, struct ref *refs);
 void transport_unlock_pack(struct transport *transport);
 int transport_disconnect(struct transport *transport);

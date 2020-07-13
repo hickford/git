@@ -32,7 +32,8 @@ struct helper_data {
 		signed_tags : 1,
 		check_connectivity : 1,
 		no_disconnect_req : 1,
-		no_private_update : 1;
+		no_private_update : 1,
+		object_format : 1;
 
 	/*
 	 * As an optimization, the transport code may invoke fetch before
@@ -207,6 +208,8 @@ static struct child_process *get_helper(struct transport *transport)
 			data->import_marks = xstrdup(arg);
 		} else if (starts_with(capname, "no-private-update")) {
 			data->no_private_update = 1;
+		} else if (starts_with(capname, "object-format")) {
+			data->object_format = 1;
 		} else if (mandatory) {
 			die(_("unknown mandatory capability %s; this remote "
 			      "helper probably needs newer version of Git"),
@@ -410,10 +413,11 @@ static int fetch_with_fetch(struct transport *transport,
 			exit(128);
 
 		if (skip_prefix(buf.buf, "lock ", &name)) {
-			if (transport->pack_lockfile)
+			if (transport->pack_lockfiles.nr)
 				warning(_("%s also locked %s"), data->name, name);
 			else
-				transport->pack_lockfile = xstrdup(name);
+				string_list_append(&transport->pack_lockfiles,
+						   name);
 		}
 		else if (data->check_connectivity &&
 			 data->transport_options.check_self_contained_and_connected &&
@@ -1046,7 +1050,7 @@ static int push_refs(struct transport *transport,
 	if (!remote_refs) {
 		fprintf(stderr,
 			_("No refs in common and none specified; doing nothing.\n"
-			  "Perhaps you should specify a branch such as 'master'.\n"));
+			  "Perhaps you should specify a branch.\n"));
 		return 0;
 	}
 
@@ -1103,6 +1107,12 @@ static struct ref *get_refs_list_using_list(struct transport *transport,
 	data->get_refs_list_called = 1;
 	helper = get_helper(transport);
 
+	if (data->object_format) {
+		write_str_in_full(helper->in, "option object-format\n");
+		if (recvline(data, &buf) || strcmp(buf.buf, "ok"))
+			exit(128);
+	}
+
 	if (data->push && for_push)
 		write_str_in_full(helper->in, "list for-push\n");
 	else
@@ -1115,6 +1125,17 @@ static struct ref *get_refs_list_using_list(struct transport *transport,
 
 		if (!*buf.buf)
 			break;
+		else if (buf.buf[0] == ':') {
+			const char *value;
+			if (skip_prefix(buf.buf, ":object-format ", &value)) {
+				int algo = hash_algo_by_name(value);
+				if (algo == GIT_HASH_UNKNOWN)
+					die(_("unsupported object format '%s'"),
+					    value);
+				transport->hash_algo = &hash_algos[algo];
+			}
+			continue;
+		}
 
 		eov = strchr(buf.buf, ' ');
 		if (!eov)
@@ -1127,7 +1148,7 @@ static struct ref *get_refs_list_using_list(struct transport *transport,
 		if (buf.buf[0] == '@')
 			(*tail)->symref = xstrdup(buf.buf + 1);
 		else if (buf.buf[0] != '?')
-			get_oid_hex(buf.buf, &(*tail)->old_oid);
+			get_oid_hex_algop(buf.buf, &(*tail)->old_oid, transport->hash_algo);
 		if (eon) {
 			if (has_attribute(eon + 1, "unchanged")) {
 				(*tail)->status |= REF_STATUS_UPTODATE;

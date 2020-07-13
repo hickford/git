@@ -143,6 +143,9 @@ static struct ref *get_refs_from_bundle(struct transport *transport,
 	data->fd = read_bundle_header(transport->url, &data->header);
 	if (data->fd < 0)
 		die(_("could not read bundle '%s'"), transport->url);
+
+	transport->hash_algo = data->header.hash_algo;
+
 	for (i = 0; i < data->header.references.nr; i++) {
 		struct ref_list_entry *e = data->header.references.list + i;
 		struct ref *ref = alloc_ref(e->name);
@@ -157,11 +160,14 @@ static int fetch_refs_from_bundle(struct transport *transport,
 			       int nr_heads, struct ref **to_fetch)
 {
 	struct bundle_transport_data *data = transport->data;
+	int ret;
 
 	if (!data->get_refs_from_bundle_called)
 		get_refs_from_bundle(transport, 0, NULL);
-	return unbundle(the_repository, &data->header, data->fd,
-			transport->progress ? BUNDLE_VERBOSE : 0);
+	ret = unbundle(the_repository, &data->header, data->fd,
+			   transport->progress ? BUNDLE_VERBOSE : 0);
+	transport->hash_algo = data->header.hash_algo;
+	return ret;
 }
 
 static int close_bundle(struct transport *transport)
@@ -297,7 +303,8 @@ static struct ref *handshake(struct transport *transport, int for_push,
 		if (must_list_refs)
 			get_remote_refs(data->fd[1], &reader, &refs, for_push,
 					ref_prefixes,
-					transport->server_options);
+					transport->server_options,
+					transport->stateless_rpc);
 		break;
 	case protocol_v1:
 	case protocol_v0:
@@ -311,6 +318,7 @@ static struct ref *handshake(struct transport *transport, int for_push,
 		BUG("unknown protocol version");
 	}
 	data->got_remote_heads = 1;
+	transport->hash_algo = reader.hash_algo;
 
 	if (reader.line_peeked)
 		BUG("buffer must be empty at the end of handshake()");
@@ -369,24 +377,15 @@ static int fetch_refs_via_pack(struct transport *transport,
 		refs_tmp = handshake(transport, 0, NULL, must_list_refs);
 	}
 
-	switch (data->version) {
-	case protocol_v2:
-		refs = fetch_pack(&args, data->fd,
-				  refs_tmp ? refs_tmp : transport->remote_refs,
-				  to_fetch, nr_heads, &data->shallow,
-				  &transport->pack_lockfile, data->version);
-		break;
-	case protocol_v1:
-	case protocol_v0:
-		die_if_server_options(transport);
-		refs = fetch_pack(&args, data->fd,
-				  refs_tmp ? refs_tmp : transport->remote_refs,
-				  to_fetch, nr_heads, &data->shallow,
-				  &transport->pack_lockfile, data->version);
-		break;
-	case protocol_unknown_version:
+	if (data->version == protocol_unknown_version)
 		BUG("unknown protocol version");
-	}
+	else if (data->version <= protocol_v1)
+		die_if_server_options(transport);
+
+	refs = fetch_pack(&args, data->fd,
+			  refs_tmp ? refs_tmp : transport->remote_refs,
+			  to_fetch, nr_heads, &data->shallow,
+			  &transport->pack_lockfiles, data->version);
 
 	close(data->fd[0]);
 	close(data->fd[1]);
@@ -929,6 +928,7 @@ struct transport *transport_get(struct remote *remote, const char *url)
 	struct transport *ret = xcalloc(1, sizeof(*ret));
 
 	ret->progress = isatty(2);
+	string_list_init(&ret->pack_lockfiles, 1);
 
 	if (!remote)
 		BUG("No remote provided to transport_get()");
@@ -996,7 +996,14 @@ struct transport *transport_get(struct remote *remote, const char *url)
 			ret->smart_options->receivepack = remote->receivepack;
 	}
 
+	ret->hash_algo = &hash_algos[GIT_HASH_SHA1];
+
 	return ret;
+}
+
+const struct git_hash_algo *transport_get_hash_algo(struct transport *transport)
+{
+	return transport->hash_algo;
 }
 
 int transport_set_option(struct transport *transport,
@@ -1324,10 +1331,11 @@ int transport_fetch_refs(struct transport *transport, struct ref *refs)
 
 void transport_unlock_pack(struct transport *transport)
 {
-	if (transport->pack_lockfile) {
-		unlink_or_warn(transport->pack_lockfile);
-		FREE_AND_NULL(transport->pack_lockfile);
-	}
+	int i;
+
+	for (i = 0; i < transport->pack_lockfiles.nr; i++)
+		unlink_or_warn(transport->pack_lockfiles.items[i].string);
+	string_list_clear(&transport->pack_lockfiles, 0);
 }
 
 int transport_connect(struct transport *transport, const char *name,
