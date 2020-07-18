@@ -1,3 +1,28 @@
+Version v2.28.0-rc1; changes since v2.28.0-rc0:
+-----------------------------------------------
+
+Jonathan Nieder (2):
+      Revert "check_repository_format_gently(): refuse extensions for old repositories"
+      repository: allow repository format upgrade with extensions
+
+Junio C Hamano (2):
+      Hopefully the last batch before -rc1
+      Git 2.28-rc1
+
+Martin Ågren (2):
+      git-diff.txt: don't mark required argument as optional
+      git-diff.txt: reorder possible usages
+
+SZEDER Gábor (3):
+      commit-graph: fix progress of reachable commits
+      commit-graph: fix "Writing out commit graph" progress counter
+      commit-graph: fix "Collecting commits from input" progress line
+
+Trygve Aaberge (2):
+      Wait for child on signal death for aliases to builtins
+      Wait for child on signal death for aliases to externals
+
+
 Version v2.28.0-rc0; changes since v2.27.0:
 -------------------------------------------
 
