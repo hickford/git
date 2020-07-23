@@ -1,3 +1,21 @@
+Version v2.28.0-rc2; changes since v2.28.0-rc1:
+-----------------------------------------------
+
+David J. Malan (1):
+      git-prompt: change == to = for zsh's sake
+
+Junio C Hamano (2):
+      RelNotes: update the v0 with extension situation
+      Git 2.28-rc2
+
+Martin Ågren (2):
+      gitworkflows.txt: fix broken subsection underline
+      t3200: don't grep for `strerror()` string
+
+Mikhail Terekhov (1):
+      git-gui: allow opening work trees from the startup dialog
+
+
 Version v2.28.0-rc1; changes since v2.28.0-rc0:
 -----------------------------------------------
 
