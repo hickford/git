@@ -1,3 +1,53 @@
+Version v2.28.0; changes since v2.28.0-rc2:
+-------------------------------------------
+
+Alessandro Menti (1):
+      l10n: it.po: update the Italian translation for Git 2.28.0 round 1
+
+Bojun Chen (1):
+      githooks.txt: use correct "reference-transaction" hook name
+
+Christopher Diaz Riveros (1):
+      l10n: es: 2.28.0 round 1
+
+Emir Sarı (1):
+      l10n: tr: v2.28.0 round 1
+
+Jean-Noël Avila (1):
+      l10n: fr v2.28.0 round 1
+
+Jiang Xin (2):
+      l10n: git.pot: v2.28.0 round 1 (70 new, 14 removed)
+      l10n: zh_CN: for git v2.28.0 l10n round 1
+
+Jordi Mas (1):
+      l10n: Update Catalan translation
+
+Junio C Hamano (1):
+      Git 2.28
+
+Matthias Rüster (1):
+      l10n: de.po: Update German translation for Git v2.28.0
+
+Peter Krefting (1):
+      l10n: sv.po: Update Swedish translation (4931t0f0u)
+
+Ralf Thielow (1):
+      l10n: de.po: fix grammar
+
+Taylor Blau (1):
+      Documentation/RelNotes: fix a typo in 2.28's relnotes
+
+Trần Ngọc Quân (1):
+      l10n: vi.po(4931t): Updated translation for v2.28.0
+
+Yi-Jyun Pan (1):
+      l10n: zh_TW.po: v2.28.0 round 1 (0 untranslated)
+
+Đoàn Trần Công Danh (1):
+      l10n: vi.po: correct "ident line" translation
+
+
 Version v2.28.0-rc2; changes since v2.28.0-rc1:
 -----------------------------------------------
 
