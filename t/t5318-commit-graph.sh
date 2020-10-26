@@ -11,7 +11,11 @@ test_expect_success 'setup full repo' '
 	git init &&
 	git config core.commitGraph true &&
 	objdir=".git/objects" &&
-	test_oid_init
+
+	test_oid_cache <<-EOF
+	oid_version sha1:1
+	oid_version sha256:2
+	EOF
 '
 
 test_expect_success POSIXPERM 'tweak umask for modebit tests' '
@@ -78,7 +82,7 @@ graph_read_expect() {
 		NUM_CHUNKS=$((3 + $(echo "$2" | wc -w)))
 	fi
 	cat >expect <<- EOF
-	header: 43475048 1 1 $NUM_CHUNKS 0
+	header: 43475048 1 $(test_oid oid_version) $NUM_CHUNKS 0
 	num_commits: $1
 	chunks: oid_fanout oid_lookup commit_metadata$OPTIONAL
 	EOF
@@ -413,6 +417,35 @@ test_expect_success 'replace-objects invalidates commit-graph' '
 	)
 '
 
+test_expect_success 'warn on improper hash version' '
+	git init --object-format=sha1 sha1 &&
+	(
+		cd sha1 &&
+		test_commit 1 &&
+		git commit-graph write --reachable &&
+		mv .git/objects/info/commit-graph ../cg-sha1
+	) &&
+	git init --object-format=sha256 sha256 &&
+	(
+		cd sha256 &&
+		test_commit 1 &&
+		git commit-graph write --reachable &&
+		mv .git/objects/info/commit-graph ../cg-sha256
+	) &&
+	(
+		cd sha1 &&
+		mv ../cg-sha256 .git/objects/info/commit-graph &&
+		git log -1 2>err &&
+		test_i18ngrep "commit-graph hash version 2 does not match version 1" err
+	) &&
+	(
+		cd sha256 &&
+		mv ../cg-sha1 .git/objects/info/commit-graph &&
+		git log -1 2>err &&
+		test_i18ngrep "commit-graph hash version 1 does not match version 2" err
+	)
+'
+
 # the verify tests below expect the commit-graph to contain
 # exactly the commits reachable from the commits/8 branch.
 # If the file changes the set of commits in the list, then the
@@ -476,7 +509,7 @@ corrupt_graph_verify() {
 		cp $objdir/info/commit-graph commit-graph-pre-write-test
 	fi &&
 	git status --short &&
-	GIT_TEST_COMMIT_GRAPH_DIE_ON_LOAD=true git commit-graph write &&
+	GIT_TEST_COMMIT_GRAPH_DIE_ON_PARSE=true git commit-graph write &&
 	chmod u+w $objdir/info/commit-graph &&
 	git commit-graph verify
 }
@@ -529,7 +562,7 @@ test_expect_success 'detect bad hash version' '
 '
 
 test_expect_success 'detect low chunk count' '
-	corrupt_graph_and_verify $GRAPH_BYTE_CHUNK_COUNT "\02" \
+	corrupt_graph_and_verify $GRAPH_BYTE_CHUNK_COUNT "\01" \
 		"missing the .* chunk"
 '
 
@@ -615,7 +648,8 @@ test_expect_success 'detect invalid checksum hash' '
 
 test_expect_success 'detect incorrect chunk count' '
 	corrupt_graph_and_verify $GRAPH_BYTE_CHUNK_COUNT "\377" \
-		"chunk lookup table entry missing" $GRAPH_CHUNK_LOOKUP_OFFSET
+		"commit-graph file is too small to hold [0-9]* chunks" \
+		$GRAPH_CHUNK_LOOKUP_OFFSET
 '
 
 test_expect_success 'git fsck (checks commit-graph)' '

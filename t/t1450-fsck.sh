@@ -9,7 +9,6 @@ test_description='git fsck random collection of tests
 . ./test-lib.sh
 
 test_expect_success setup '
-	test_oid_init &&
 	git config gc.auto 0 &&
 	git config i18n.commitencoding ISO-8859-1 &&
 	test_commit A fileA one &&
@@ -714,7 +713,7 @@ test_expect_success 'fsck fails on corrupt packfile' '
 	# at least one of which is not zero, so setting the first byte to 0 is
 	# sufficient.)
 	chmod a+w .git/objects/pack/pack-$pack.pack &&
-	printf '\0' | dd of=.git/objects/pack/pack-$pack.pack bs=1 conv=notrunc seek=12 &&
+	printf "\0" | dd of=.git/objects/pack/pack-$pack.pack bs=1 conv=notrunc seek=12 &&
 
 	test_when_finished "rm -f .git/objects/pack/pack-$pack.*" &&
 	remove_object $hsh &&

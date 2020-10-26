@@ -18,7 +18,7 @@
 #include "sigchain.h"
 #include "version.h"
 #include "string-list.h"
-#include "argv-array.h"
+#include "strvec.h"
 #include "prio-queue.h"
 #include "protocol.h"
 #include "quote.h"
@@ -88,6 +88,7 @@ struct upload_pack_data {
 	enum allow_uor allow_uor;
 
 	struct list_objects_filter_options filter_options;
+	struct string_list allowed_filters;
 
 	struct packet_writer writer;
 
@@ -103,6 +104,8 @@ struct upload_pack_data {
 	unsigned no_progress : 1;
 	unsigned use_include_tag : 1;
 	unsigned allow_filter : 1;
+	unsigned allow_filter_fallback : 1;
+	unsigned long tree_filter_max_depth;
 
 	unsigned done : 1;					/* v2 only */
 	unsigned allow_ref_in_want : 1;				/* v2 only */
@@ -120,6 +123,7 @@ static void upload_pack_data_init(struct upload_pack_data *data)
 	struct string_list deepen_not = STRING_LIST_INIT_DUP;
 	struct string_list uri_protocols = STRING_LIST_INIT_DUP;
 	struct object_array extra_edge_obj = OBJECT_ARRAY_INIT;
+	struct string_list allowed_filters = STRING_LIST_INIT_DUP;
 
 	memset(data, 0, sizeof(*data));
 	data->symref = symref;
@@ -131,6 +135,9 @@ static void upload_pack_data_init(struct upload_pack_data *data)
 	data->deepen_not = deepen_not;
 	data->uri_protocols = uri_protocols;
 	data->extra_edge_obj = extra_edge_obj;
+	data->allowed_filters = allowed_filters;
+	data->allow_filter_fallback = 1;
+	data->tree_filter_max_depth = ULONG_MAX;
 	packet_writer_init(&data->writer, 1);
 
 	data->keepalive = 5;
@@ -147,6 +154,7 @@ static void upload_pack_data_clear(struct upload_pack_data *data)
 	string_list_clear(&data->deepen_not, 0);
 	object_array_clear(&data->extra_edge_obj);
 	list_objects_filter_release(&data->filter_options);
+	string_list_clear(&data->allowed_filters, 1);
 
 	free((char *)data->pack_objects_hook);
 }
@@ -269,45 +277,44 @@ static void create_pack_file(struct upload_pack_data *pack_data,
 	if (!pack_data->pack_objects_hook)
 		pack_objects.git_cmd = 1;
 	else {
-		argv_array_push(&pack_objects.args, pack_data->pack_objects_hook);
-		argv_array_push(&pack_objects.args, "git");
+		strvec_push(&pack_objects.args, pack_data->pack_objects_hook);
+		strvec_push(&pack_objects.args, "git");
 		pack_objects.use_shell = 1;
 	}
 
 	if (pack_data->shallow_nr) {
-		argv_array_push(&pack_objects.args, "--shallow-file");
-		argv_array_push(&pack_objects.args, "");
+		strvec_push(&pack_objects.args, "--shallow-file");
+		strvec_push(&pack_objects.args, "");
 	}
-	argv_array_push(&pack_objects.args, "pack-objects");
-	argv_array_push(&pack_objects.args, "--revs");
+	strvec_push(&pack_objects.args, "pack-objects");
+	strvec_push(&pack_objects.args, "--revs");
 	if (pack_data->use_thin_pack)
-		argv_array_push(&pack_objects.args, "--thin");
+		strvec_push(&pack_objects.args, "--thin");
 
-	argv_array_push(&pack_objects.args, "--stdout");
+	strvec_push(&pack_objects.args, "--stdout");
 	if (pack_data->shallow_nr)
-		argv_array_push(&pack_objects.args, "--shallow");
+		strvec_push(&pack_objects.args, "--shallow");
 	if (!pack_data->no_progress)
-		argv_array_push(&pack_objects.args, "--progress");
+		strvec_push(&pack_objects.args, "--progress");
 	if (pack_data->use_ofs_delta)
-		argv_array_push(&pack_objects.args, "--delta-base-offset");
+		strvec_push(&pack_objects.args, "--delta-base-offset");
 	if (pack_data->use_include_tag)
-		argv_array_push(&pack_objects.args, "--include-tag");
+		strvec_push(&pack_objects.args, "--include-tag");
 	if (pack_data->filter_options.choice) {
 		const char *spec =
 			expand_list_objects_filter_spec(&pack_data->filter_options);
 		if (pack_objects.use_shell) {
 			struct strbuf buf = STRBUF_INIT;
 			sq_quote_buf(&buf, spec);
-			argv_array_pushf(&pack_objects.args, "--filter=%s", buf.buf);
+			strvec_pushf(&pack_objects.args, "--filter=%s", buf.buf);
 			strbuf_release(&buf);
 		} else {
-			argv_array_pushf(&pack_objects.args, "--filter=%s",
-					 spec);
+			strvec_pushf(&pack_objects.args, "--filter=%s", spec);
 		}
 	}
 	if (uri_protocols) {
 		for (i = 0; i < uri_protocols->nr; i++)
-			argv_array_pushf(&pack_objects.args, "--uri-protocol=%s",
+			strvec_pushf(&pack_objects.args, "--uri-protocol=%s",
 					 uri_protocols->items[i].string);
 	}
 
@@ -482,7 +489,8 @@ static int got_oid(struct upload_pack_data *data,
 {
 	if (get_oid_hex(hex, oid))
 		die("git upload-pack: expected SHA1 object, got '%s'", hex);
-	if (!has_object_file(oid))
+	if (!has_object_file_with_flags(oid,
+					OBJECT_INFO_QUICK | OBJECT_INFO_SKIP_FETCH_OBJECT))
 		return -1;
 	return do_got_oid(data, oid);
 }
@@ -595,9 +603,8 @@ static int do_reachable_revlist(struct child_process *cmd,
 		"rev-list", "--stdin", NULL,
 	};
 	struct object *o;
-	char namebuf[GIT_MAX_HEXSZ + 2]; /* ^ + hash + LF */
+	FILE *cmd_in = NULL;
 	int i;
-	const unsigned hexsz = the_hash_algo->hexsz;
 
 	cmd->argv = argv;
 	cmd->git_cmd = 1;
@@ -615,8 +622,8 @@ static int do_reachable_revlist(struct child_process *cmd,
 	if (start_command(cmd))
 		goto error;
 
-	namebuf[0] = '^';
-	namebuf[hexsz + 1] = '\n';
+	cmd_in = xfdopen(cmd->in, "w");
+
 	for (i = get_max_object_index(); 0 < i; ) {
 		o = get_indexed_object(--i);
 		if (!o)
@@ -625,11 +632,9 @@ static int do_reachable_revlist(struct child_process *cmd,
 			o->flags &= ~TMP_MARK;
 		if (!is_our_ref(o, allow_uor))
 			continue;
-		memcpy(namebuf + 1, oid_to_hex(&o->oid), hexsz);
-		if (write_in_full(cmd->in, namebuf, hexsz + 2) < 0)
+		if (fprintf(cmd_in, "^%s\n", oid_to_hex(&o->oid)) < 0)
 			goto error;
 	}
-	namebuf[hexsz] = '\n';
 	for (i = 0; i < src->nr; i++) {
 		o = src->objects[i].item;
 		if (is_our_ref(o, allow_uor)) {
@@ -639,11 +644,12 @@ static int do_reachable_revlist(struct child_process *cmd,
 		}
 		if (reachable && o->type == OBJ_COMMIT)
 			o->flags |= TMP_MARK;
-		memcpy(namebuf, oid_to_hex(&o->oid), hexsz);
-		if (write_in_full(cmd->in, namebuf, hexsz + 1) < 0)
+		if (fprintf(cmd_in, "%s\n", oid_to_hex(&o->oid)) < 0)
 			goto error;
 	}
-	close(cmd->in);
+	if (ferror(cmd_in) || fflush(cmd_in))
+		goto error;
+	fclose(cmd_in);
 	cmd->in = -1;
 	sigchain_pop(SIGPIPE);
 
@@ -652,8 +658,8 @@ static int do_reachable_revlist(struct child_process *cmd,
 error:
 	sigchain_pop(SIGPIPE);
 
-	if (cmd->in >= 0)
-		close(cmd->in);
+	if (cmd_in)
+		fclose(cmd_in);
 	if (cmd->out >= 0)
 		close(cmd->out);
 	return -1;
@@ -731,7 +737,6 @@ static int has_unreachable(struct object_array *src, enum allow_uor allow_uor)
 	return 0;
 
 error:
-	sigchain_pop(SIGPIPE);
 	if (cmd.out >= 0)
 		close(cmd.out);
 	return 1;
@@ -880,26 +885,26 @@ static int send_shallow_list(struct upload_pack_data *data)
 		deepen(data, data->depth);
 		ret = 1;
 	} else if (data->deepen_rev_list) {
-		struct argv_array av = ARGV_ARRAY_INIT;
+		struct strvec av = STRVEC_INIT;
 		int i;
 
-		argv_array_push(&av, "rev-list");
+		strvec_push(&av, "rev-list");
 		if (data->deepen_since)
-			argv_array_pushf(&av, "--max-age=%"PRItime, data->deepen_since);
+			strvec_pushf(&av, "--max-age=%"PRItime, data->deepen_since);
 		if (data->deepen_not.nr) {
-			argv_array_push(&av, "--not");
+			strvec_push(&av, "--not");
 			for (i = 0; i < data->deepen_not.nr; i++) {
 				struct string_list_item *s = data->deepen_not.items + i;
-				argv_array_push(&av, s->string);
+				strvec_push(&av, s->string);
 			}
-			argv_array_push(&av, "--not");
+			strvec_push(&av, "--not");
 		}
 		for (i = 0; i < data->want_obj.nr; i++) {
 			struct object *o = data->want_obj.objects[i].item;
-			argv_array_push(&av, oid_to_hex(&o->oid));
+			strvec_push(&av, oid_to_hex(&o->oid));
 		}
-		deepen_by_rev_list(data, av.argc, av.argv);
-		argv_array_clear(&av);
+		deepen_by_rev_list(data, av.nr, av.v);
+		strvec_clear(&av);
 		ret = 1;
 	} else {
 		if (data->shallows.nr > 0) {
@@ -983,6 +988,63 @@ static int process_deepen_not(const char *line, struct string_list *deepen_not, 
 	return 0;
 }
 
+NORETURN __attribute__((format(printf,2,3)))
+static void send_err_and_die(struct upload_pack_data *data,
+			     const char *fmt, ...)
+{
+	struct strbuf buf = STRBUF_INIT;
+	va_list ap;
+
+	va_start(ap, fmt);
+	strbuf_vaddf(&buf, fmt, ap);
+	va_end(ap);
+
+	packet_writer_error(&data->writer, "%s", buf.buf);
+	die("%s", buf.buf);
+}
+
+static void check_one_filter(struct upload_pack_data *data,
+			     struct list_objects_filter_options *opts)
+{
+	const char *key = list_object_filter_config_name(opts->choice);
+	struct string_list_item *item = string_list_lookup(&data->allowed_filters,
+							   key);
+	int allowed;
+
+	if (item)
+		allowed = (intptr_t)item->util;
+	else
+		allowed = data->allow_filter_fallback;
+
+	if (!allowed)
+		send_err_and_die(data, "filter '%s' not supported", key);
+
+	if (opts->choice == LOFC_TREE_DEPTH &&
+	    opts->tree_exclude_depth > data->tree_filter_max_depth)
+		send_err_and_die(data,
+				 "tree filter allows max depth %lu, but got %lu",
+				 data->tree_filter_max_depth,
+				 opts->tree_exclude_depth);
+}
+
+static void check_filter_recurse(struct upload_pack_data *data,
+				 struct list_objects_filter_options *opts)
+{
+	size_t i;
+
+	check_one_filter(data, opts);
+	if (opts->choice != LOFC_COMBINE)
+		return;
+
+	for (i = 0; i < opts->sub_nr; i++)
+		check_filter_recurse(data, &opts->sub[i]);
+}
+
+static void die_if_using_banned_filter(struct upload_pack_data *data)
+{
+	check_filter_recurse(data, &data->filter_options);
+}
+
 static void receive_needs(struct upload_pack_data *data,
 			  struct packet_reader *reader)
 {
@@ -1013,6 +1075,7 @@ static void receive_needs(struct upload_pack_data *data,
 				die("git upload-pack: filtering capability not negotiated");
 			list_objects_filter_die_if_populated(&data->filter_options);
 			parse_list_objects_filter(&data->filter_options, arg);
+			die_if_using_banned_filter(data);
 			continue;
 		}
 
@@ -1170,6 +1233,41 @@ static int find_symref(const char *refname, const struct object_id *oid,
 	return 0;
 }
 
+static int parse_object_filter_config(const char *var, const char *value,
+				       struct upload_pack_data *data)
+{
+	struct strbuf buf = STRBUF_INIT;
+	const char *sub, *key;
+	size_t sub_len;
+
+	if (parse_config_key(var, "uploadpackfilter", &sub, &sub_len, &key))
+		return 0;
+
+	if (!sub) {
+		if (!strcmp(key, "allow"))
+			data->allow_filter_fallback = git_config_bool(var, value);
+		return 0;
+	}
+
+	strbuf_add(&buf, sub, sub_len);
+
+	if (!strcmp(key, "allow"))
+		string_list_insert(&data->allowed_filters, buf.buf)->util =
+			(void *)(intptr_t)git_config_bool(var, value);
+	else if (!strcmp(buf.buf, "tree") && !strcmp(key, "maxdepth")) {
+		if (!value) {
+			strbuf_release(&buf);
+			return config_error_nonbool(var);
+		}
+		string_list_insert(&data->allowed_filters, buf.buf)->util =
+			(void *)(intptr_t)1;
+		data->tree_filter_max_depth = git_config_ulong(var, value);
+	}
+
+	strbuf_release(&buf);
+	return 0;
+}
+
 static int upload_pack_config(const char *var, const char *value, void *cb_data)
 {
 	struct upload_pack_data *data = cb_data;
@@ -1208,6 +1306,8 @@ static int upload_pack_config(const char *var, const char *value, void *cb_data)
 		if (!strcmp("uploadpack.packobjectshook", var))
 			return git_config_string(&data->pack_objects_hook, var, value);
 	}
+
+	parse_object_filter_config(var, value, data);
 
 	return parse_hide_refs_config(var, value, "uploadpack");
 }
@@ -1389,6 +1489,7 @@ static void process_args(struct packet_reader *request,
 		if (data->allow_filter && skip_prefix(arg, "filter ", &p)) {
 			list_objects_filter_die_if_populated(&data->filter_options);
 			parse_list_objects_filter(&data->filter_options, p);
+			die_if_using_banned_filter(data);
 			continue;
 		}
 
@@ -1423,7 +1524,8 @@ static int process_haves(struct upload_pack_data *data, struct oid_array *common
 	for (i = 0; i < data->haves.nr; i++) {
 		const struct object_id *oid = &data->haves.oid[i];
 
-		if (!has_object_file(oid))
+		if (!has_object_file_with_flags(oid,
+						OBJECT_INFO_QUICK | OBJECT_INFO_SKIP_FETCH_OBJECT))
 			continue;
 
 		oid_array_append(common, oid);
@@ -1521,7 +1623,7 @@ enum fetch_state {
 	FETCH_DONE,
 };
 
-int upload_pack_v2(struct repository *r, struct argv_array *keys,
+int upload_pack_v2(struct repository *r, struct strvec *keys,
 		   struct packet_reader *request)
 {
 	enum fetch_state state = FETCH_PROCESS_ARGS;

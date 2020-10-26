@@ -32,6 +32,13 @@ struct ref_transaction;
 #define REF_HAVE_OLD (1 << 3)
 
 /*
+ * Used as a flag in ref_update::flags when we want to log a ref
+ * update but not actually perform it.  This is used when a symbolic
+ * ref update is split up.
+ */
+#define REF_LOG_ONLY (1 << 7)
+
+/*
  * Return the length of time to retry acquiring a loose reference lock
  * before giving up, in milliseconds:
  */
@@ -95,12 +102,6 @@ enum peel_status {
  * and leave oid unchanged.
  */
 enum peel_status peel_object(const struct object_id *name, struct object_id *oid);
-
-/*
- * Copy the reflog message msg to sb while cleaning up the whitespaces.
- * Especially, convert LF to space, because reflog file is one line per entry.
- */
-void copy_reflog_msg(struct strbuf *sb, const char *msg);
 
 /**
  * Information needed for a single ref update. Set new_oid to the new
@@ -673,12 +674,21 @@ extern struct ref_storage_be refs_be_packed;
 /*
  * A representation of the reference store for the main repository or
  * a submodule. The ref_store instances for submodules are kept in a
- * linked list.
+ * hash map; see get_submodule_ref_store() for more info.
  */
 struct ref_store {
 	/* The backend describing this ref_store's storage scheme: */
 	const struct ref_storage_be *be;
+
+	/* The gitdir that this ref_store applies to: */
+	char *gitdir;
 };
+
+/*
+ * Parse contents of a loose ref file.
+ */
+int parse_loose_ref_contents(const char *buf, struct object_id *oid,
+			     struct strbuf *referent, unsigned int *type);
 
 /*
  * Fill in the generic part of refs and add it to our collection of
@@ -686,5 +696,10 @@ struct ref_store {
  */
 void base_ref_store_init(struct ref_store *refs,
 			 const struct ref_storage_be *be);
+
+/*
+ * Support GIT_TRACE_REFS by optionally wrapping the given ref_store instance.
+ */
+struct ref_store *maybe_debug_wrap_ref_store(const char *gitdir, struct ref_store *store);
 
 #endif /* REFS_REFS_INTERNAL_H */

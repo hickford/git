@@ -1551,7 +1551,7 @@ test_expect_success $PREREQ '8-bit and sendemail.transferencoding=quoted-printab
 		--smtp-server="$(pwd)/fake.sendmail" \
 		email-using-8bit \
 		2>errors >out &&
-	sed '1,/^$/d' msgtxt1 >actual &&
+	sed "1,/^$/d" msgtxt1 >actual &&
 	test_cmp expected actual
 '
 
@@ -1568,7 +1568,7 @@ test_expect_success $PREREQ '8-bit and sendemail.transferencoding=base64' '
 		--smtp-server="$(pwd)/fake.sendmail" \
 		email-using-8bit \
 		2>errors >out &&
-	sed '1,/^$/d' msgtxt1 >actual &&
+	sed "1,/^$/d" msgtxt1 >actual &&
 	test_cmp expected actual
 '
 
@@ -1594,7 +1594,7 @@ test_expect_success $PREREQ 'convert from quoted-printable to base64' '
 		--smtp-server="$(pwd)/fake.sendmail" \
 		email-using-qp \
 		2>errors >out &&
-	sed '1,/^$/d' msgtxt1 >actual &&
+	sed "1,/^$/d" msgtxt1 >actual &&
 	test_cmp expected actual
 '
 
@@ -1624,7 +1624,7 @@ test_expect_success $PREREQ 'CRLF and sendemail.transferencoding=quoted-printabl
 		--smtp-server="$(pwd)/fake.sendmail" \
 		email-using-crlf \
 		2>errors >out &&
-	sed '1,/^$/d' msgtxt1 >actual &&
+	sed "1,/^$/d" msgtxt1 >actual &&
 	test_cmp expected actual
 '
 
@@ -1641,7 +1641,7 @@ test_expect_success $PREREQ 'CRLF and sendemail.transferencoding=base64' '
 		--smtp-server="$(pwd)/fake.sendmail" \
 		email-using-crlf \
 		2>errors >out &&
-	sed '1,/^$/d' msgtxt1 >actual &&
+	sed "1,/^$/d" msgtxt1 >actual &&
 	test_cmp expected actual
 '
 
@@ -2140,6 +2140,35 @@ test_expect_success $PREREQ 'test that send-email works outside a repo' '
 		--to=nobody@example.com \
 		--smtp-server="$(pwd)/fake.sendmail" \
 		"$(pwd)/0001-add-master.patch"
+'
+
+test_expect_success $PREREQ 'test that sendmail config is rejected' '
+	test_config sendmail.program sendmail &&
+	test_must_fail git send-email \
+		--from="Example <nobody@example.com>" \
+		--to=nobody@example.com \
+		--smtp-server="$(pwd)/fake.sendmail" \
+		HEAD^ 2>err &&
+	test_i18ngrep "found configuration options for '"'"sendmail"'"'" err
+'
+
+test_expect_success $PREREQ 'test that sendmail config rejection is specific' '
+	test_config resendmail.program sendmail &&
+	git send-email \
+		--from="Example <nobody@example.com>" \
+		--to=nobody@example.com \
+		--smtp-server="$(pwd)/fake.sendmail" \
+		HEAD^
+'
+
+test_expect_success $PREREQ 'test forbidSendmailVariables behavior override' '
+	test_config sendmail.program sendmail &&
+	test_config sendemail.forbidSendmailVariables false &&
+	git send-email \
+		--from="Example <nobody@example.com>" \
+		--to=nobody@example.com \
+		--smtp-server="$(pwd)/fake.sendmail" \
+		HEAD^
 '
 
 test_done

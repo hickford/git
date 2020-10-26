@@ -27,7 +27,7 @@
 #include "delta-islands.h"
 #include "reachable.h"
 #include "oid-array.h"
-#include "argv-array.h"
+#include "strvec.h"
 #include "list.h"
 #include "packfile.h"
 #include "object-store.h"
@@ -35,6 +35,7 @@
 #include "midx.h"
 #include "trace2.h"
 #include "shallow.h"
+#include "promisor-remote.h"
 
 #define IN_PACK(obj) oe_in_pack(&to_pack, obj)
 #define SIZE(obj) oe_size(&to_pack, obj)
@@ -1704,9 +1705,30 @@ static int can_reuse_delta(const struct object_id *base_oid,
 	return 0;
 }
 
-static void check_object(struct object_entry *entry)
+static void prefetch_to_pack(uint32_t object_index_start) {
+	struct oid_array to_fetch = OID_ARRAY_INIT;
+	uint32_t i;
+
+	for (i = object_index_start; i < to_pack.nr_objects; i++) {
+		struct object_entry *entry = to_pack.objects + i;
+
+		if (!oid_object_info_extended(the_repository,
+					      &entry->idx.oid,
+					      NULL,
+					      OBJECT_INFO_FOR_PREFETCH))
+			continue;
+		oid_array_append(&to_fetch, &entry->idx.oid);
+	}
+	promisor_remote_get_direct(the_repository,
+				   to_fetch.oid, to_fetch.nr);
+	oid_array_clear(&to_fetch);
+}
+
+static void check_object(struct object_entry *entry, uint32_t object_index)
 {
 	unsigned long canonical_size;
+	enum object_type type;
+	struct object_info oi = {.typep = &type, .sizep = &canonical_size};
 
 	if (IN_PACK(entry)) {
 		struct packed_git *p = IN_PACK(entry);
@@ -1840,8 +1862,18 @@ static void check_object(struct object_entry *entry)
 		unuse_pack(&w_curs);
 	}
 
-	oe_set_type(entry,
-		    oid_object_info(the_repository, &entry->idx.oid, &canonical_size));
+	if (oid_object_info_extended(the_repository, &entry->idx.oid, &oi,
+				     OBJECT_INFO_SKIP_FETCH_OBJECT | OBJECT_INFO_LOOKUP_REPLACE) < 0) {
+		if (has_promisor_remote()) {
+			prefetch_to_pack(object_index);
+			if (oid_object_info_extended(the_repository, &entry->idx.oid, &oi,
+						     OBJECT_INFO_SKIP_FETCH_OBJECT | OBJECT_INFO_LOOKUP_REPLACE) < 0)
+				type = -1;
+		} else {
+			type = -1;
+		}
+	}
+	oe_set_type(entry, type);
 	if (entry->type_valid) {
 		SET_SIZE(entry, canonical_size);
 	} else {
@@ -2061,7 +2093,7 @@ static void get_object_details(void)
 
 	for (i = 0; i < to_pack.nr_objects; i++) {
 		struct object_entry *entry = sorted_by_offset[i];
-		check_object(entry);
+		check_object(entry, i);
 		if (entry->type_valid &&
 		    oe_size_greater_than(&to_pack, entry, big_file_threshold))
 			entry->no_try_delta = 1;
@@ -3016,7 +3048,7 @@ static void show_object__ma_allow_any(struct object *obj, const char *name, void
 	 * Quietly ignore ALL missing objects.  This avoids problems with
 	 * staging them now and getting an odd error later.
 	 */
-	if (!has_object_file(&obj->oid))
+	if (!has_object(the_repository, &obj->oid, 0))
 		return;
 
 	show_object(obj, name, data);
@@ -3030,7 +3062,7 @@ static void show_object__ma_allow_promisor(struct object *obj, const char *name,
 	 * Quietly ignore EXPECTED missing objects.  This avoids problems with
 	 * staging them now and getting an odd error later.
 	 */
-	if (!has_object_file(&obj->oid) && is_promisor_object(&obj->oid))
+	if (!has_object(the_repository, &obj->oid, 0) && is_promisor_object(&obj->oid))
 		return;
 
 	show_object(obj, name, data);
@@ -3325,7 +3357,7 @@ static void get_object_list(int ac, const char **av)
 			if (starts_with(line, "--shallow ")) {
 				struct object_id oid;
 				if (get_oid_hex(line + 10, &oid))
-					die("not an SHA-1 '%s'", line + 10);
+					die("not an object name '%s'", line + 10);
 				register_shallow(the_repository, &oid);
 				use_bitmap_index = 0;
 				continue;
@@ -3439,7 +3471,7 @@ int cmd_pack_objects(int argc, const char **argv, const char *prefix)
 	int use_internal_rev_list = 0;
 	int shallow = 0;
 	int all_progress_implied = 0;
-	struct argv_array rp = ARGV_ARRAY_INIT;
+	struct strvec rp = STRVEC_INIT;
 	int rev_list_unpacked = 0, rev_list_all = 0, rev_list_reflog = 0;
 	int rev_list_index = 0;
 	struct string_list keep_pack_list = STRING_LIST_INIT_NODUP;
@@ -3575,36 +3607,36 @@ int cmd_pack_objects(int argc, const char **argv, const char *prefix)
 		cache_max_small_delta_size = (1U << OE_Z_DELTA_BITS) - 1;
 	}
 
-	argv_array_push(&rp, "pack-objects");
+	strvec_push(&rp, "pack-objects");
 	if (thin) {
 		use_internal_rev_list = 1;
-		argv_array_push(&rp, shallow
+		strvec_push(&rp, shallow
 				? "--objects-edge-aggressive"
 				: "--objects-edge");
 	} else
-		argv_array_push(&rp, "--objects");
+		strvec_push(&rp, "--objects");
 
 	if (rev_list_all) {
 		use_internal_rev_list = 1;
-		argv_array_push(&rp, "--all");
+		strvec_push(&rp, "--all");
 	}
 	if (rev_list_reflog) {
 		use_internal_rev_list = 1;
-		argv_array_push(&rp, "--reflog");
+		strvec_push(&rp, "--reflog");
 	}
 	if (rev_list_index) {
 		use_internal_rev_list = 1;
-		argv_array_push(&rp, "--indexed-objects");
+		strvec_push(&rp, "--indexed-objects");
 	}
 	if (rev_list_unpacked) {
 		use_internal_rev_list = 1;
-		argv_array_push(&rp, "--unpacked");
+		strvec_push(&rp, "--unpacked");
 	}
 
 	if (exclude_promisor_objects) {
 		use_internal_rev_list = 1;
 		fetch_if_missing = 0;
-		argv_array_push(&rp, "--exclude-promisor-objects");
+		strvec_push(&rp, "--exclude-promisor-objects");
 	}
 	if (unpack_unreachable || keep_unreachable || pack_loose_unreachable)
 		use_internal_rev_list = 1;
@@ -3666,7 +3698,7 @@ int cmd_pack_objects(int argc, const char **argv, const char *prefix)
 		write_bitmap_index = 0;
 
 	if (use_delta_islands)
-		argv_array_push(&rp, "--topo-order");
+		strvec_push(&rp, "--topo-order");
 
 	if (progress && all_progress_implied)
 		progress = 2;
@@ -3704,8 +3736,8 @@ int cmd_pack_objects(int argc, const char **argv, const char *prefix)
 	if (!use_internal_rev_list)
 		read_object_list_from_stdin();
 	else {
-		get_object_list(rp.argc, rp.argv);
-		argv_array_clear(&rp);
+		get_object_list(rp.nr, rp.v);
+		strvec_clear(&rp);
 	}
 	cleanup_preferred_base();
 	if (include_tag && nr_result)

@@ -188,13 +188,14 @@ struct rev_info {
 	unsigned int	diff:1,
 			full_diff:1,
 			show_root_diff:1,
+			match_missing:1,
 			no_commit_id:1,
 			verbose_header:1,
-			ignore_merges:1,
 			combine_merges:1,
 			combined_all_paths:1,
 			dense_combined_merges:1,
 			always_show_header:1;
+	int             ignore_merges:2;
 
 	/* Format info */
 	int		show_notes;
@@ -301,8 +302,10 @@ struct rev_info {
 	struct topo_walk_info *topo_walk_info;
 
 	/* Commit graph bloom filter fields */
-	/* The bloom filter key for the pathspec */
-	struct bloom_key *bloom_key;
+	/* The bloom filter key(s) for the pathspec */
+	struct bloom_key *bloom_keys;
+	int bloom_keys_nr;
+
 	/*
 	 * The bloom filter settings used to generate the key.
 	 * This is loaded from the commit-graph being used.
