@@ -54,7 +54,7 @@ TMP = $(CURDIR)/debian/tmp
 GIT = $(CURDIR)/debian/git
 
 %:
-	dh $@ --with apache2
+	dh $@ --with apache2 --without autoreconf
 
 override_dh_auto_configure:
 
