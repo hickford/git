@@ -5,6 +5,9 @@ git (1:2.29.1-0.1) unstable; urgency=low
   * debian/control: Build-Depends: debhelper-compat (= 10)
     * debian/rules: run "dh --without autoreconf" to speed up build,
       since we don't use the autotools-generated configure script.
+  * git-el: install elisp for the "emacs" flavor, too (thx Zack Weinberg;
+    closes: #972871).  Breaks: emacsen-common (<< 3.0.0~) to avoid
+    triggering on older systems where "emacs" was a virtual package.
 
  -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 26 Oct 2020 15:44:15 -0700
 

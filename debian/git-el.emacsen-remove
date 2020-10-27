@@ -8,7 +8,6 @@ el_files="git.el git-blame.el"
 elc_files="git.elc git-blame.elc"
 elc_dir=/usr/share/$FLAVOR/site-lisp/git
 
-[ "$FLAVOR" != emacs ] || exit 0
 printf 'remove/git: Handling removal of emacsen flavor %s\n' "$FLAVOR"
 [ -d "$elc_dir" ] || exit 0
 (cd "$elc_dir"; rm -f $elc_files $el_files)

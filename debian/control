@@ -279,7 +279,7 @@ Multi-Arch: foreign
 Depends: ${misc:Depends}, git (>= 1:1.7.4.1-2~), emacs | emacsen
 Recommends: elpa-magit
 Replaces: git (<< 1:1.7.4.1-2~)
-Breaks: git (<< 1:1.7.4.1-2~)
+Breaks: emacsen-common (<< 3.0.0~), git (<< 1:1.7.4.1-2~)
 Description: fast, scalable, distributed revision control system (emacs support)
  Git is popular version control system designed to handle very large
  projects with speed and efficiency; it is used for many high profile

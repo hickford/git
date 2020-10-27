@@ -12,12 +12,6 @@ el_files="git.el git-blame.el"
 el_dir=/usr/share/git-core/emacs
 elc_dir=/usr/share/$FLAVOR/site-lisp/git
 
-# The emacs startup file looks for these files in
-# /usr/share/${debian-emacs-flavor}/site-lisp/git.
-# Installing to the generic /usr/share/emacs/site-list/git would be
-# pointless.
-[ "$FLAVOR" != emacs ] || exit 0
-
 printf 'install/git: Handling install of emacsen flavor %s\n' "$FLAVOR"
 [ -d "$elc_dir" ] || mkdir "$elc_dir"
 (
