@@ -75,14 +75,6 @@ Files: git-svn.perl
 Copyright: © 2006, Eric Wong <normalperson@yhbt.net>
 License: GPL-2+
 
-Files: vcs-svn/*
-Copyright: © 2010, David Barr <david.barr@cordelta.com>
-           © 2010, Jonathan Nieder <jrnieder@gmail.com>
-           © 2005, Stefan Hegny, hydrografix Consulting GmbH,
-                   Frankfurt/Main, Germany
-                   and others, see http://svn2cc.sarovar.org
-License: BSD-2-clause
-
 Files: imap-send.c
 Copyright: © 2000-2002, Michael R. Elkins <me@mutt.org>
            © 2002-2004, Oswald Buddenhagen <ossi@users.sf.net>
