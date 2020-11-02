@@ -1,3 +1,18 @@
+Version v2.29.2; changes since v2.29.1:
+---------------------------------------
+
+Christian Couder (1):
+      filter-branch doc: fix filter-repo typo
+
+Jeff King (3):
+      t3436: check --committer-date-is-author-date result more carefully
+      am: fix broken email with --committer-date-is-author-date
+      rebase: fix broken email with --committer-date-is-author-date
+
+Junio C Hamano (1):
+      Git 2.29.2
+
+
 Version v2.29.1; changes since v2.29.0:
 ---------------------------------------
 
@@ -8,8 +23,103 @@ Junio C Hamano (1):
       Git 2.29.1
 
 
-Version v2.29.0; changes since v2.28.0:
----------------------------------------
+Version v2.29.0; changes since v2.29.0-rc2:
+-------------------------------------------
+
+Alessandro Menti (2):
+      l10n: it.po: update the Italian translation for Git 2.29.0 round 1
+      l10n: it.po: update the Italian translation
+
+Alexander Shopov (1):
+      l10n: bg.po: Updated Bulgarian translation (5013t)
+
+Daniel Santos (2):
+      l10n: Portuguese translation team has changed. Wohoo!
+      l10n: pt_PT: make on po/pt_PT.po
+
+Emir Sarı (2):
+      l10n: tr: v2.29.0 round 1
+      l10n: tr: v2.29.0 round 2
+
+Jean-Noël Avila (2):
+      l10n: fr: v2.29.0 rnd 1
+      l10n: fr: v2.29.0 rnd 2
+
+Jiang Xin (3):
+      l10n: git.pot: v2.29.0 round 1 (124 new, 42 removed)
+      l10n: git.pot: v2.29.0 round 2 (1 new, 1 removed)
+      l10n: zh_CN: for git v2.29.0 l10n round 1 and 2
+
+Jordi Mas (1):
+      l10n: Update Catalan translation
+
+Junio C Hamano (1):
+      Git 2.29
+
+Matthias Rüster (1):
+      l10n: de.po: Update German translation for Git 2.29.0
+
+Peter Krefting (1):
+      l10n: sv.po: Update Swedish translation (5013t0f0u)
+
+Serg Tereshchenko (2):
+      git-gui: fix mixed tabs and spaces; prefer tabs
+      git-gui: improve dark mode support
+
+Stefan Haller (1):
+      git-gui: blame: prevent tool tips from sticking around after Command-Tab
+
+Trần Ngọc Quân (1):
+      l10n: vi(5013t): Updated translation for v2.29.0 rd2
+
+Yi-Jyun Pan (1):
+      l10n: zh_TW.po: v2.29.0 round 2 (2 untranslated)
+
+
+Version v2.29.0-rc2; changes since v2.29.0-rc1:
+-----------------------------------------------
+
+Junio C Hamano (1):
+      Git 2.29-rc2
+
+
+Version v2.29.0-rc1; changes since v2.29.0-rc0:
+-----------------------------------------------
+
+Denton Liu (2):
+      compat/mingw.h: drop extern from function declaration
+      Makefile: ASCII-sort += lists
+
+Jean-Noël Avila (4):
+      git-bisect-lk2009: make continuation of list indented
+      doc: use linkgit macro where needed.
+      doc: git-remote fix ups
+      doc: fix the bnf like style of some commands
+
+Jeff King (2):
+      index-pack: restore "resolving deltas" progress meter
+      index-pack: drop type_cas mutex
+
+Johannes Schindelin (6):
+      GitHub workflow: automatically follow minor updates of setup-msbuild
+      help: do not expect built-in commands to be hardlinked
+      t1415: avoid using `main` as ref name
+      tests: avoid using the branch name `main`
+      ci: skip GitHub workflow runs for already-tested commits/trees
+      ci: do not skip tagged revisions in GitHub workflows
+
+Jonathan Tan (1):
+      index-pack: make get_base_data() comment clearer
+
+Junio C Hamano (1):
+      Git 2.29-rc1
+
+Đoàn Trần Công Danh (1):
+      t5534: split stdout and stderr redirection
+
+
+Version v2.29.0-rc0; changes since v2.28.0:
+-------------------------------------------
 
 Aaron Lipman (12):
       t6030: modernize "git bisect run" tests
@@ -31,18 +141,11 @@ Adrian Moennich (1):
 Alban Gruin (1):
       t6300: fix issues related to %(contents:size)
 
-Alessandro Menti (2):
-      l10n: it.po: update the Italian translation for Git 2.29.0 round 1
-      l10n: it.po: update the Italian translation
-
 Alex Henrie (1):
       pull: don't warn if pull.ff has been set
 
 Alex Riesen (1):
       fetch: pass --ipv4 and --ipv6 options to sub-fetches
-
-Alexander Shopov (1):
-      l10n: bg.po: Updated Bulgarian translation (5013t)
 
 Andrei Rybak (1):
       git-help.txt: fix mentions of option --guides
@@ -71,15 +174,11 @@ Christian Schlack (1):
 Conor Davis (1):
       commit-graph-format.txt: fix no-parent value
 
-Daniel Santos (2):
-      l10n: Portuguese translation team has changed. Wohoo!
-      l10n: pt_PT: make on po/pt_PT.po
-
 Danny Lin (2):
       contrib/subtree: fix "unsure" for --message in the document
       contrib/subtree: document 'push' does not take '--squash'
 
-Denton Liu (13):
+Denton Liu (11):
       t3701: stop using `env` in force_color()
       t5324: reorder `run_with_limited_open_files test_might_fail`
       t7107: don't use test_must_fail()
@@ -91,8 +190,6 @@ Denton Liu (13):
       hooks--pre-push.sample: use hash-agnostic zero OID
       hooks--update.sample: use hash-agnostic zero OID
       gitk: replace tabs with spaces
-      compat/mingw.h: drop extern from function declaration
-      Makefile: ASCII-sort += lists
 
 Derrick Stolee (22):
       commit-graph: place bloom_settings in context
@@ -154,10 +251,6 @@ Elijah Newren (26):
 
 Emily Shaffer (1):
       Revert "contrib: subtree: adjust test to change in fmt-merge-msg"
-
-Emir Sarı (2):
-      l10n: tr: v2.29.0 round 1
-      l10n: tr: v2.29.0 round 2
 
 Eric Huber (1):
       gitk: Preserve window dimensions on exit when not using ttk themes
@@ -232,18 +325,10 @@ Jacob Keller (4):
       refspec: add support for negative refspecs
       format-patch: teach format.useAutoBase "whenAble" option
 
-Jean-Noël Avila (6):
-      l10n: fr: v2.29.0 rnd 1
-      git-bisect-lk2009: make continuation of list indented
-      doc: use linkgit macro where needed.
-      doc: git-remote fix ups
-      doc: fix the bnf like style of some commands
-      l10n: fr: v2.29.0 rnd 2
-
 Jeff Hostetler (1):
       mingw: improve performance of mingw_unlink()
 
-Jeff King (82):
+Jeff King (80):
       t6000: use test_tick consistently
       t9700: loosen ident timezone regex
       t5539: make timestamp requirements more explicit
@@ -324,10 +409,8 @@ Jeff King (82):
       sequencer: handle ignore_footer when parsing trailers
       dir.c: drop unused "untracked" from treat_path_fast()
       combine-diff: handle --find-object in multitree code path
-      index-pack: restore "resolving deltas" progress meter
-      index-pack: drop type_cas mutex
 
-Jiang Xin (13):
+Jiang Xin (10):
       transport: not report a non-head push as a branch
       t5411: add basic test cases for proc-receive hook
       receive-pack: add new proc-receive hook
@@ -338,15 +421,12 @@ Jiang Xin (13):
       t5411: test updates of remote-tracking branches
       transport: parse report options for tracking refs
       doc: add documentation for the proc-receive hook
-      l10n: git.pot: v2.29.0 round 1 (124 new, 42 removed)
-      l10n: git.pot: v2.29.0 round 2 (1 new, 1 removed)
-      l10n: zh_CN: for git v2.29.0 l10n round 1 and 2
 
 Johannes Berg (2):
       pack-write/docs: update regarding pack naming
       docs: commit-graph: fix some whitespace in the diagram
 
-Johannes Schindelin (26):
+Johannes Schindelin (20):
       t3404: prepare 'short SHA-1 collision' tests for SHA-256
       ci: fix indentation of the `ci-config` job
       ci: avoid ugly "failure" in the `ci-config` job
@@ -367,17 +447,11 @@ Johannes Schindelin (26):
       cmake (Windows): complain when encountering an unknown compiler
       cmake (Windows): initialize vcpkg/build dependencies automatically
       cmake (Windows): recommend using Visual Studio's built-in CMake support
-      GitHub workflow: automatically follow minor updates of setup-msbuild
-      help: do not expect built-in commands to be hardlinked
-      t1415: avoid using `main` as ref name
-      tests: avoid using the branch name `main`
-      ci: skip GitHub workflow runs for already-tested commits/trees
-      ci: do not skip tagged revisions in GitHub workflows
 
 Johannes Sixt (1):
       gitk: Un-hide selection in areas with non-default background color
 
-Jonathan Tan (33):
+Jonathan Tan (32):
       upload-pack: do not lazy-fetch "have" objects
       pack-objects: refactor to oid_object_info_extended
       pack-objects: prefetch objects to be packed
@@ -410,12 +484,8 @@ Jonathan Tan (33):
       index-pack: make quantum of work smaller
       promisor-remote: remove unused variable
       fetch: do not override partial clone filter
-      index-pack: make get_base_data() comment clearer
 
-Jordi Mas (1):
-      l10n: Update Catalan translation
-
-Junio C Hamano (52):
+Junio C Hamano (49):
       gitk: be prepared to be run in a bare repository
       reflog: cleanse messages in the refs.c layer
       Revert "fmt-merge-msg: stop treating `master` specially"
@@ -465,9 +535,6 @@ Junio C Hamano (52):
       hashmap_for_each_entry(): workaround MSVC's runtime check failure #3
       Nineteenth batch
       Git 2.29-rc0
-      Git 2.29-rc1
-      Git 2.29-rc2
-      Git 2.29
 
 Kazuhiro Kato (1):
       gitk: fix branch name encoding error
@@ -512,9 +579,6 @@ Matheus Tavares (4):
 Matthew Rogers (1):
       diff: teach --stat to ignore uninteresting modifications
 
-Matthias Rüster (1):
-      l10n: de.po: Update German translation for Git 2.29.0
-
 Michael Forney (2):
       revision: use repository from rev_info when parsing commits
       submodule: use submodule repository when preparing summary
@@ -547,9 +611,6 @@ Patrick Steinhardt (2):
 
 Paul Mackerras (1):
       gitk: Resize panes correctly when reducing window size
-
-Peter Krefting (1):
-      l10n: sv.po: Update Swedish translation (5013t0f0u)
 
 Philippe Blain (19):
       git-log.txt: add links to 'rev-list' and 'diff' docs
@@ -647,10 +708,6 @@ SZEDER Gábor (15):
 Samanta Navarro (1):
       fast-import: fix typo in documentation
 
-Serg Tereshchenko (2):
-      git-gui: fix mixed tabs and spaces; prefer tabs
-      git-gui: improve dark mode support
-
 Sergey Organov (9):
       revision: fix die() message for "--unpacked="
       revision: change "--diff-merges" option to require parameter
@@ -691,9 +748,6 @@ Simon Legner (1):
 Stefan Dotterweich (1):
       gitk: add diff lines background colors
 
-Stefan Haller (1):
-      git-gui: blame: prevent tool tips from sticking around after Command-Tab
-
 Steve Kemp (1):
       comment: fix spelling mistakes inside comments
 
@@ -722,12 +776,6 @@ Theodore Dubois (1):
 
 Thomas Guyot-Sionnest (1):
       diff: fix modified lines stats with --stat and --numstat
-
-Trần Ngọc Quân (1):
-      l10n: vi(5013t): Updated translation for v2.29.0 rd2
-
-Yi-Jyun Pan (1):
-      l10n: zh_TW.po: v2.29.0 round 2 (2 untranslated)
 
 brian m. carlson (48):
       remote-curl: make --force-with-lease work with non-ASCII ref names
@@ -806,9 +854,8 @@ pudinha (2):
       remote-mediawiki: annotate unquoted uses of run_git()
       remote-mediawiki: use "sh" to eliminate unquoted commands
 
-Đoàn Trần Công Danh (2):
+Đoàn Trần Công Danh (1):
       diff: index-line: respect --abbrev in object's name
-      t5534: split stdout and stderr redirection
 
 Роман Донченко (2):
       gitk: don't highlight files after submodules as submodules

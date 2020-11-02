@@ -1,3 +1,11 @@
+git (1:2.29.2-1) unstable; urgency=low
+
+  * new upstream point release (see RelNotes/2.29.2.txt).
+  * debian/copyright: remove unused BSD-2-Clause text.  The last part
+    of Git under that license was removed in v2.29.0.
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 02 Nov 2020 09:33:37 -0800
+
 git (1:2.29.1-1) unstable; urgency=low
 
   * new upstream release (see RelNotes/2.29.0.txt).
