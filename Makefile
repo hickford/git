@@ -303,7 +303,7 @@ all::
 # modules, instead of the fallbacks shipped with Git.
 #
 # Define PYTHON_PATH to the path of your Python binary (often /usr/bin/python
-# but /usr/bin/python2.7 on some platforms).
+# but /usr/bin/python2.7 or /usr/bin/python3 on some platforms).
 #
 # Define NO_PYTHON if you do not want Python scripts or libraries at all.
 #
@@ -613,7 +613,6 @@ SCRIPT_SH += git-submodule.sh
 SCRIPT_SH += git-web--browse.sh
 
 SCRIPT_LIB += git-mergetool--lib
-SCRIPT_LIB += git-parse-remote
 SCRIPT_LIB += git-rebase--preserve-merges
 SCRIPT_LIB += git-sh-i18n
 SCRIPT_LIB += git-sh-setup
@@ -694,6 +693,7 @@ TEST_BUILTINS_OBJS += test-advise.o
 TEST_BUILTINS_OBJS += test-bloom.o
 TEST_BUILTINS_OBJS += test-chmtime.o
 TEST_BUILTINS_OBJS += test-config.o
+TEST_BUILTINS_OBJS += test-crontab.o
 TEST_BUILTINS_OBJS += test-ctype.o
 TEST_BUILTINS_OBJS += test-date.o
 TEST_BUILTINS_OBJS += test-delta.o
@@ -704,6 +704,7 @@ TEST_BUILTINS_OBJS += test-dump-fsmonitor.o
 TEST_BUILTINS_OBJS += test-dump-split-index.o
 TEST_BUILTINS_OBJS += test-dump-untracked-cache.o
 TEST_BUILTINS_OBJS += test-example-decorate.o
+TEST_BUILTINS_OBJS += test-fast-rebase.o
 TEST_BUILTINS_OBJS += test-genrandom.o
 TEST_BUILTINS_OBJS += test-genzeros.o
 TEST_BUILTINS_OBJS += test-hash-speed.o
@@ -767,6 +768,7 @@ BUILT_INS += git-cherry-pick$X
 BUILT_INS += git-format-patch$X
 BUILT_INS += git-fsck-objects$X
 BUILT_INS += git-init$X
+BUILT_INS += git-maintenance$X
 BUILT_INS += git-merge-subtree$X
 BUILT_INS += git-restore$X
 BUILT_INS += git-show$X
@@ -921,6 +923,8 @@ LIB_OBJS += mailmap.o
 LIB_OBJS += match-trees.o
 LIB_OBJS += mem-pool.o
 LIB_OBJS += merge-blobs.o
+LIB_OBJS += merge-ort.o
+LIB_OBJS += merge-ort-wrappers.o
 LIB_OBJS += merge-recursive.o
 LIB_OBJS += merge.o
 LIB_OBJS += mergesort.o
@@ -1000,6 +1004,7 @@ LIB_OBJS += stable-qsort.o
 LIB_OBJS += strbuf.o
 LIB_OBJS += streaming.o
 LIB_OBJS += string-list.o
+LIB_OBJS += strmap.o
 LIB_OBJS += strvec.o
 LIB_OBJS += sub-process.o
 LIB_OBJS += submodule-config.o
@@ -1089,6 +1094,7 @@ BUILTIN_OBJS += builtin/fetch-pack.o
 BUILTIN_OBJS += builtin/fetch.o
 BUILTIN_OBJS += builtin/fmt-merge-msg.o
 BUILTIN_OBJS += builtin/for-each-ref.o
+BUILTIN_OBJS += builtin/for-each-repo.o
 BUILTIN_OBJS += builtin/fsck.o
 BUILTIN_OBJS += builtin/gc.o
 BUILTIN_OBJS += builtin/get-tar-commit-id.o
@@ -2577,7 +2583,6 @@ XGETTEXT_FLAGS_PERL = $(XGETTEXT_FLAGS) --language=Perl \
 	--keyword=__ --keyword=N__ --keyword="__n:1,2"
 LOCALIZED_C = $(C_OBJ:o=c) $(LIB_H) $(GENERATED_H)
 LOCALIZED_SH = $(SCRIPT_SH)
-LOCALIZED_SH += git-parse-remote.sh
 LOCALIZED_SH += git-rebase--preserve-merges.sh
 LOCALIZED_SH += git-sh-setup.sh
 LOCALIZED_PERL = $(SCRIPT_PERL)
@@ -2767,6 +2772,9 @@ ifdef GIT_INTEROP_MAKE_OPTS
 endif
 ifdef GIT_TEST_INDEX_VERSION
 	@echo GIT_TEST_INDEX_VERSION=\''$(subst ','\'',$(subst ','\'',$(GIT_TEST_INDEX_VERSION)))'\' >>$@+
+endif
+ifdef GIT_TEST_PERL_FATAL_WARNINGS
+	@echo GIT_TEST_PERL_FATAL_WARNINGS=\''$(subst ','\'',$(subst ','\'',$(GIT_TEST_PERL_FATAL_WARNINGS)))'\' >>$@+
 endif
 	@if cmp $@+ $@ >/dev/null 2>&1; then $(RM) $@+; else mv $@+ $@; fi
 
@@ -3050,16 +3058,13 @@ quick-install-html:
 
 ### Maintainer's dist rules
 
-# Allow tweaking to hide local environment effects, like perm bits.
-# With GNU tar, "--mode=u+rwX,og+rX,og-w" would be a good idea, for example.
-TAR_DIST_EXTRA_OPTS =
 GIT_TARNAME = git-$(GIT_VERSION)
 GIT_ARCHIVE_EXTRA_FILES = \
 	--prefix=$(GIT_TARNAME)/ \
 	--add-file=configure \
-	--add-file=$(GIT_TARNAME)/version \
+	--add-file=.dist-tmp-dir/version \
 	--prefix=$(GIT_TARNAME)/git-gui/ \
-	--add-file=$(GIT_TARNAME)/git-gui/version
+	--add-file=.dist-tmp-dir/git-gui/version
 ifdef DC_SHA1_SUBMODULE
 GIT_ARCHIVE_EXTRA_FILES += \
 	--prefix=$(GIT_TARNAME)/sha1collisiondetection/ \
@@ -3071,13 +3076,14 @@ GIT_ARCHIVE_EXTRA_FILES += \
 	--add-file=sha1collisiondetection/lib/ubc_check.h
 endif
 dist: git-archive$(X) configure
-	@mkdir -p $(GIT_TARNAME)
-	@echo $(GIT_VERSION) > $(GIT_TARNAME)/version
-	@$(MAKE) -C git-gui TARDIR=../$(GIT_TARNAME)/git-gui dist-version
+	@$(RM) -r .dist-tmp-dir
+	@mkdir .dist-tmp-dir
+	@echo $(GIT_VERSION) > .dist-tmp-dir/version
+	@$(MAKE) -C git-gui TARDIR=../.dist-tmp-dir/git-gui dist-version
 	./git-archive --format=tar \
 		$(GIT_ARCHIVE_EXTRA_FILES) \
 		--prefix=$(GIT_TARNAME)/ HEAD^{tree} > $(GIT_TARNAME).tar
-	@$(RM) -r $(GIT_TARNAME)
+	@$(RM) -r .dist-tmp-dir
 	gzip -f -9 $(GIT_TARNAME).tar
 
 rpm::
@@ -3102,11 +3108,15 @@ artifacts-tar:: $(ALL_COMMANDS_TO_INSTALL) $(SCRIPT_LIB) $(OTHER_PROGRAMS) \
 htmldocs = git-htmldocs-$(GIT_VERSION)
 manpages = git-manpages-$(GIT_VERSION)
 .PHONY: dist-doc distclean
-dist-doc:
+dist-doc: git$X
 	$(RM) -r .doc-tmp-dir
 	mkdir .doc-tmp-dir
 	$(MAKE) -C Documentation WEBDOC_DEST=../.doc-tmp-dir install-webdoc
-	cd .doc-tmp-dir && $(TAR) cf ../$(htmldocs).tar $(TAR_DIST_EXTRA_OPTS) .
+	./git -C .doc-tmp-dir init
+	./git -C .doc-tmp-dir add .
+	./git -C .doc-tmp-dir commit -m htmldocs
+	./git -C .doc-tmp-dir archive --format=tar --prefix=./ HEAD^{tree} \
+		> $(htmldocs).tar
 	gzip -n -9 -f $(htmldocs).tar
 	:
 	$(RM) -r .doc-tmp-dir
@@ -3116,7 +3126,11 @@ dist-doc:
 		man5dir=../.doc-tmp-dir/man5 \
 		man7dir=../.doc-tmp-dir/man7 \
 		install
-	cd .doc-tmp-dir && $(TAR) cf ../$(manpages).tar $(TAR_DIST_EXTRA_OPTS) .
+	./git -C .doc-tmp-dir init
+	./git -C .doc-tmp-dir add .
+	./git -C .doc-tmp-dir commit -m manpages
+	./git -C .doc-tmp-dir archive --format=tar --prefix=./ HEAD^{tree} \
+		> $(manpages).tar
 	gzip -n -9 -f $(manpages).tar
 	$(RM) -r .doc-tmp-dir
 
@@ -3146,8 +3160,8 @@ clean: profile-clean coverage-clean cocciclean
 	$(RM) -r bin-wrappers $(dep_dirs) $(compdb_dir) compile_commands.json
 	$(RM) -r po/build/
 	$(RM) *.pyc *.pyo */*.pyc */*.pyo $(GENERATED_H) $(ETAGS_TARGET) tags cscope*
-	$(RM) -r $(GIT_TARNAME) .doc-tmp-dir
-	$(RM) $(GIT_TARNAME).tar.gz git-core_$(GIT_VERSION)-*.tar.gz
+	$(RM) -r .dist-tmp-dir .doc-tmp-dir
+	$(RM) $(GIT_TARNAME).tar.gz
 	$(RM) $(htmldocs).tar.gz $(manpages).tar.gz
 	$(MAKE) -C Documentation/ clean
 	$(RM) Documentation/GIT-EXCLUDED-PROGRAMS

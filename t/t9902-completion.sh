@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2012 Felipe Contreras
+# Copyright (c) 2012-2020 Felipe Contreras
 #
 
 test_description='test bash completion'
@@ -906,7 +906,7 @@ test_expect_success '__git_refs - after --opt= - full refs' '
 	test_cmp expected "$actual"
 '
 
-test_expect_success '__git refs - exluding refs' '
+test_expect_success '__git refs - excluding refs' '
 	cat >expected <<-EOF &&
 	^HEAD
 	^master
@@ -922,7 +922,7 @@ test_expect_success '__git refs - exluding refs' '
 	test_cmp expected "$actual"
 '
 
-test_expect_success '__git refs - exluding full refs' '
+test_expect_success '__git refs - excluding full refs' '
 	cat >expected <<-EOF &&
 	^refs/heads/master
 	^refs/heads/matching-branch
@@ -1055,13 +1055,13 @@ test_expect_success 'teardown after filtering matching refs' '
 	git -C otherrepo branch -D matching/branch-in-other
 '
 
-test_expect_success '__git_refs - for-each-ref format specifiers in prefix' '
+test_expect_success PREPARE_FOR_MAIN_BRANCH '__git_refs - for-each-ref format specifiers in prefix' '
 	cat >expected <<-EOF &&
 	evil-%%-%42-%(refname)..master
 	EOF
 	(
-		cur="evil-%%-%42-%(refname)..mas" &&
-		__git_refs "" "" "evil-%%-%42-%(refname).." mas >"$actual"
+		cur="evil-%%-%42-%(refname)..mai" &&
+		__git_refs "" "" "evil-%%-%42-%(refname).." mai >"$actual"
 	) &&
 	test_cmp expected "$actual"
 '
@@ -1351,6 +1351,58 @@ test_expect_success 'git checkout - a later --guess overrides previous --no-gues
 
 test_expect_success 'git checkout - a later --no-guess overrides previous --guess, complete only refs' '
 	test_completion "git checkout --guess --no-guess " <<-\EOF
+	HEAD Z
+	master Z
+	matching-branch Z
+	matching-tag Z
+	other/branch-in-other Z
+	other/master-in-other Z
+	EOF
+'
+
+test_expect_success 'git checkout - with checkout.guess = false, only completes refs' '
+	test_config checkout.guess false &&
+	test_completion "git checkout " <<-\EOF
+	HEAD Z
+	master Z
+	matching-branch Z
+	matching-tag Z
+	other/branch-in-other Z
+	other/master-in-other Z
+	EOF
+'
+
+test_expect_success 'git checkout - with checkout.guess = true, completes refs and unique remote branches for DWIM' '
+	test_config checkout.guess true &&
+	test_completion "git checkout " <<-\EOF
+	HEAD Z
+	branch-in-other Z
+	master Z
+	master-in-other Z
+	matching-branch Z
+	matching-tag Z
+	other/branch-in-other Z
+	other/master-in-other Z
+	EOF
+'
+
+test_expect_success 'git checkout - a later --guess overrides previous checkout.guess = false, complete refs and unique remote branches for DWIM' '
+	test_config checkout.guess false &&
+	test_completion "git checkout --guess " <<-\EOF
+	HEAD Z
+	branch-in-other Z
+	master Z
+	master-in-other Z
+	matching-branch Z
+	matching-tag Z
+	other/branch-in-other Z
+	other/master-in-other Z
+	EOF
+'
+
+test_expect_success 'git checkout - a later --no-guess overrides previous checkout.guess = true, complete only refs' '
+	test_config checkout.guess true &&
+	test_completion "git checkout --no-guess " <<-\EOF
 	HEAD Z
 	master Z
 	matching-branch Z
@@ -2141,6 +2193,25 @@ test_expect_success 'complete files' '
 
 	touch momified &&
 	test_completion "git add mom" "momified"
+'
+
+test_expect_success "simple alias" '
+	test_config alias.co checkout &&
+	test_completion "git co m" <<-\EOF
+	master Z
+	mybranch Z
+	mytag Z
+	EOF
+'
+
+test_expect_success "recursive alias" '
+	test_config alias.co checkout &&
+	test_config alias.cod "co --detached" &&
+	test_completion "git cod m" <<-\EOF
+	master Z
+	mybranch Z
+	mytag Z
+	EOF
 '
 
 test_expect_success "completion uses <cmd> completion for alias: !sh -c 'git <cmd> ...'" '

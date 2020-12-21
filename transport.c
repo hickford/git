@@ -286,6 +286,8 @@ static struct ref *handshake(struct transport *transport, int for_push,
 	struct git_transport_data *data = transport->data;
 	struct ref *refs = NULL;
 	struct packet_reader reader;
+	int sid_len;
+	const char *server_sid;
 
 	connect_setup(transport, for_push);
 
@@ -297,6 +299,8 @@ static struct ref *handshake(struct transport *transport, int for_push,
 	data->version = discover_version(&reader);
 	switch (data->version) {
 	case protocol_v2:
+		if (server_feature_v2("session-id", &server_sid))
+			trace2_data_string("transfer", NULL, "server-sid", server_sid);
 		if (must_list_refs)
 			get_remote_refs(data->fd[1], &reader, &refs, for_push,
 					ref_prefixes,
@@ -310,6 +314,12 @@ static struct ref *handshake(struct transport *transport, int for_push,
 				 for_push ? REF_NORMAL : 0,
 				 &data->extra_have,
 				 &data->shallow);
+		server_sid = server_feature_value("session-id", &sid_len);
+		if (server_sid) {
+			char *sid = xstrndup(server_sid, sid_len);
+			trace2_data_string("transfer", NULL, "server-sid", sid);
+			free(sid);
+		}
 		break;
 	case protocol_unknown_version:
 		BUG("unknown protocol version");
@@ -633,6 +643,11 @@ static int print_one_push_report(struct ref *ref, const char *dest, int count,
 				 "stale info",
 				 report, porcelain, summary_width);
 		break;
+	case REF_STATUS_REJECT_REMOTE_UPDATED:
+		print_ref_status('!', "[rejected]", ref, ref->peer_ref,
+				 "remote ref updated since checkout",
+				 report, porcelain, summary_width);
+		break;
 	case REF_STATUS_REJECT_SHALLOW:
 		print_ref_status('!', "[rejected]", ref, ref->peer_ref,
 				 "new shallow roots not allowed",
@@ -743,6 +758,8 @@ void transport_print_push_status(const char *dest, struct ref *refs,
 			*reject_reasons |= REJECT_FETCH_FIRST;
 		} else if (ref->status == REF_STATUS_REJECT_NEEDS_FORCE) {
 			*reject_reasons |= REJECT_NEEDS_FORCE;
+		} else if (ref->status == REF_STATUS_REJECT_REMOTE_UPDATED) {
+			*reject_reasons |= REJECT_REF_NEEDS_UPDATE;
 		}
 	}
 	free(head);
@@ -1185,6 +1202,7 @@ static int run_pre_push_hook(struct transport *transport,
 		if (!r->peer_ref) continue;
 		if (r->status == REF_STATUS_REJECT_NONFASTFORWARD) continue;
 		if (r->status == REF_STATUS_REJECT_STALE) continue;
+		if (r->status == REF_STATUS_REJECT_REMOTE_UPDATED) continue;
 		if (r->status == REF_STATUS_UPTODATE) continue;
 
 		strbuf_reset(&buf);
