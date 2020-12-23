@@ -1,3 +1,36 @@
+Version v2.30.0-rc2; changes since v2.30.0-rc1:
+-----------------------------------------------
+
+Jiang Xin (1):
+      pack-redundant: fix crash when one packfile in repo
+
+Johannes Schindelin (12):
+      t1400: use `main` as initial branch name
+      t3200: finish transitioning to the initial branch name `main`
+      t3201: finalize transitioning to using the branch name `main`
+      t3203: complete the transition to using the branch name `main`
+      t3205: finalize transitioning to using the branch name `main`
+      t5505: finalize transitioning to using the branch name `main`
+      t5510: use `main` as initial branch name
+      t5703: use `main` as initial branch name
+      t6302: use `main` as initial branch name
+      t9902: use `main` as initial branch name
+      tests: drop the `PREPARE_FOR_MAIN_BRANCH` prereq
+      checkout -p: handle tree arguments correctly again
+
+Junio C Hamano (1):
+      Git 2.30-rc2
+
+Martin Ågren (3):
+      git-maintenance.txt: add missing word
+      gc: fix handling of crontab magic markers
+      t7900-maintenance: test for magic markers
+
+Nipunn Koorapati (2):
+      negative-refspec: fix segfault on : refspec
+      negative-refspec: improve comment on query_matches_negative_refspec
+
+
 Version v2.30.0-rc1; changes since v2.30.0-rc0:
 -----------------------------------------------
 
