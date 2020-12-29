@@ -3,6 +3,10 @@ git (1:2.31.0-0.1) unstable; urgency=low
   * new upstream release (see RelNotes/2.31.0.txt).
   * install dashed commands to /usr/libexec instead of /usr/lib (thx
     Chris Lamb for suggesting it through lintian).
+  * remove compatibility code and NEWS.Debian entries that supported
+    upgrades from versions before 1.7.9.5 (the version in Ubuntu
+    12.04, which reached the end of extended security maintenance in
+    April, 2019).
 
  -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 15 Mar 2021 19:28:47 -0700
 

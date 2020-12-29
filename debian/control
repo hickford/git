@@ -34,16 +34,13 @@ Recommends: ca-certificates, patch, less, ssh-client
 Suggests: gettext-base, git-daemon-run | git-daemon-sysvinit,
  git-doc, git-el, git-email, git-gui, gitk, gitweb,
  git-cvs, git-mediawiki, git-svn
-Replaces: gitweb (<< 1:1.7.4~rc1),
- git-core (<< 1:1.7.0.4-1.)
-Breaks: bash-completion (<< 1:1.90-1), gitweb (<< 1:1.7.4~rc1),
+Breaks: bash-completion (<< 1:1.90-1),
  dgit (<< 5.1~),
  git-buildpackage (<< 0.6.5),
  cogito (<= 0.18.2+),
  openssh-client (<< 1:6.8),
  stgit (<< 0.15), stgit-contrib (<< 0.15), gitpkg (<< 0.15),
- guilt (<< 0.33), gitosis (<< 0.2+20090917-7),
- git-core (<< 1:1.7.0.4-1.)
+ guilt (<< 0.33), gitosis (<< 0.2+20090917-7)
 Provides: git-completion, git-core
 Description: fast, scalable, distributed revision control system
  Git is popular version control system designed to handle very large
@@ -65,9 +62,6 @@ Section: doc
 Architecture: all
 Multi-Arch: foreign
 Depends: ${misc:Depends}
-Replaces: git (<< 1:1.7.4~rc1),
- git-core (<< 1:1.7.0.4-1.)
-Breaks: git (<< 1:1.7.4~rc1)
 Description: fast, scalable, distributed revision control system (manual pages)
  Git is popular version control system designed to handle very large
  projects with speed and efficiency; it is used for many high profile
@@ -276,10 +270,9 @@ Description: fast, scalable, distributed revision control system (revision tree 
 Package: git-el
 Architecture: all
 Multi-Arch: foreign
-Depends: ${misc:Depends}, git (>= 1:1.7.4.1-2~), emacs | emacsen
+Depends: ${misc:Depends}, git, emacs | emacsen
 Recommends: elpa-magit
-Replaces: git (<< 1:1.7.4.1-2~)
-Breaks: emacsen-common (<< 3.0.0~), git (<< 1:1.7.4.1-2~)
+Breaks: emacsen-common (<< 3.0.0~)
 Description: fast, scalable, distributed revision control system (emacs support)
  Git is popular version control system designed to handle very large
  projects with speed and efficiency; it is used for many high profile
