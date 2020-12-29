@@ -1,6 +1,8 @@
 git (1:2.31.0-0.1) unstable; urgency=low
 
   * new upstream release (see RelNotes/2.31.0.txt).
+  * install dashed commands to /usr/libexec instead of /usr/lib (thx
+    Chris Lamb for suggesting it through lintian).
 
  -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 15 Mar 2021 19:28:47 -0700
 

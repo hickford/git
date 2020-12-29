@@ -12,10 +12,10 @@
 ### END INIT INFO
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
-PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/lib/git-core
+PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/libexec/git-core
 DESC="git-daemon service"
 NAME=git-daemon
-DAEMON=/usr/lib/git-core/$NAME
+DAEMON=/usr/libexec/git-core/$NAME
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
