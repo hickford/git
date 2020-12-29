@@ -1,3 +1,56 @@
+Version v2.30.0; changes since v2.30.0-rc2:
+-------------------------------------------
+
+Alexander Shopov (1):
+      l10n: bg.po: Updated Bulgarian translation (5037t)
+
+Arusekk (1):
+      l10n: pl.po: add translation and set team leader
+
+Baptiste Fontaine (1):
+      l10n: fr.po Fix a typo
+
+Emir Sarı (2):
+      l10n: tr: v2.30.0-r1
+      l10n: tr: v2.30.0-r2
+
+Jean-Noël Avila (3):
+      l10n: fr fix misleading message
+      l10n: fr.po: v2.30.0 rnd 1
+      l10n: fr.po v2.30.0 rnd 2
+
+Jiang Xin (3):
+      l10n: git.pot: v2.30.0 round 1 (70 new, 45 removed)
+      l10n: git.pot: v2.30.0 round 2 (1 new, 2 removed)
+      l10n: zh_CN: for git v2.30.0 l10n round 1 and 2
+
+Jordi Mas (2):
+      l10n: Update Catalan translation
+      l10n: Update Catalan translation
+
+Junio C Hamano (1):
+      Git 2.30
+
+Matthias Rüster (1):
+      l10n: de.po: Update German translation for Git 2.30.0
+
+Peter Krefting (2):
+      l10n: sv.po: Update Swedish translation (5038t0f0u)
+      l10n: sv.po: Update Swedish translation (5037t0f0u)
+
+Philippe Blain (1):
+      git.txt: fix typos in 'linkgit' macro invocation
+
+Trần Ngọc Quân (1):
+      l10n: vi.po(5037t): v2.30.0 rnd 2
+
+Yi-Jyun Pan (1):
+      l10n: zh_TW.po: v2.30.0 round 2 (1 untranslated)
+
+m4sk1n (1):
+      l10n: pl.po: started Polish translation
+
+
 Version v2.30.0-rc2; changes since v2.30.0-rc1:
 -----------------------------------------------
 
