@@ -1,3 +1,106 @@
+Version v2.30.1; changes since v2.30.0:
+---------------------------------------
+
+Adam Dinwoodie (1):
+      t4129: fix setfacl-related permissions failure
+
+Antonio Russo (1):
+      t6016: move to lib-log-graph.sh framework
+
+Daniel Levin (1):
+      git-p4: fix syncing file types with pattern
+
+Derrick Stolee (1):
+      for-each-repo: do nothing on empty config
+
+Elijah Newren (3):
+      t7012: add a testcase demonstrating stash apply bugs in sparse checkouts
+      stash: remove unnecessary process forking
+      stash: fix stash application in sparse-checkouts
+
+Felipe Contreras (1):
+      test: bisect-porcelain: fix location of files
+
+Jeff King (5):
+      git_connect_git(): forbid newlines in host and path
+      fsck: reject .gitmodules git:// urls with newlines
+      t5516: loosen "not our ref" error check
+      patch-ids: handle duplicate hashmap entries
+      p5303: avoid sed GNU-ism
+
+Johannes Schindelin (1):
+      SKIP_DASHED_BUILT_INS: respect `config.mak`
+
+Johannes Sixt (1):
+      annotate-tests: quote variable expansions containing path names
+
+Jonathan Tan (1):
+      Doc: clarify contents of packfile sent as URI
+
+Junio C Hamano (5):
+      parse-options: format argh like error messages
+      SubmittingPatches: tighten wording on "sign-off" procedure
+      ci/install-depends: attempt to fix "brew cask" stuff
+      Prepare for 2.30.1
+      Git 2.30.1
+
+Martin Ågren (9):
+      t1300: remove duplicate test for `--file ../foo`
+      t1300: remove duplicate test for `--file no-such-file`
+      t1300: don't needlessly work with `core.foo` configs
+      pack-format.txt: document sizes at start of delta data
+      builtin/gc: don't peek into `struct lock_file`
+      commit-graph: don't peek into `struct lock_file`
+      midx: don't peek into `struct lock_file`
+      refs/files-backend: don't peek into `struct lock_file`
+      read-cache: try not to peek into `struct {lock_,temp}file`
+
+Matheus Tavares (1):
+      t4129: don't fail if setgid is set in the test directory
+
+Peter Kaestle (1):
+      submodules: fix of regression on fetching of non-init subsub-repo
+
+Philippe Blain (3):
+      gitmodules.txt: fix 'GIT_WORK_TREE' variable name
+      mergetool--lib: fix '--tool-help' to correctly show available tools
+      ci: do not cancel all jobs of a matrix if one fails
+
+René Scharfe (1):
+      rebase: verify commit parameter
+
+Taylor Blau (2):
+      p7519: allow running without watchman prereq
+      Documentation/git-clone.txt: document race with --local
+
+Thomas Ackermann (1):
+      doc: fix some typos
+
+Utku Gultopu (1):
+      doc: remove "directory cache" from man pages
+
+Vasyl Vavrychuk (1):
+      git-send-email.txt: mention less secure app access with Gmail
+
+ZheNing Hu (1):
+      builtin/*: update usage format
+
+brian m. carlson (1):
+      docs: rephrase and clarify the git status --short format
+
+Ævar Arnfjörð Bjarmason (10):
+      branch: change "--local" to "--list" in comment
+      branch tests: add to --sort tests
+      ref-filter: add braces to if/else if/else chain
+      ref-filter: move "cmp_fn" assignment into "else if" arm
+      ref-filter: move ref_sorting flags to a bitfield
+      branch: sort detached HEAD based on a flag
+      branch: show "HEAD detached" first under reverse sort
+      Makefile: remove a warning about old GETTEXT_POISON flag
+      gettext.c: remove/reword a mostly-useless comment
+      fsck doc: remove ancient out-of-date diagnostics
+
+
 Version v2.30.0; changes since v2.30.0-rc2:
 -------------------------------------------
 
