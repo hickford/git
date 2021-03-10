@@ -269,7 +269,7 @@ Taylor Blau (2):
       doc: mention Python 3.x supports
 
 
-Version v2.30.0-rc0; changes since v2.29.2:
+Version v2.30.0-rc0; changes since v2.29.3:
 -------------------------------------------
 
 Adam Spiers (1):
@@ -797,6 +797,30 @@ brian m. carlson (1):
       config.txt: fix a typo (backslash != backquote)
 
 
+Version v2.29.3; changes since v2.29.2:
+---------------------------------------
+
+Johannes Schindelin (14):
+      run-command: invalidate lstat cache after a command finished
+      Git 2.17.6
+      Git 2.18.5
+      Git 2.19.6
+      Git 2.20.5
+      Git 2.21.4
+      Git 2.22.5
+      Git 2.23.4
+      Git 2.24.4
+      Git 2.25.5
+      Git 2.26.3
+      Git 2.27.1
+      Git 2.28.1
+      Git 2.29.3
+
+Matheus Tavares (2):
+      checkout: fix bug that makes checkout follow symlinks in leading path
+      unpack_trees(): start with a fresh lstat cache
+
+
 Version v2.29.2; changes since v2.29.1:
 ---------------------------------------
 
@@ -917,7 +941,7 @@ Junio C Hamano (1):
       t5534: split stdout and stderr redirection
 
 
-Version v2.29.0-rc0; changes since v2.28.0:
+Version v2.29.0-rc0; changes since v2.28.1:
 -------------------------------------------
 
 Aaron Lipman (12):
@@ -1661,6 +1685,29 @@ pudinha (2):
       gitk: fix the context menu not appearing in the presence of submodule diffs
 
 
+Version v2.28.1; changes since v2.28.0:
+---------------------------------------
+
+Johannes Schindelin (13):
+      run-command: invalidate lstat cache after a command finished
+      Git 2.17.6
+      Git 2.18.5
+      Git 2.19.6
+      Git 2.20.5
+      Git 2.21.4
+      Git 2.22.5
+      Git 2.23.4
+      Git 2.24.4
+      Git 2.25.5
+      Git 2.26.3
+      Git 2.27.1
+      Git 2.28.1
+
+Matheus Tavares (2):
+      checkout: fix bug that makes checkout follow symlinks in leading path
+      unpack_trees(): start with a fresh lstat cache
+
+
 Version v2.28.0; changes since v2.28.0-rc2:
 -------------------------------------------
 
@@ -1754,7 +1801,7 @@ Trygve Aaberge (2):
       Wait for child on signal death for aliases to externals
 
 
-Version v2.28.0-rc0; changes since v2.27.0:
+Version v2.28.0-rc0; changes since v2.27.1:
 -------------------------------------------
 
 Abhishek Kumar (4):
@@ -2126,6 +2173,28 @@ brian m. carlson (61):
       contrib: subtree: adjust test to change in fmt-merge-msg
 
 
+Version v2.27.1; changes since v2.27.0:
+---------------------------------------
+
+Johannes Schindelin (12):
+      run-command: invalidate lstat cache after a command finished
+      Git 2.17.6
+      Git 2.18.5
+      Git 2.19.6
+      Git 2.20.5
+      Git 2.21.4
+      Git 2.22.5
+      Git 2.23.4
+      Git 2.24.4
+      Git 2.25.5
+      Git 2.26.3
+      Git 2.27.1
+
+Matheus Tavares (2):
+      checkout: fix bug that makes checkout follow symlinks in leading path
+      unpack_trees(): start with a fresh lstat cache
+
+
 Version v2.27.0; changes since v2.27.0-rc2:
 -------------------------------------------
 
@@ -2268,7 +2337,7 @@ Todd Zullinger (1):
       t1509: correct i18n test
 
 
-Version v2.27.0-rc0; changes since v2.26.2:
+Version v2.27.0-rc0; changes since v2.26.3:
 -------------------------------------------
 
 Alban Gruin (3):
@@ -2842,6 +2911,27 @@ luciano.rocha@booking.com (1):
       interactive: explicitly `fflush` stdout before expecting input
 
 
+Version v2.26.3; changes since v2.26.2:
+---------------------------------------
+
+Johannes Schindelin (11):
+      run-command: invalidate lstat cache after a command finished
+      Git 2.17.6
+      Git 2.18.5
+      Git 2.19.6
+      Git 2.20.5
+      Git 2.21.4
+      Git 2.22.5
+      Git 2.23.4
+      Git 2.24.4
+      Git 2.25.5
+      Git 2.26.3
+
+Matheus Tavares (2):
+      checkout: fix bug that makes checkout follow symlinks in leading path
+      unpack_trees(): start with a fresh lstat cache
+
+
 Version v2.26.2; changes since v2.26.1:
 ---------------------------------------
 
@@ -3037,7 +3127,7 @@ René Scharfe (1):
       remote-curl: show progress for fetches over dumb HTTP
 
 
-Version v2.26.0-rc0; changes since v2.25.4:
+Version v2.26.0-rc0; changes since v2.25.5:
 -------------------------------------------
 
 Abhishek Kumar (2):
@@ -3463,6 +3553,26 @@ brian m. carlson (46):
       credential: allow wildcard patterns when matching config
 
 
+Version v2.25.5; changes since v2.25.4:
+---------------------------------------
+
+Johannes Schindelin (10):
+      run-command: invalidate lstat cache after a command finished
+      Git 2.17.6
+      Git 2.18.5
+      Git 2.19.6
+      Git 2.20.5
+      Git 2.21.4
+      Git 2.22.5
+      Git 2.23.4
+      Git 2.24.4
+      Git 2.25.5
+
+Matheus Tavares (2):
+      checkout: fix bug that makes checkout follow symlinks in leading path
+      unpack_trees(): start with a fresh lstat cache
+
+
 Version v2.25.4; changes since v2.25.3:
 ---------------------------------------
 
@@ -3776,7 +3886,7 @@ Junio C Hamano (2):
       Git 2.25-rc1
 
 
-Version v2.25.0-rc0; changes since v2.24.3:
+Version v2.25.0-rc0; changes since v2.24.4:
 -------------------------------------------
 
 Alban Gruin (6):
@@ -4381,6 +4491,25 @@ ryenus (1):
       userdiff: add Elixir to supported userdiff languages
 
 
+Version v2.24.4; changes since v2.24.3:
+---------------------------------------
+
+Johannes Schindelin (9):
+      run-command: invalidate lstat cache after a command finished
+      Git 2.17.6
+      Git 2.18.5
+      Git 2.19.6
+      Git 2.20.5
+      Git 2.21.4
+      Git 2.22.5
+      Git 2.23.4
+      Git 2.24.4
+
+Matheus Tavares (2):
+      checkout: fix bug that makes checkout follow symlinks in leading path
+      unpack_trees(): start with a fresh lstat cache
+
+
 Version v2.24.3; changes since v2.24.2:
 ---------------------------------------
 
@@ -4608,7 +4737,7 @@ brian m. carlson (1):
       remote-curl: pass on atomic capability to remote side
 
 
-Version v2.24.0-rc0; changes since v2.23.3:
+Version v2.24.0-rc0; changes since v2.23.4:
 -------------------------------------------
 
 Adam Roben (1):
@@ -5231,6 +5360,24 @@ brian m. carlson (43):
       rebase tests: test linear branch topology
 
 
+Version v2.23.4; changes since v2.23.3:
+---------------------------------------
+
+Johannes Schindelin (8):
+      run-command: invalidate lstat cache after a command finished
+      Git 2.17.6
+      Git 2.18.5
+      Git 2.19.6
+      Git 2.20.5
+      Git 2.21.4
+      Git 2.22.5
+      Git 2.23.4
+
+Matheus Tavares (2):
+      checkout: fix bug that makes checkout follow symlinks in leading path
+      unpack_trees(): start with a fresh lstat cache
+
+
 Version v2.23.3; changes since v2.23.2:
 ---------------------------------------
 
@@ -5482,7 +5629,7 @@ brian m. carlson (10):
       t2203: avoid hard-coded object ID values
 
 
-Version v2.23.0-rc0; changes since v2.22.4:
+Version v2.23.0-rc0; changes since v2.22.5:
 -------------------------------------------
 
 Andrey Mazo (8):
@@ -5877,6 +6024,23 @@ Tigran Mkrtchyan (1):
       tests: make GIT_TEST_FAIL_PREREQS a boolean
       tests: mark two failing tests under FAIL_PREREQS
       clone: test for our behavior on odd objects/* content
+
+
+Version v2.22.5; changes since v2.22.4:
+---------------------------------------
+
+Johannes Schindelin (7):
+      run-command: invalidate lstat cache after a command finished
+      Git 2.17.6
+      Git 2.18.5
+      Git 2.19.6
+      Git 2.20.5
+      Git 2.21.4
+      Git 2.22.5
+
+Matheus Tavares (2):
+      checkout: fix bug that makes checkout follow symlinks in leading path
+      unpack_trees(): start with a fresh lstat cache
 
 
 Version v2.22.4; changes since v2.22.3:
@@ -6371,7 +6535,7 @@ Todd Zullinger (1):
       mingw: enable DEP and ASLR
 
 
-Version v2.22.0-rc0; changes since v2.21.3:
+Version v2.22.0-rc0; changes since v2.21.4:
 -------------------------------------------
 
 Alban Gruin (18):
@@ -7139,6 +7303,22 @@ brian m. carlson (35):
       trace2: fix up a missing "leave" entry point
 
 
+Version v2.21.4; changes since v2.21.3:
+---------------------------------------
+
+Johannes Schindelin (6):
+      run-command: invalidate lstat cache after a command finished
+      Git 2.17.6
+      Git 2.18.5
+      Git 2.19.6
+      Git 2.20.5
+      Git 2.21.4
+
+Matheus Tavares (2):
+      checkout: fix bug that makes checkout follow symlinks in leading path
+      unpack_trees(): start with a fresh lstat cache
+
+
 Version v2.21.3; changes since v2.21.2:
 ---------------------------------------
 
@@ -7393,7 +7573,7 @@ brian m. carlson (1):
       rebase: fix regression in rebase.useBuiltin=false test mode
 
 
-Version v2.21.0-rc0; changes since v2.20.4:
+Version v2.21.0-rc0; changes since v2.20.5:
 -------------------------------------------
 
 Arti Zirk (1):
@@ -7929,6 +8109,21 @@ brian m. carlson (19):
       diff-tree doc: correct & remove wrong documentation
 
 
+Version v2.20.5; changes since v2.20.4:
+---------------------------------------
+
+Johannes Schindelin (5):
+      run-command: invalidate lstat cache after a command finished
+      Git 2.17.6
+      Git 2.18.5
+      Git 2.19.6
+      Git 2.20.5
+
+Matheus Tavares (2):
+      checkout: fix bug that makes checkout follow symlinks in leading path
+      unpack_trees(): start with a fresh lstat cache
+
+
 Version v2.20.4; changes since v2.20.3:
 ---------------------------------------
 
@@ -8188,7 +8383,7 @@ Torsten Bögershausen (2):
       git-compat-util: prefer poll.h to sys/poll.h
 
 
-Version v2.20.0-rc0; changes since v2.19.5:
+Version v2.20.0-rc0; changes since v2.19.6:
 -------------------------------------------
 
 Aaron Lindsay (1):
@@ -9063,6 +9258,20 @@ brian m. carlson (26):
       tests: add a special setup where rebase.useBuiltin is off
 
 
+Version v2.19.6; changes since v2.19.5:
+---------------------------------------
+
+Johannes Schindelin (4):
+      run-command: invalidate lstat cache after a command finished
+      Git 2.17.6
+      Git 2.18.5
+      Git 2.19.6
+
+Matheus Tavares (2):
+      checkout: fix bug that makes checkout follow symlinks in leading path
+      unpack_trees(): start with a fresh lstat cache
+
+
 Version v2.19.5; changes since v2.19.4:
 ---------------------------------------
 
@@ -9479,7 +9688,7 @@ Samuel Maftoul (1):
       refactor various if (x) FREE_AND_NULL(x) to just FREE_AND_NULL(x)
 
 
-Version v2.19.0-rc0; changes since v2.18.4:
+Version v2.19.0-rc0; changes since v2.18.5:
 -------------------------------------------
 
 Aaron Schrab (1):
@@ -10310,6 +10519,19 @@ brian m. carlson (21):
       completion: complete remote names too
 
 
+Version v2.18.5; changes since v2.18.4:
+---------------------------------------
+
+Johannes Schindelin (3):
+      run-command: invalidate lstat cache after a command finished
+      Git 2.17.6
+      Git 2.18.5
+
+Matheus Tavares (2):
+      checkout: fix bug that makes checkout follow symlinks in leading path
+      unpack_trees(): start with a fresh lstat cache
+
+
 Version v2.18.4; changes since v2.18.3:
 ---------------------------------------
 
@@ -10609,7 +10831,7 @@ brian m. carlson (2):
       t3430: test clean-up
 
 
-Version v2.18.0-rc0; changes since v2.17.5:
+Version v2.18.0-rc0; changes since v2.17.6:
 -------------------------------------------
 
 Anders Kaseorg (1):
@@ -11508,6 +11730,18 @@ brian m. carlson (121):
       git-p4: change "commitish" typo to "committish"
       sha1-name.c: move around the collect_ambiguous() function
       get_short_oid: sort ambiguous objects by type, then SHA-1
+
+
+Version v2.17.6; changes since v2.17.5:
+---------------------------------------
+
+Johannes Schindelin (2):
+      run-command: invalidate lstat cache after a command finished
+      Git 2.17.6
+
+Matheus Tavares (2):
+      checkout: fix bug that makes checkout follow symlinks in leading path
+      unpack_trees(): start with a fresh lstat cache
 
 
 Version v2.17.5; changes since v2.17.4:
