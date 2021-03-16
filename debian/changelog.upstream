@@ -1,3 +1,824 @@
+Version v2.31.0; changes since v2.31.0-rc2:
+-------------------------------------------
+
+Alexander Shopov (1):
+      l10n: bg.po: Updated Bulgarian translation (5104t)
+
+Arusekk (1):
+      l10n: pl.po: Update translation
+
+Bagas Sanjaya (2):
+      l10n: start Indonesian translation
+      l10n: Add translation team info
+
+Christopher Diaz Riveros (1):
+      l10n: es: 2.31.0 round 2
+
+Daniel Santos (1):
+      l10n: pt_PT: add Portuguese translations part 1
+
+Dimitriy Ryazantcev (1):
+      l10n: ru.po: update Russian translation
+
+Emir Sarı (2):
+      l10n: tr: v2.31.0-rc0
+      l10n: tr: v2.31.0-rc1
+
+Jean-Noël Avila (2):
+      l10n: fr: v2.31.0 rnd 1
+      l10n: fr: v2.31 rnd 2
+
+Jiang Xin (3):
+      l10n: git.pot: v2.31.0 round 1 (155 new, 89 removed)
+      l10n: git.pot: v2.31.0 round 2 (9 new, 8 removed)
+      l10n: zh_CN: for git v2.31.0 l10n round 1 and 2
+
+Jonathan Nieder (2):
+      mergetool: do not enable hideResolved by default
+      doc: describe mergetool configuration in git-mergetool(1)
+
+Jordi Mas (1):
+      l10n: Update Catalan translation
+
+Junio C Hamano (1):
+      Git 2.31
+
+Matthias Rüster (1):
+      l10n: de.po: Update German translation for Git v2.31.0
+
+Peter Krefting (2):
+      l10n: sv.po: Update Swedish translation (5103t0f0u)
+      l10n: sv.po: Update Swedish translation (5104t0f0u)
+
+Taylor Blau (1):
+      pack-revindex.c: don't close unopened file descriptors
+
+Trần Ngọc Quân (1):
+      l10n: vi.po(5104t): for git v2.31.0 l10n round 2
+
+Yi-Jyun Pan (1):
+      l10n: zh_TW.po: v2.31.0 round 2 (15 untranslated)
+
+
+Version v2.31.0-rc2; changes since v2.31.0-rc1:
+-----------------------------------------------
+
+Elijah Newren (1):
+      Documentation/RelNotes: improve release note for rename detection work
+
+Jeff King (2):
+      Makefile: add OPEN_RETURNS_EINTR knob
+      config.mak.uname: enable OPEN_RETURNS_EINTR for macOS Big Sur
+
+Johannes Schindelin (15):
+      run-command: invalidate lstat cache after a command finished
+      Git 2.17.6
+      Git 2.18.5
+      Git 2.19.6
+      Git 2.20.5
+      Git 2.21.4
+      Git 2.22.5
+      Git 2.23.4
+      Git 2.24.4
+      Git 2.25.5
+      Git 2.26.3
+      Git 2.27.1
+      Git 2.28.1
+      Git 2.29.3
+      Git 2.30.2
+
+Jonathan Tan (1):
+      fetch-pack: do not mix --pack_header and packfile uri
+
+Junio C Hamano (2):
+      Merged the open-eintr workaround for macOS
+      Git 2.31-rc2
+
+Matheus Tavares (2):
+      checkout: fix bug that makes checkout follow symlinks in leading path
+      unpack_trees(): start with a fresh lstat cache
+
+Pratyush Yadav (1):
+      Revert "git-gui: remove lines starting with the comment character"
+
+
+Version v2.31.0-rc1; changes since v2.31.0-rc0:
+-----------------------------------------------
+
+Derrick Stolee (17):
+      commit-graph: anonymize data in chunk_write_fn
+      chunk-format: create chunk format write API
+      commit-graph: use chunk-format write API
+      midx: rename pack_info to write_midx_context
+      midx: use context in write_midx_pack_names()
+      midx: add entries to write_midx_context
+      midx: add pack_perm to write_midx_context
+      midx: add num_large_offsets to write_midx_context
+      midx: return success/failure in chunk write methods
+      midx: drop chunk progress during write
+      midx: use chunk-format API in write_midx_internal()
+      chunk-format: create read chunk API
+      commit-graph: use chunk-format read API
+      midx: use chunk-format read API
+      midx: use 64-bit multiplication for chunk sizes
+      chunk-format: restore duplicate chunk checks
+      chunk-format: add technical docs
+
+Elijah Newren (8):
+      diffcore-rename: no point trying to find a match better than exact
+      diffcore-rename: filter rename_src list when possible
+      t4001: add a test comparing basename similarity and content similarity
+      diffcore-rename: compute basenames of source and dest candidates
+      diffcore-rename: complete find_basename_matches()
+      diffcore-rename: guide inexact rename detection based on basenames
+      gitdiffcore doc: mention new preliminary step for rename detection
+      merge-ort: call diffcore_rename() directly
+
+Han-Wen Nienhuys (1):
+      doc/reftable: document how to handle windows
+
+Hariom Verma (4):
+      t6300: use function to test trailer options
+      pretty.c: refactor trailer logic to `format_set_trailers_options()`
+      pretty.c: capture invalid trailer argument
+      ref-filter: use pretty.c logic for trailers
+
+Jeff Hostetler (11):
+      p7519: do not rely on "xargs -d" in test
+      p7519: fix watchman watch-list test on Windows
+      p7519: move watchman cleanup earlier in the test
+      p7519: add trace logging during perf test
+      preload-index: log the number of lstat calls to trace2
+      read-cache: log the number of lstat calls to trace2
+      read-cache: log the number of scanned files to trace2
+      fsmonitor: log invocation of FSMonitor hook to trace2
+      fsmonitor: log FSMN token when reading and writing the index
+      fsmonitor: refactor initialization of fsmonitor_last_update token
+      dir: fix malloc of root untracked_cache_dir
+
+Jonathan Tan (4):
+      http: allow custom index-pack args
+      http-fetch: allow custom index-pack args
+      fetch-pack: with packfile URIs, use index-pack arg
+      fetch-pack: print and use dangling .gitmodules
+
+Junio C Hamano (3):
+      Revert "commit-graph: when incompatible with graphs, indicate why"
+      Hopefully the last batch before -rc1
+      Git 2.31-rc1
+
+Kevin Willford (1):
+      fsmonitor: allow all entries for a folder to be invalidated
+
+Mikhail Klyushin (1):
+      git-gui: fix typo in russian locale
+
+Neeraj Singh (1):
+      read-cache: make the index write buffer size 128K
+
+Pratyush Yadav (1):
+      git-gui: remove lines starting with the comment character
+
+Shubham Verma (10):
+      t7001: modernize test formatting
+      t7001: indent with TABs instead of spaces
+      t7001: remove unnecessary blank lines
+      t7001: modernize subshell formatting
+      t7001: remove whitespace after redirect operators
+      t7001: avoid using `cd` outside of subshells
+      t7001: use '>' rather than 'touch'
+      t7001: put each command on a separate line
+      t7001: use here-docs instead of echo
+      t7001: use `test` rather than `[`
+
+Taylor Blau (1):
+      commit-graph.c: display correct number of chunks when writing
+
+
+Version v2.31.0-rc0; changes since v2.30.2:
+-------------------------------------------
+
+Abhishek Kumar (11):
+      commit-graph: fix regression when computing Bloom filters
+      revision: parse parent in indegree_walk_step()
+      commit-graph: consolidate fill_commit_graph_info
+      t6600-test-reach: generalize *_three_modes
+      commit-graph: add a slab to store topological levels
+      commit-graph: return 64-bit generation number
+      commit-graph: implement corrected commit date
+      commit-graph: implement generation data chunk
+      commit-graph: use generation v2 only if entire chain does
+      commit-reach: use corrected commit dates in paint_down_to_common()
+      doc: add corrected commit date info
+
+Alex Henrie (1):
+      rebase: add a config option for --no-fork-point
+
+Andrew Klotz (1):
+      config: improve error message for boolean config
+
+Andrzej Hunt (1):
+      commit-graph: avoid leaking topo_levels slab in write_commit_graph()
+
+Christian Couder (3):
+      fetch-pack: rename helper to create_promisor_file()
+      fetch-pack: refactor writing promisor file
+      pack-write: die on error in write_promisor_file()
+
+Christian Walther (1):
+      doc: mention bigFileThreshold for packing
+
+Denton Liu (12):
+      refs: factor out set_read_ref_cutoffs()
+      refs: allow @{n} to work with n-sized reflog
+      test-lib-functions.sh: fix usage for test_commit()
+      t4203: stop losing return codes of git commands
+      git-stash.txt: be explicit about subcommand options
+      t3905: remove spaces after redirect operators
+      t3905: move all commands into test cases
+      t3905: remove nested git in command substitution
+      t3905: replace test -s with test_file_not_empty
+      t3905: use test_cmp() to check file contents
+      stash: declare ref_stash as an array
+      i18n.txt: camel case and monospace "i18n.commitEncoding"
+
+Derrick Stolee (47):
+      maintenance: extract platform-specific scheduling
+      maintenance: include 'cron' details in docs
+      pack-bitmap-write: fill bitmap with commit history
+      bitmap: implement bitmap_is_subset()
+      commit: implement commit_list_contains()
+      t5310: add branch-based checks
+      pack-bitmap-write: rename children to reverse_edges
+      pack-bitmap-write: build fewer intermediate bitmaps
+      pack-bitmap-write: use existing bitmaps
+      pack-bitmap-write: relax unique revwalk condition
+      pack-bitmap-write: better reuse bitmaps
+      revision: trace topo-walk statistics
+      tree-walk: report recursion counts
+      unpack-trees: add trace2 regions
+      cache-tree: use trace2 in cache_tree_update()
+      maintenance: use launchctl on macOS
+      maintenance: use Windows scheduled tasks
+      cache-tree: trace regions for I/O
+      cache-tree: trace regions for prime_cache_tree
+      index-format: use 'cache tree' over 'cached tree'
+      index-format: update preamble to cache tree extension
+      index-format: discuss recursion of cache-tree better
+      cache-tree: speed up consecutive path comparisons
+      maintenance: set log.excludeDecoration durin prefetch
+      t7900: clean up some broken refs
+      cache-tree: clean up cache_tree_update()
+      cache-tree: simplify verify_cache() prototype
+      cache-tree: extract subtree_pos()
+      fsmonitor: de-duplicate BUG()s around dirty bits
+      repository: add repo reference to index_state
+      name-hash: use trace2 regions for init
+      sparse-checkout: load sparse-checkout patterns
+      test-lib: test_region looks for trace2 regions
+      t1092: test interesting sparse-checkout scenarios
+      commit-reach: reduce requirements for remove_redundant()
+      commit-graph: use repo_parse_commit
+      commit-graph: always parse before commit_graph_data_at()
+      commit-graph: validate layers for generation data
+      commit-graph: compute generations separately
+      commit-graph: be extra careful about mixed generations
+      commit-graph: prepare commit graph
+      maintenance: add pack-refs task
+      maintenance: incremental strategy runs pack-refs weekly
+      commit-reach: use one walk in remove_redundant()
+      commit-reach: move compare_commits_by_gen
+      commit-reach: use heuristic in remove_redundant()
+      commit-reach: stale commits may prune generation further
+
+Elijah Newren (81):
+      merge-ort: setup basic internal data structures
+      merge-ort: add some high-level algorithm structure
+      merge-ort: port merge_start() from merge-recursive
+      merge-ort: use histogram diff
+      merge-ort: add an err() function similar to one from merge-recursive
+      merge-ort: implement a very basic collect_merge_info()
+      merge-ort: avoid repeating fill_tree_descriptor() on the same tree
+      merge-ort: compute a few more useful fields for collect_merge_info
+      merge-ort: record stage and auxiliary info for every path
+      merge-ort: avoid recursing into identical trees
+      merge-ort: add a preliminary simple process_entries() implementation
+      merge-ort: have process_entries operate in a defined order
+      merge-ort: step 1 of tree writing -- record basenames, modes, and oids
+      merge-ort: step 2 of tree writing -- function to create tree object
+      merge-ort: step 3 of tree writing -- handling subdirectories as we go
+      merge-ort: basic outline for merge_switch_to_result()
+      merge-ort: add implementation of checkout()
+      tree: enable cmp_cache_name_compare() to be used elsewhere
+      merge-ort: add implementation of record_conflicted_index_entries()
+      merge-ort: free data structures in merge_finalize()
+      merge-ort: add a few includes
+      merge-ort: add a clear_internal_opts helper
+      merge-ort: add a path_conflict field to merge_options_internal
+      merge-ort: add a paths_to_free field to merge_options_internal
+      merge-ort: add function grouping comments
+      merge-ort: add die-not-implemented stub handle_content_merge() function
+      merge-ort: add modify/delete handling and delayed output processing
+      merge-ort: add basic data structures for handling renames
+      merge-ort: add initial outline for basic rename detection
+      merge-ort: implement detect_regular_renames()
+      merge-ort: implement compare_pairs() and collect_renames()
+      merge-ort: add basic outline for process_renames()
+      diffcore-rename: rename num_create to num_destinations
+      diffcore-rename: avoid usage of global in too_many_rename_candidates()
+      diffcore-rename: simplify limit check
+      diffcore-rename: reduce jumpiness in progress counters
+      t4058: add more tests and documentation for duplicate tree entry handling
+      t4058: explore duplicate tree entry handling in a bit more detail
+      diffcore-rename: simplify and accelerate register_rename_src()
+      diffcore-rename: accelerate rename_dst setup
+      merge-ort: add implementation of both sides renaming identically
+      merge-ort: add implementation of both sides renaming differently
+      merge-ort: add implementation of rename/delete conflicts
+      merge-ort: add implementation of rename collisions
+      merge-ort: add implementation of normal rename handling
+      merge-ort: add implementation of type-changed rename handling
+      commit: move reverse_commit_list() from merge-recursive
+      merge-ort: copy a few small helper functions from merge-recursive.c
+      merge-ort: make clear_internal_opts() aware of partial clearing
+      merge-ort: implement merge_incore_recursive()
+      merge-ort: handle D/F conflict where directory disappears due to merge
+      merge-ort: handle directory/file conflicts that remain
+      merge-ort: implement unique_path() helper
+      merge-ort: handle book-keeping around two- and three-way content merge
+      merge-ort: flesh out implementation of handle_content_merge()
+      merge-ort: copy and adapt merge_3way() from merge-recursive.c
+      merge-ort: copy and adapt merge_submodule() from merge-recursive.c
+      merge-ort: implement format_commit()
+      merge-ort: copy find_first_merges() implementation from merge-recursive.c
+      merge-ort: add handling for different types of files at same path
+      diffcore-rename: remove unnecessary duplicate entry checks
+      merge-ort: add new data structures for directory rename detection
+      merge-ort: initialize and free new directory rename data structures
+      merge-ort: collect which directories are removed in dirs_removed
+      merge-ort: add outline for computing directory renames
+      merge-ort: add outline of get_provisional_directory_renames()
+      merge-ort: copy get_renamed_dir_portion() from merge-recursive.c
+      merge-ort: implement compute_rename_counts()
+      merge-ort: implement handle_directory_level_conflicts()
+      merge-ort: modify collect_renames() for directory rename handling
+      merge-ort: implement compute_collisions()
+      merge-ort: implement apply_dir_rename() and check_dir_renamed()
+      merge-ort: implement check_for_directory_rename()
+      merge-ort: implement handle_path_level_conflicts()
+      merge-ort: add a new toplevel_dir field
+      merge-ort: implement apply_directory_rename_modifications()
+      merge-ort: process_renames() now needs more defensiveness
+      merge-ort: fix a directory rename detection bug
+      merge-ort: fix massive leak
+      merge-ort: ignore the directory rename split conflict for now
+      merge-ort: begin performance work; instrument with trace2_region_* calls
+
+Eric Sunshine (3):
+      worktree: teach `repair` to fix multi-directional breakage
+      t/perf: avoid unnecessary test_export() recursion
+      maintenance: fix incorrect `maintenance.repo` path with bare repository
+
+Eric Wong (2):
+      core.abbrev=no disables abbreviations
+      t1500: ensure current --since= behavior remains
+
+Felipe Contreras (7):
+      pull: refactor fast-forward check
+      pull: give the advice for choosing rebase/merge much later
+      pull: display default warning only when non-ff
+      completion: bash: add __git_have_func helper
+      completion: bash: improve function detection
+      test: completion: add tests for __git_complete
+      completion: add proper public __git_complete
+
+Jacob Vosmaer (4):
+      builtin/pack-objects.c: avoid iterating all refs
+      ls-refs.c: initialize 'prefixes' before using it
+      upload-pack.c: fix filter spec quoting bug
+      t5544: clarify 'hook works with partial clone' test
+
+Jeff King (38):
+      pack-bitmap: fix header size check
+      pack-bitmap: bounds-check size of cache extension
+      t5310: drop size of truncated ewah bitmap
+      rev-list: die when --test-bitmap detects a mismatch
+      ewah: factor out bitmap growth
+      ewah: make bitmap growth less aggressive
+      ewah: implement bitmap_or()
+      ewah: add bitmap_dup() function
+      pack-bitmap-write: reimplement bitmap writing
+      pack-bitmap-write: pass ownership of intermediate bitmaps
+      pack-bitmap-write: ignore BITMAP_FLAG_REUSE
+      quote: make sq_dequote_step() a public function
+      for_each_object_in_pack(): clarify pack vs index ordering
+      config: parse more robust format in GIT_CONFIG_PARAMETERS
+      refs: switch peel_ref() to peel_iterated_oid()
+      run-command: document use_shell option
+      git-svn tests: rewrite brittle tests to use "--[no-]merges".
+      git-compat-util: always enable variadic macros
+      commit_graft_pos(): take an oid instead of a bare hash
+      rerere: check dirname format while iterating rr_cache directory
+      rerere: tighten rr-cache dirname check
+      rerere: use strmap to store rerere directories
+      hash_pos(): convert to oid_pos()
+      oid_pos(): access table through const pointers
+      t0000: keep clean-up tests together
+      t0000: run prereq tests inside sub-test
+      t0000: run cleaning test inside sub-test
+      t0000: consistently use single quotes for outer tests
+      pretty: lazy-load commit data when expanding user-format
+      completion: treat "branch -D" the same way as "branch -d"
+      completion: handle other variants of "branch -m"
+      doc/git-branch: fix awkward wording for "-c"
+      t: add --no-tag option to test_commit
+      mailmap: only look for .mailmap in work tree
+      rev-list: add --disk-usage option for calculating disk usage
+      docs/rev-list: add an examples section
+      docs/rev-list: add some examples of --disk-usage
+      doc: mention approxidates for git-commit --date
+
+Jiang Xin (5):
+      test: add helper functions for git-bundle
+      bundle: lost objects when removing duplicate pendings
+      bundle: arguments can be read from stdin
+      t5411: use different out file to prevent overwriting
+      t5411: refactor check of refs using test_cmp_refs
+
+Joey Salazar (1):
+      doc: fix naming of response-end-pkt
+
+Johannes Schindelin (42):
+      tests: mark tests relying on the current default for `init.defaultBranch`
+      t0060: preemptively adjust alignment
+      t[01]*: adjust the references to the default branch name "main"
+      t2*: adjust the references to the default branch name "main"
+      t3[0-3]*: adjust the references to the default branch name "main"
+      t3416: preemptively adjust alignment in a comment
+      t34*: adjust the references to the default branch name "main"
+      t3[5-9]*: adjust the references to the default branch name "main"
+      t4*: adjust the references to the default branch name "main"
+      t5323: prepare centered comment for `master` -> `main`
+      t5[0-4]*: adjust the references to the default branch name "main"
+      t5503: prepare aligned comment for replacing `master` with `main`
+      t550*: adjust the references to the default branch name "main"
+      t551*: adjust the references to the default branch name "main"
+      t55[23]*: adjust the references to the default branch name "main"
+      t55[4-9]*: adjust the references to the default branch name "main"
+      t5[6-9]*: adjust the references to the default branch name "main"
+      t6[0-3]*: adjust the references to the default branch name "main"
+      t64*: preemptively adjust alignment to prepare for `master` -> `main`
+      t6[4-9]*: adjust the references to the default branch name "main"
+      t7[0-4]*: adjust the references to the default branch name "main"
+      t7[5-9]*: adjust the references to the default branch name "main"
+      t8*: adjust the references to the default branch name "main"
+      t9[0-4]*: adjust the references to the default branch name "main"
+      t9[5-7]*: adjust the references to the default branch name "main"
+      tests(git-p4): transition to the default branch name `main`
+      t99*: adjust the references to the default branch name "main"
+      tests: drop prereq `PREPARE_FOR_MAIN_BRANCH` where no longer needed
+      range-diff/format-patch: refactor check for commit range
+      rebase -i: do leave commit message intact in fixup! chains
+      range-diff: avoid leaking memory in two error code paths
+      range-diff: libify the read_patches() function again
+      range-diff: simplify code spawning `git log`
+      range-diff: combine all options in a single data structure
+      range-diff: move the diffopt initialization down one layer
+      range-diff: offer --left-only/--right-only options
+      range-diff/format-patch: handle commit ranges other than A..B
+      range-diff(docs): explain how to specify commit ranges
+      t1450: robustify `remove_object()`
+      fsck --name-objects: be more careful parsing generation numbers
+      reflog expire --stale-fix: be generous about missing objects
+      commit-graph: when incompatible with graphs, indicate why
+
+Johannes Sixt (1):
+      replace "parameters" by "arguments" in error messages
+
+Jonathan Tan (4):
+      ls-refs: report unborn targets of symrefs
+      connect, transport: encapsulate arg in struct
+      clone: respect remote unborn HEAD
+      usage: trace2 BUG() invocations
+
+Junio C Hamano (21):
+      pack-redundant: gauge the usage before proposing its removal
+      pull: get rid of unnecessary global variable
+      pull: correct condition to trigger non-ff advice
+      CoC: explicitly take any whitespace breakage
+      The first batch in 2.31 cycle
+      t4203: make blame output massaging more robust
+      The second batch
+      The third batch
+      The fourth batch
+      The fifth batch
+      The sixth batch
+      The seventh batch
+      The eighth batch
+      diff: --{rotate,skip}-to=<path>
+      The ninth batch
+      Documentation: typofix --column description
+      The tenth batch
+      push: do not turn --delete '' into a matching push
+      blame-options.txt: camelcase blame.blankBoundary
+      index-format doc: camelCase core.excludesFile
+      Git 2.31-rc0
+
+Martin von Zweigbergk (1):
+      docs: clarify that refs/notes/ do not keep the attached objects alive
+
+Martin Ågren (7):
+      object-name.c: rename from sha1-name.c
+      object-file.c: rename from sha1-file.c
+      sha1-lookup: rename `sha1_pos()` as `hash_pos()`
+      hash-lookup: rename from sha1-lookup
+      rev-list-options.txt: fix rendering of bonus paragraph
+      git.txt: fix monospace rendering
+      gitmailmap.txt: fix rendering of e-mail addresses
+
+Matheus Tavares (7):
+      grep: error out if --untracked is used with --cached
+      grep: honor sparse-checkout on working tree searches
+      write_entry(): fix misuses of `path` in error messages
+      checkout-index: omit entries with no tempname from --temp output
+      add --chmod: don't update index when --dry-run is used
+      add: mark --chmod error string for translation
+      add: propagate --chmod errors to exit status
+
+Patrick Steinhardt (11):
+      git: add `--super-prefix` to usage string
+      config: add new way to pass config via `--config-env`
+      config: extract function to parse config pairs
+      fetch: extract writing to FETCH_HEAD
+      fetch: use strbuf to format FETCH_HEAD updates
+      fetch: refactor `s_update_ref` to use common exit path
+      fetch: allow passing a transaction to `s_update_ref()`
+      fetch: implement support for atomic reference updates
+      config: store "git -c" variables using more robust format
+      environment: make `getenv_safe()` a public function
+      config: allow specifying config entries via envvar pairs
+
+Phil Hord (1):
+      use delete_refs when deleting tags or branches
+
+Philippe Blain (1):
+      mailmap doc: use correct environment variable 'GIT_WORK_TREE'
+
+Pranit Bauva (7):
+      bisect--helper: reimplement `bisect_log` shell function in C
+      bisect--helper: reimplement `bisect_replay` shell function in C
+      bisect--helper: retire `--bisect-write` subcommand
+      bisect--helper: use `res` instead of return in BISECT_RESET case option
+      bisect--helper: retire `--bisect-auto-next` subcommand
+      bisect--helper: reimplement `bisect_skip` shell function in C
+      bisect--helper: retire `--check-and-set-terms` subcommand
+
+Rafael Silva (8):
+      worktree: libify should_prune_worktree()
+      worktree: teach worktree to lazy-load "prunable" reason
+      worktree: teach worktree_lock_reason() to gently handle main worktree
+      t2402: ensure locked worktree is properly cleaned up
+      worktree: teach `list --porcelain` to annotate locked worktree
+      worktree: teach `list` to annotate prunable worktree
+      worktree: teach `list` verbose mode
+      blame: remove unnecessary use of get_commit_info()
+
+René Scharfe (1):
+      cache-tree: use ce_namelen() instead of strlen()
+
+SZEDER Gábor (2):
+      t7800-difftool: don't accidentally match tmp dirs
+      test-lib: prevent '--stress-jobs=X' from being ignored
+
+Sangeeta Jain (1):
+      diff: do not show submodule with untracked files as "-dirty"
+
+Sergey Organov (32):
+      revision: factor out parsing of diff-merge related options
+      revision: factor out setup of diff-merge related settings
+      revision: factor out initialization of diff-merge related settings
+      revision: provide implementation for diff merges tweaks
+      revision: move diff merges functions to its own diff-merges.c
+      diff-merges: rename all functions to have common prefix
+      diff-merges: move checks for first_parent_only out of the module
+      diff-merges: rename diff_merges_default_to_enable() to match semantics
+      diff-merges: re-arrange functions to match the order they are called in
+      diff-merges: new function diff_merges_suppress()
+      diff-merges: new function diff_merges_set_dense_combined_if_unset()
+      diff-merges: introduce revs->first_parent_merges flag
+      diff-merges: handle imply -p on -c/--cc logic for log.c
+      diff-merges: revise revs->diff flag handling
+      t4013: support test_expect_failure through ':failure' magic
+      t4013: add tests for -m failing to override -c/--cc
+      diff-merges: fix -m to properly override -c/--cc
+      diff-merges: split 'ignore_merges' field
+      diff-merges: group diff-merge flags next to each other inside 'rev_info'
+      diff-merges: get rid of now empty diff_merges_init_revs()
+      diff-merges: refactor opt settings into separate functions
+      diff-merges: make -m/-c/--cc explicitly mutually exclusive
+      diff-merges: implement new values for --diff-merges
+      diff-merges: do not imply -p for new options
+      diff-merges: let new options enable diff without -p
+      diff-merges: add old mnemonic counterparts to --diff-merges
+      diff-merges: add '--diff-merges=1' as synonym for 'first-parent'
+      doc/git-log: describe new --diff-merges options
+      doc/diff-generate-patch: mention new --diff-merges option
+      doc/rev-list-options: document --first-parent changes merges format
+      doc/git-show: include --diff-merges description
+      t4013: add tests for --diff-merges=first-parent
+
+Seth House (4):
+      mergetool: add hideResolved configuration
+      mergetool: break setup_tool out into separate initialization function
+      mergetool: add per-tool support and overrides for the hideResolved flag
+      mergetools/vimdiff: add vimdiff1 merge tool variant
+
+Taylor Blau (36):
+      ewah/ewah_bitmap.c: avoid open-coding ALLOC_GROW()
+      pack-bitmap.c: check reads more aggressively when loading
+      pack-bitmap: factor out 'bitmap_for_commit()'
+      pack-bitmap: factor out 'add_commit_to_bitmap()'
+      pack-revindex: introduce a new API
+      write_reuse_object(): convert to new revindex API
+      write_reused_pack_one(): convert to new revindex API
+      write_reused_pack_verbatim(): convert to new revindex API
+      check_object(): convert to new revindex API
+      bitmap_position_packfile(): convert to new revindex API
+      show_objects_for_type(): convert to new revindex API
+      get_size_by_pos(): convert to new revindex API
+      try_partial_reuse(): convert to new revindex API
+      rebuild_existing_bitmaps(): convert to new revindex API
+      get_delta_base_oid(): convert to new revindex API
+      retry_bad_packed_offset(): convert to new revindex API
+      packed_object_info(): convert to new revindex API
+      unpack_entry(): convert to new revindex API
+      for_each_object_in_pack(): convert to new revindex API
+      builtin/gc.c: guess the size of the revindex
+      pack-revindex: remove unused 'find_pack_revindex()'
+      pack-revindex: remove unused 'find_revindex_position()'
+      pack-revindex: hide the definition of 'revindex_entry'
+      pack-revindex.c: avoid direct revindex access in 'offset_to_pack_pos()'
+      refs: expose 'for_each_fullref_in_prefixes'
+      ls-refs.c: traverse prefixes of disjoint "ref-prefix" sets
+      packfile: prepare for the existence of '*.rev' files
+      pack-write.c: prepare to write 'pack-*.rev' files
+      builtin/index-pack.c: allow stripping arbitrary extensions
+      builtin/index-pack.c: write reverse indexes
+      builtin/pack-objects.c: respect 'pack.writeReverseIndex'
+      Documentation/config/pack.txt: advertise 'pack.writeReverseIndex'
+      t: prepare for GIT_TEST_WRITE_REV_INDEX
+      t: support GIT_TEST_WRITE_REV_INDEX
+      pack-revindex: ensure that on-disk reverse indexes are given precedence
+      t5325: check both on-disk and in-memory reverse index
+
+Thomas Ackermann (6):
+      doc hash-function-transition: fix asciidoc output
+      doc hash-function-transition: use SHA-1 and SHA-256 consistently
+      doc hash-function-transition: use upper case consistently
+      doc hash-function-transition: fix incomplete sentence
+      doc hash-function-transition: move rationale upwards
+      doc: use https links
+
+Torsten Bögershausen (1):
+      MacOS: precompose_argv_prefix()
+
+ZheNing Hu (4):
+      ls_files.c: bugfix for --deleted and --modified
+      ls_files.c: consolidate two for loops into one
+      ls-files.c: add --deduplicate option
+      difftool.c: learn a new way start at specified file
+
+brian m. carlson (8):
+      abspath: add a function to resolve paths with missing components
+      rev-parse: add option for absolute or relative path formatting
+      ref-filter: switch some uses of unsigned long to size_t
+      commit: ignore additional signatures when parsing signed commits
+      gpg-interface: improve interface for parsing tags
+      commit: allow parsing arbitrary buffers with headers
+      ref-filter: hoist signature parsing
+      gpg-interface: remove other signature headers before verifying
+
+Ævar Arnfjörð Bjarmason (90):
+      pretty format %(trailers) test: split a long line
+      pretty format %(trailers) doc: avoid repetition
+      pretty-format %(trailers): fix broken standalone "valueonly"
+      pretty format %(trailers): add a "keyonly"
+      pretty format %(trailers): add a "key_value_separator"
+      mktag doc: say <hash> not <sha1>
+      mktag doc: grammar fix, when exists -> when it exists
+      CoC: Update word-wrapping to match upstream
+      mktag doc: update to explain why to use this
+      mktag tests: don't needlessly use a subshell
+      mktag tests: use "test_commit" helper
+      mktag tests: remove needless SHA-1 hardcoding
+      mktag tests: don't redirect stderr to a file needlessly
+      mktag tests: don't create "mytag" twice
+      mktag tests: run "fsck" after creating "mytag"
+      mktag tests: stress test whitespace handling
+      mktag tests: test "hash-object" compatibility
+      mktag tests: improve verify_object() test coverage
+      mktag tests: test verify_object() with replaced objects
+      mktag: use default strbuf_read() hint
+      mktag: remove redundant braces in one-line body "if"
+      mktag: use puts(str) instead of printf("%s\n", str)
+      mktag: use fsck instead of custom verify_tag()
+      fsck: make fsck_config() re-usable
+      mktag: allow turning off fsck.extraHeaderEntry
+      mktag: allow omitting the header/body \n separator
+      mktag: convert to parse-options
+      mktag: mark strings for translation
+      mktag: add a --[no-]strict option
+      mailmap doc: create a new "gitmailmap(5)" man page
+      mailmap doc: quote config variables `like.this`
+      check-mailmap doc: note config options
+      mailmap doc: start by mentioning the comment syntax
+      mailmap tests: use our preferred whitespace syntax
+      mailmap tests: modernize syntax & test idioms
+      mailmap tests: improve --stdin tests
+      mailmap tests: remove redundant entry in test
+      mailmap tests: add a test for "not a blob" error
+      mailmap tests: get rid of overly complex blame fuzzing
+      mailmap: test for silent exiting on missing file/blob
+      test-lib functions: expand "test_commit" comment template
+      test-lib functions: document arguments to test_commit
+      test-lib functions: add --author support to test_commit
+      test-lib functions: add an --append option to test_commit
+      tests: refactor a few tests to use "test_commit --append"
+      mailmap doc + tests: add better examples & test them
+      mailmap tests: add a test for comment syntax
+      mailmap tests: add tests for whitespace syntax
+      mailmap tests: add tests for empty "<>" syntax
+      mailmap doc + tests: document and test for case-insensitivity
+      shortlog: remove unused(?) "repo-abbrev" feature
+      CoC: update to version 2.0 + local changes
+      ci: remove GETTEXT_POISON jobs
+      tests: remove support for GIT_TEST_GETTEXT_POISON
+      tests: remove uses of GIT_TEST_GETTEXT_POISON=false
+      cache-tree tests: refactor for modern test style
+      cache-tree tests: remove unused $2 parameter
+      cache-tree tests: use a sub-shell with less indirection
+      cache-tree tests: explicitly test HEAD and index differences
+      git svn mergeinfo tests: modernize redirection & quoting style
+      git svn mergeinfo tests: refactor "test -z" to use test_must_be_empty
+      upload-pack tests: avoid a non-zero "grep" exit status
+      archive tests: use a cheaper "zipinfo -h" invocation to get header
+      rm tests: actually test for SIGPIPE in SIGPIPE test
+      config.mak.uname: remove redundant NO_LIBPCRE1_JIT flag
+      Remove support for v1 of the PCRE library
+      grep/pcre2 tests: don't rely on invalid UTF-8 data test
+      grep/pcre2: better support invalid UTF-8 haystacks
+      grep/log: remove hidden --debug and --grep-debug options
+      pager: refactor wait_for_pager() function
+      pager: test for exit code with and without SIGPIPE
+      run-command: add braces for "if" block in wait_or_whine()
+      pager: properly log pager exit code when signalled
+      test-lib: remove check_var_migration
+      test lib: change "error" to "BUG" as appropriate
+      test-lib-functions: move test_set_index_version() to its user
+      test-lib-functions: remove generate_zero_bytes() wrapper
+      test libs: rename bundle helper to "lib-bundle.sh"
+      test libs: rename gitweb-lib.sh to lib-gitweb.sh
+      test-lib-functions: move function to lib-bitmap.sh
+      t/.gitattributes: sort lines
+      tests: remove last uses of GIT_TEST_GETTEXT_POISON=false
+      tests: remove most uses of C_LOCALE_OUTPUT
+      tests: remove last uses of C_LOCALE_OUTPUT
+      tests: remove most uses of test_i18ncmp
+      diff: add an API for deferred freeing
+      diff: plug memory leak from regcomp() on {log,diff} -I
+      test libs: rename "diff-lib" to "lib-diff"
+      test-lib-functions: remove bug-inducing "diagnostics" helper param
+      test-lib-functions: assert correct parameter count
+
+
+Version v2.30.2; changes since v2.30.1:
+---------------------------------------
+
+Johannes Schindelin (15):
+      run-command: invalidate lstat cache after a command finished
+      Git 2.17.6
+      Git 2.18.5
+      Git 2.19.6
+      Git 2.20.5
+      Git 2.21.4
+      Git 2.22.5
+      Git 2.23.4
+      Git 2.24.4
+      Git 2.25.5
+      Git 2.26.3
+      Git 2.27.1
+      Git 2.28.1
+      Git 2.29.3
+      Git 2.30.2
+
+Matheus Tavares (2):
+      checkout: fix bug that makes checkout follow symlinks in leading path
+      unpack_trees(): start with a fresh lstat cache
+
+Taylor Blau (1):
+      .github/workflows/main.yml: run static-analysis on bionic
+
+
 Version v2.30.1; changes since v2.30.0:
 ---------------------------------------
 
