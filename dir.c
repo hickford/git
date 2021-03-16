@@ -2730,11 +2730,8 @@ static struct untracked_cache_dir *validate_untracked_cache(struct dir_struct *d
 		return NULL;
 	}
 
-	if (!dir->untracked->root) {
-		const int len = sizeof(*dir->untracked->root);
-		dir->untracked->root = xmalloc(len);
-		memset(dir->untracked->root, 0, len);
-	}
+	if (!dir->untracked->root)
+		FLEX_ALLOC_STR(dir->untracked->root, name, "");
 
 	/* Validate $GIT_DIR/info/exclude and core.excludesfile */
 	root = dir->untracked->root;
@@ -2996,6 +2993,23 @@ void setup_standard_excludes(struct dir_struct *dir)
 			add_patterns_from_file_1(dir, path,
 						 dir->untracked ? &dir->ss_info_exclude : NULL);
 	}
+}
+
+char *get_sparse_checkout_filename(void)
+{
+	return git_pathdup("info/sparse-checkout");
+}
+
+int get_sparse_checkout_patterns(struct pattern_list *pl)
+{
+	int res;
+	char *sparse_filename = get_sparse_checkout_filename();
+
+	pl->use_cone_patterns = core_sparse_checkout_cone;
+	res = add_patterns_from_file_to_list(sparse_filename, "", 0, pl, NULL);
+
+	free(sparse_filename);
+	return res;
 }
 
 int remove_path(const char *name)
