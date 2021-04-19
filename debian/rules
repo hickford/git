@@ -7,7 +7,7 @@ LDFLAGS :=$(shell dpkg-buildflags --get LDFLAGS)
 HOST_CPU := $(shell dpkg-architecture -qDEB_HOST_GNU_CPU)
 TEST =test
 TEST_OPTS =
-OPTS =NO_OPENSSL=1 prefix=/usr gitexecdir=/usr/libexec/git-core \
+OPTS =NO_OPENSSL=1 prefix=/usr gitexecdir=/usr/lib/git-core \
   mandir=/usr/share/man htmldir=/usr/share/doc/git/html \
   INSTALLDIRS=vendor \
   SANE_TOOL_PATH= INSTALL=install TAR=tar \
@@ -105,7 +105,7 @@ override_dh_auto_install-arch:
 	# don't include arch, cvs, p4, svn, email, gui tools, and gitk program
 	for i in git-archimport git-cvs git-p4 git-svn git-send-email \
 	 git-gui git-citool; do \
-	  rm -f '$(GIT)'/usr/libexec/git-core/$$i*; \
+	  rm -f '$(GIT)'/usr/lib/git-core/$$i*; \
 	done
 	rm -f '$(GIT)'/usr/bin/git-cvsserver
 	rm -f '$(GIT)'/usr/bin/gitk
@@ -117,7 +117,7 @@ override_dh_auto_install-arch:
 	rm -rf '$(GIT)'/usr/share/perl5/Git/SVN*
 	# sanity check that #642603 fix is still in place
 	test $$(stat -c%h \
-	  '$(GIT)'/usr/libexec/git-core/git-branch) -le 10
+	  '$(GIT)'/usr/lib/git-core/git-branch) -le 10
 
 override_dh_auto_install-indep:
 	DESTDIR='$(TMP)' $(MAKE) install install-doc $(OPTS)

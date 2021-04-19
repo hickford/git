@@ -1,8 +1,10 @@
-git (1:2.31.1-0.1) unstable; urgency=low
+git (1:2.31.1-1) unstable; urgency=low
 
   * new upstream point release (see RelNotes/2.31.1.txt).
+  * install dashed commands to /usr/lib again (thx Sven Joachim;
+    closes: #985416).
 
- -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 19 Apr 2021 09:19:39 -0700
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 19 Apr 2021 09:23:57 -0700
 
 git (1:2.31.0-1) unstable; urgency=low
 
