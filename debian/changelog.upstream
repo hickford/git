@@ -1,3 +1,40 @@
+Version v2.31.1; changes since v2.31.0:
+---------------------------------------
+
+Andrzej Hunt (2):
+      Makefile: update 'make fuzz-all' docs to reflect modern clang
+      fsmonitor: avoid global-buffer-overflow READ when checking trivial response
+
+Jeff King (1):
+      bisect: peel annotated tags to commits
+
+Johannes Schindelin (2):
+      fsmonitor: fix memory corruption in some corner cases
+      fsmonitor: do not forget to release the token in `discard_index()`
+
+Jonathan Tan (1):
+      t5606: run clone branch name test with protocol v2
+
+Junio C Hamano (3):
+      xcalloc: use CALLOC_ARRAY() when applicable
+      cocci: allow xcalloc(1, size)
+      Git 2.31.1
+
+Kyle Meyer (1):
+      config.txt: add missing period
+
+René Scharfe (6):
+      fix xcalloc() argument order
+      git-compat-util.h: drop trailing semicolon from macro definition
+      use CALLOC_ARRAY
+      vcs-svn: remove header files as well
+      block-sha1: drop trailing semicolon from macro definition
+      mem-pool: drop trailing semicolon from macro definition
+
+Torsten Bögershausen (1):
+      git mv foo FOO ; git mv foo bar gave an assert
+
+
 Version v2.31.0; changes since v2.31.0-rc2:
 -------------------------------------------
 
