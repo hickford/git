@@ -100,7 +100,6 @@ struct rebase_options {
 	char *strategy, *strategy_opts;
 	struct strbuf git_format_patch_opt;
 	int reschedule_failed_exec;
-	int use_legacy_rebase;
 	int reapply_cherry_picks;
 	int fork_point;
 };
@@ -486,7 +485,7 @@ static const char * const builtin_rebase_interactive_usage[] = {
 int cmd_rebase__interactive(int argc, const char **argv, const char *prefix)
 {
 	struct rebase_options opts = REBASE_OPTIONS_INIT;
-	struct object_id squash_onto = null_oid;
+	struct object_id squash_onto = *null_oid();
 	enum action command = ACTION_NONE;
 	struct option options[] = {
 		OPT_NEGBIT(0, "ff", &opts.flags, N_("allow fast-forward"),
@@ -739,6 +738,7 @@ static int finish_rebase(struct rebase_options *opts)
 	int ret = 0;
 
 	delete_ref(NULL, "REBASE_HEAD", NULL, REF_NO_DEREF);
+	unlink(git_path_auto_merge(the_repository));
 	apply_autostash(state_dir_path("autostash", opts));
 	close_object_store(the_repository->objects);
 	/*
@@ -1102,11 +1102,6 @@ static int rebase_config(const char *var, const char *value, void *data)
 		return 0;
 	}
 
-	if (!strcmp(var, "rebase.usebuiltin")) {
-		opts->use_legacy_rebase = !git_config_bool(var, value);
-		return 0;
-	}
-
 	if (!strcmp(var, "rebase.backend")) {
 		return git_config_string(&opts->default_backend, var, value);
 	}
@@ -1145,7 +1140,7 @@ static int can_fast_forward(struct commit *onto, struct commit *upstream,
 
 	merge_bases = get_merge_bases(onto, head);
 	if (!merge_bases || merge_bases->next) {
-		oidcpy(merge_base, &null_oid);
+		oidcpy(merge_base, null_oid());
 		goto done;
 	}
 
@@ -1440,11 +1435,6 @@ int cmd_rebase(int argc, const char **argv, const char *prefix)
 	/* options.gpg_sign_opt will be either "-S" or NULL */
 	gpg_sign = options.gpg_sign_opt ? "" : NULL;
 	FREE_AND_NULL(options.gpg_sign_opt);
-
-	if (options.use_legacy_rebase ||
-	    !git_env_bool("GIT_TEST_REBASE_USE_BUILTIN", -1))
-		warning(_("the rebase.useBuiltin support has been removed!\n"
-			  "See its entry in 'git help config' for details."));
 
 	strbuf_reset(&buf);
 	strbuf_addf(&buf, "%s/applying", apply_dir());
@@ -2119,6 +2109,7 @@ cleanup:
 	free(options.head_name);
 	free(options.gpg_sign_opt);
 	free(options.cmd);
+	strbuf_release(&options.git_format_patch_opt);
 	free(squash_onto_name);
 	return ret;
 }

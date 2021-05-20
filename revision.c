@@ -1123,7 +1123,7 @@ static int process_parents(struct rev_info *revs, struct commit *commit,
 				mark_parents_uninteresting(p);
 			if (p->object.flags & SEEN)
 				continue;
-			p->object.flags |= SEEN;
+			p->object.flags |= (SEEN | NOT_USER_GIVEN);
 			if (list)
 				commit_list_insert_by_date(p, list);
 			if (queue)
@@ -1165,7 +1165,7 @@ static int process_parents(struct rev_info *revs, struct commit *commit,
 		}
 		p->object.flags |= left_flag;
 		if (!(p->object.flags & SEEN)) {
-			p->object.flags |= SEEN;
+			p->object.flags |= (SEEN | NOT_USER_GIVEN);
 			if (list)
 				commit_list_insert_by_date(p, list);
 			if (queue)
@@ -1393,20 +1393,20 @@ static int limit_list(struct rev_info *revs)
 {
 	int slop = SLOP;
 	timestamp_t date = TIME_MAX;
-	struct commit_list *list = revs->commits;
+	struct commit_list *original_list = revs->commits;
 	struct commit_list *newlist = NULL;
 	struct commit_list **p = &newlist;
 	struct commit_list *bottom = NULL;
 	struct commit *interesting_cache = NULL;
 
 	if (revs->ancestry_path) {
-		bottom = collect_bottom_commits(list);
+		bottom = collect_bottom_commits(original_list);
 		if (!bottom)
 			die("--ancestry-path given but there are no bottom commits");
 	}
 
-	while (list) {
-		struct commit *commit = pop_commit(&list);
+	while (original_list) {
+		struct commit *commit = pop_commit(&original_list);
 		struct object *obj = &commit->object;
 		show_early_output_fn_t show;
 
@@ -1415,11 +1415,11 @@ static int limit_list(struct rev_info *revs)
 
 		if (revs->max_age != -1 && (commit->date < revs->max_age))
 			obj->flags |= UNINTERESTING;
-		if (process_parents(revs, commit, &list, NULL) < 0)
+		if (process_parents(revs, commit, &original_list, NULL) < 0)
 			return -1;
 		if (obj->flags & UNINTERESTING) {
 			mark_parents_uninteresting(commit);
-			slop = still_interesting(list, date, slop, &interesting_cache);
+			slop = still_interesting(original_list, date, slop, &interesting_cache);
 			if (slop)
 				continue;
 			break;
@@ -1452,14 +1452,17 @@ static int limit_list(struct rev_info *revs)
 	 * Check if any commits have become TREESAME by some of their parents
 	 * becoming UNINTERESTING.
 	 */
-	if (limiting_can_increase_treesame(revs))
+	if (limiting_can_increase_treesame(revs)) {
+		struct commit_list *list = NULL;
 		for (list = newlist; list; list = list->next) {
 			struct commit *c = list->item;
 			if (c->object.flags & (UNINTERESTING | TREESAME))
 				continue;
 			update_treesame(revs, c);
 		}
+	}
 
+	free_commit_list(original_list);
 	revs->commits = newlist;
 	return 0;
 }
@@ -1680,6 +1683,8 @@ static void do_add_index_objects_to_pending(struct rev_info *revs,
 {
 	int i;
 
+	/* TODO: audit for interaction with sparse-index. */
+	ensure_full_index(istate);
 	for (i = 0; i < istate->cache_nr; i++) {
 		struct cache_entry *ce = istate->cache[i];
 		struct blob *blob;
@@ -2336,6 +2341,16 @@ static int handle_revision_opt(struct rev_info *revs, int argc, const char **arg
 		revs->unpacked = 1;
 	} else if (starts_with(arg, "--unpacked=")) {
 		die(_("--unpacked=<packfile> no longer supported"));
+	} else if (!strcmp(arg, "--no-kept-objects")) {
+		revs->no_kept_objects = 1;
+		revs->keep_pack_cache_flags |= IN_CORE_KEEP_PACKS;
+		revs->keep_pack_cache_flags |= ON_DISK_KEEP_PACKS;
+	} else if (skip_prefix(arg, "--no-kept-objects=", &optarg)) {
+		revs->no_kept_objects = 1;
+		if (!strcmp(optarg, "in-core"))
+			revs->keep_pack_cache_flags |= IN_CORE_KEEP_PACKS;
+		if (!strcmp(optarg, "on-disk"))
+			revs->keep_pack_cache_flags |= ON_DISK_KEEP_PACKS;
 	} else if (!strcmp(arg, "-r")) {
 		revs->diff = 1;
 		revs->diffopt.flags.recursive = 1;
@@ -3261,7 +3276,7 @@ static int mark_uninteresting(const struct object_id *oid,
 			      void *cb)
 {
 	struct rev_info *revs = cb;
-	struct object *o = parse_object(revs->repo, oid);
+	struct object *o = lookup_unknown_object(revs->repo, oid);
 	o->flags |= UNINTERESTING | SEEN;
 	return 0;
 }
@@ -3795,6 +3810,11 @@ enum commit_action get_commit_action(struct rev_info *revs, struct commit *commi
 		return commit_ignore;
 	if (revs->unpacked && has_object_pack(&commit->object.oid))
 		return commit_ignore;
+	if (revs->no_kept_objects) {
+		if (has_object_kept_pack(&commit->object.oid,
+					 revs->keep_pack_cache_flags))
+			return commit_ignore;
+	}
 	if (commit->object.flags & UNINTERESTING)
 		return commit_ignore;
 	if (revs->line_level_traverse && !want_ancestry(revs)) {

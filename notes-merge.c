@@ -600,7 +600,7 @@ int notes_merge(struct notes_merge_options *o,
 	/* Find merge bases */
 	bases = get_merge_bases(local, remote);
 	if (!bases) {
-		base_oid = &null_oid;
+		base_oid = null_oid();
 		base_tree_oid = the_hash_algo->empty_tree;
 		if (o->verbosity >= 4)
 			printf("No merge base found; doing history-less merge\n");
@@ -628,7 +628,7 @@ int notes_merge(struct notes_merge_options *o,
 	if (oideq(&remote->object.oid, base_oid)) {
 		/* Already merged; result == local commit */
 		if (o->verbosity >= 2)
-			printf("Already up to date!\n");
+			printf_ln("Already up to date.");
 		oidcpy(result_oid, &local->object.oid);
 		goto found_result;
 	}

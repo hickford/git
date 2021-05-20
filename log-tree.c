@@ -369,8 +369,14 @@ void fmt_output_subject(struct strbuf *filename,
 	int start_len = filename->len;
 	int max_len = start_len + info->patch_name_max - (strlen(suffix) + 1);
 
-	if (0 < info->reroll_count)
-		strbuf_addf(filename, "v%d-", info->reroll_count);
+	if (info->reroll_count) {
+		struct strbuf temp = STRBUF_INIT;
+
+		strbuf_addf(&temp, "v%s", info->reroll_count);
+		format_sanitized_subject(filename, temp.buf, temp.len);
+		strbuf_addstr(filename, "-");
+		strbuf_release(&temp);
+	}
 	strbuf_addf(filename, "%04d-%s", nr, subject);
 
 	if (max_len < filename->len)
@@ -413,7 +419,7 @@ void log_write_email_headers(struct rev_info *opt, struct commit *commit,
 {
 	const char *extra_headers = opt->extra_headers;
 	const char *name = oid_to_hex(opt->zero_commit ?
-				      &null_oid : &commit->object.oid);
+				      null_oid() : &commit->object.oid);
 
 	*need_8bit_cte_p = 0; /* unknown */
 

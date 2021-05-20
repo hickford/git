@@ -160,4 +160,74 @@ test_expect_success 'apply -3 with add/add conflict (dirty working tree)' '
 	test_cmp three.save three
 '
 
+test_expect_success 'apply -3 with ambiguous repeating file' '
+	git reset --hard &&
+	test_write_lines 1 2 1 2 1 2 1 2 1 2 1 >one_two_repeat &&
+	git add one_two_repeat &&
+	git commit -m "init one" &&
+	test_write_lines 1 2 1 2 1 2 1 2 one 2 1 >one_two_repeat &&
+	git commit -a -m "change one" &&
+
+	git diff HEAD~ >Repeat.diff &&
+	git reset --hard HEAD~ &&
+
+	test_write_lines 1 2 1 2 1 2 one 2 1 2 one >one_two_repeat &&
+	git commit -a -m "change surrounding one" &&
+
+	git apply --index --3way Repeat.diff &&
+	test_write_lines 1 2 1 2 1 2 one 2 one 2 one >expect &&
+
+	test_cmp expect one_two_repeat
+'
+
+test_expect_success 'apply with --3way --cached clean apply' '
+	# Merging side should be similar to applying this patch
+	git diff ...side >P.diff &&
+
+	# The corresponding cleanly applied merge
+	git reset --hard &&
+	git checkout main~ &&
+	git merge --no-commit side &&
+	git ls-files -s >expect.ls &&
+
+	# should succeed
+	git reset --hard &&
+	git checkout main~ &&
+	git apply --cached --3way P.diff &&
+	git ls-files -s >actual.ls &&
+	print_sanitized_conflicted_diff >actual.diff &&
+
+	# The cache should resemble the corresponding merge
+	# (both files at stage #0)
+	test_cmp expect.ls actual.ls &&
+	# However the working directory should not change
+	>expect.diff &&
+	test_cmp expect.diff actual.diff
+'
+
+test_expect_success 'apply with --3way --cached and conflicts' '
+	# Merging side should be similar to applying this patch
+	git diff ...side >P.diff &&
+
+	# The corresponding conflicted merge
+	git reset --hard &&
+	git checkout main^0 &&
+	test_must_fail git merge --no-commit side &&
+	git ls-files -s >expect.ls &&
+
+	# should fail to apply
+	git reset --hard &&
+	git checkout main^0 &&
+	test_must_fail git apply --cached --3way P.diff &&
+	git ls-files -s >actual.ls &&
+	print_sanitized_conflicted_diff >actual.diff &&
+
+	# The cache should resemble the corresponding merge
+	# (one file at stage #0, one file at stages #1 #2 #3)
+	test_cmp expect.ls actual.ls &&
+	# However the working directory should not change
+	>expect.diff &&
+	test_cmp expect.diff actual.diff
+'
+
 test_done

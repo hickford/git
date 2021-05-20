@@ -331,7 +331,7 @@ static int add_worktree(const char *path, const char *refname,
 	 */
 	strbuf_reset(&sb);
 	strbuf_addf(&sb, "%s/HEAD", sb_repo.buf);
-	write_file(sb.buf, "%s", oid_to_hex(&null_oid));
+	write_file(sb.buf, "%s", oid_to_hex(null_oid()));
 	strbuf_reset(&sb);
 	strbuf_addf(&sb, "%s/commondir", sb_repo.buf);
 	write_file(sb.buf, "../..");
@@ -394,7 +394,7 @@ done:
 			cp.argv = NULL;
 			cp.trace2_hook_name = "post-checkout";
 			strvec_pushl(&cp.args, absolute_path(hook),
-				     oid_to_hex(&null_oid),
+				     oid_to_hex(null_oid()),
 				     oid_to_hex(&commit->object.oid),
 				     "1", NULL);
 			ret = run_command(&cp);
@@ -446,16 +446,18 @@ static void print_preparing_worktree_line(int detach,
 static const char *dwim_branch(const char *path, const char **new_branch)
 {
 	int n;
+	int branch_exists;
 	const char *s = worktree_basename(path, &n);
 	const char *branchname = xstrndup(s, n);
 	struct strbuf ref = STRBUF_INIT;
 
 	UNLEAK(branchname);
-	if (!strbuf_check_branch_ref(&ref, branchname) &&
-	    ref_exists(ref.buf)) {
-		strbuf_release(&ref);
+
+	branch_exists = !strbuf_check_branch_ref(&ref, branchname) &&
+			ref_exists(ref.buf);
+	strbuf_release(&ref);
+	if (branch_exists)
 		return branchname;
-	}
 
 	*new_branch = branchname;
 	if (guess_remote) {

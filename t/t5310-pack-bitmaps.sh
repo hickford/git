@@ -461,6 +461,29 @@ test_expect_success 'truncated bitmap fails gracefully (cache)' '
 	test_i18ngrep corrupted.bitmap.index stderr
 '
 
+test_expect_success 'enumerating progress counts pack-reused objects' '
+	count=$(git rev-list --objects --all --count) &&
+	git repack -adb &&
+
+	# check first with only reused objects; confirm that our progress
+	# showed the right number, and also that we did pack-reuse as expected.
+	# Check only the final "done" line of the meter (there may be an
+	# arbitrary number of intermediate lines ending with CR).
+	GIT_PROGRESS_DELAY=0 \
+		git pack-objects --all --stdout --progress \
+		</dev/null >/dev/null 2>stderr &&
+	grep "Enumerating objects: $count, done" stderr &&
+	grep "pack-reused $count" stderr &&
+
+	# now the same but with one non-reused object
+	git commit --allow-empty -m "an extra commit object" &&
+	GIT_PROGRESS_DELAY=0 \
+		git pack-objects --all --stdout --progress \
+		</dev/null >/dev/null 2>stderr &&
+	grep "Enumerating objects: $((count+1)), done" stderr &&
+	grep "pack-reused $count" stderr
+'
+
 # have_delta <obj> <expected_base>
 #
 # Note that because this relies on cat-file, it might find _any_ copy of an
@@ -551,6 +574,44 @@ test_expect_success 'fetch with bitmaps can reuse old base' '
 		git fetch .. delta-reuse-old:delta-reuse-old &&
 		git fetch .. delta-reuse-new:delta-reuse-new &&
 		have_delta $delta $base
+	)
+'
+
+test_expect_success 'pack.preferBitmapTips' '
+	git init repo &&
+	test_when_finished "rm -fr repo" &&
+	(
+		cd repo &&
+
+		# create enough commits that not all are receive bitmap
+		# coverage even if they are all at the tip of some reference.
+		test_commit_bulk --message="%s" 103 &&
+
+		git rev-list HEAD >commits.raw &&
+		sort <commits.raw >commits &&
+
+		git log --format="create refs/tags/%s %H" HEAD >refs &&
+		git update-ref --stdin <refs &&
+
+		git repack -adb &&
+		test-tool bitmap list-commits | sort >bitmaps &&
+
+		# remember which commits did not receive bitmaps
+		comm -13 bitmaps commits >before &&
+		test_file_not_empty before &&
+
+		# mark the commits which did not receive bitmaps as preferred,
+		# and generate the bitmap again
+		perl -pe "s{^}{create refs/tags/include/$. }" <before |
+			git update-ref --stdin &&
+		git -c pack.preferBitmapTips=refs/tags/include repack -adb &&
+
+		# finally, check that the commit(s) without bitmap coverage
+		# are not the same ones as before
+		test-tool bitmap list-commits | sort >bitmaps &&
+		comm -13 bitmaps commits >after &&
+
+		! test_cmp before after
 	)
 '
 
