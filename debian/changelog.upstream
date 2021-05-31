@@ -1,3 +1,86 @@
+Version v2.32.0-rc2; changes since v2.32.0-rc1:
+-----------------------------------------------
+
+Derrick Stolee (2):
+      t1092: use GIT_PROGRESS_DELAY for consistent results
+      dir: update stale description of treat_directory()
+
+Elijah Newren (1):
+      dir: introduce readdir_skip_dot_and_dotdot() helper
+
+Johannes Sixt (1):
+      t9001-send-email.sh: fix expected absolute paths on Windows
+
+Junio C Hamano (4):
+      t1092: revert the "-1" hack for emulating "no progress meter"
+      Revert "dir: introduce readdir_skip_dot_and_dotdot() helper"
+      Revert "dir: update stale description of treat_directory()"
+      Git 2.32-rc2
+
+Matheus Tavares (2):
+      init: fix bug regarding ~/ expansion in init.templateDir
+      t2080: fix cp invocation to copy symlinks instead of following them
+
+Ævar Arnfjörð Bjarmason (4):
+      send-email: fix missing error message regression
+      send-email: don't needlessly abs_path() the core.hooksPath
+      send-email: move "hooks_path" invocation to git-send-email.perl
+      pack-objects: move static inline from a header to the sole consumer
+
+
+Version v2.32.0-rc1; changes since v2.32.0-rc0:
+-----------------------------------------------
+
+Denton Liu (1):
+      stash show: use stash.showIncludeUntracked even when diff options given
+
+Derrick Stolee (2):
+      dir: update stale description of treat_directory()
+      sparse-index: fix uninitialized jump
+
+Elijah Newren (9):
+      dir: convert trace calls to trace2 equivalents
+      dir: report number of visited directories and paths with trace2
+      ls-files: error out on -i unless -o or -c are specified
+      t7300: add testcase showing unnecessary traversal into ignored directory
+      t3001, t7300: add testcase showcasing missed directory traversal
+      dir: avoid unnecessary traversal into ignored directory
+      dir: traverse into untracked directories if they may have ignored subfiles
+      dir: introduce readdir_skip_dot_and_dotdot() helper
+      git-prompt: work under set -u
+
+Eric Wong (1):
+      remote-curl: fix clone on sha256 repos
+
+Jeff Hostetler (1):
+      simple-ipc: correct ifdefs when NO_PTHREADS is defined
+
+Jeff King (3):
+      t: avoid sed-based chain-linting in some expensive cases
+      t5551: test http interaction with credential helpers
+      Revert "remote-curl: fall back to basic auth if Negotiate fails"
+
+Junio C Hamano (2):
+      A handful more topics before -rc1
+      Git 2.32-rc1
+
+Todd Zullinger (1):
+      t7500: remove non-existant C_LOCALE_OUTPUT prereq
+
+Wolfgang Müller (1):
+      rev-parse: fix segfault with missing --path-format argument
+
+ZheNing Hu (1):
+      ref-filter: fix read invalid union member bug
+
+Ævar Arnfjörð Bjarmason (5):
+      Makefile: don't re-define PERL_DEFINES
+      Makefile: regenerate perl/build/* if GIT-PERL-DEFINES changes
+      Makefile: regenerate *.pm on NO_PERL_CPAN_FALLBACKS change
+      perl: use mock i18n functions under NO_GETTEXT=Y
+      Makefile: make PERL_DEFINES recursively expanded
+
+
 Version v2.32.0-rc0; changes since v2.31.1:
 -------------------------------------------
 
