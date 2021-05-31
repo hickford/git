@@ -32,11 +32,12 @@ Depends: ${misc:Depends}, ${shlibs:Depends}, perl, liberror-perl,
 Pre-Depends: ${misc:Pre-Depends}
 Recommends: ca-certificates, patch, less, ssh-client
 Suggests: gettext-base, git-daemon-run | git-daemon-sysvinit,
- git-doc, git-el, git-email, git-gui, gitk, gitweb,
+ git-doc, git-email, git-gui, gitk, gitweb,
  git-cvs, git-mediawiki, git-svn
 Breaks: bash-completion (<< 1:1.90-1),
  dgit (<< 5.1~),
  git-buildpackage (<< 0.6.5),
+ git-el (<< 1:2.32.0~rc2-1~),
  cogito (<= 0.18.2+),
  openssh-client (<< 1:6.8),
  stgit (<< 0.15), stgit-contrib (<< 0.15), gitpkg (<< 0.15),
@@ -267,27 +268,6 @@ Description: fast, scalable, distributed revision control system (revision tree 
  .
  This package provides the gitk program, a tcl/tk revision tree visualizer.
 
-Package: git-el
-Architecture: all
-Multi-Arch: foreign
-Depends: ${misc:Depends}, git, emacs | emacsen
-Recommends: elpa-magit
-Breaks: emacsen-common (<< 3.0.0~)
-Description: fast, scalable, distributed revision control system (emacs support)
- Git is popular version control system designed to handle very large
- projects with speed and efficiency; it is used for many high profile
- open source projects, most notably the Linux kernel.
- .
- Git falls in the category of distributed source code management tools.
- Every Git working directory is a full-fledged repository with full
- revision tracking capabilities, not dependent on network access or a
- central server.
- .
- This transitional package provides two modules that previously could be
- used for integration with Emacs: git.el and git-blame.el. Now the
- modules print an error message with instructions that users can use to
- migrate to Emacs's VC-mode backend for Git or Magit.
-
 Package: gitweb
 Architecture: all
 Multi-Arch: foreign
@@ -320,7 +300,7 @@ Package: git-all
 Architecture: all
 Multi-Arch: foreign
 Depends: ${misc:Depends}, git (>> ${source:Upstream-Version}), git (<< ${source:Upstream-Version}-.),
- git-doc, git-el, git-cvs, git-mediawiki, git-svn,
+ git-doc, git-cvs, git-mediawiki, git-svn,
  git-email, git-gui, gitk, gitweb
 Suggests: git-daemon-run | git-daemon-sysvinit
 Description: fast, scalable, distributed revision control system (all subpackages)

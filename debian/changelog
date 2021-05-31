@@ -1,8 +1,12 @@
-git (1:2.32.0~rc2-0.1) unstable; urgency=low
+git (1:2.32.0~rc2-1) unstable; urgency=low
 
   * new upstream release candidate.
+  * remove git-el package (closes: #987264, #984931).  Since version
+    1:2.18.0~rc2-1, it only contained modules that error out with a
+    message pointing to other Emacs packages.  Nowadays users can
+    use the README.emacs file from the git package for that instead.
 
- -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 31 May 2021 14:52:28 -0700
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 31 May 2021 15:02:28 -0700
 
 git (1:2.32.0~rc0-1) unstable; urgency=low
 

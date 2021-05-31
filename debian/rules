@@ -170,10 +170,5 @@ override_dh_installinit:
 	dh_installinit -pgit-daemon-sysvinit --name=git-daemon
 	dh_installinit
 
-# Skip dh_installemacsen to avoid having to rename
-# /etc/emacs/site-start.d/50git-core.el to
-# /etc/emacs/site-start.d/50git-el.el.
-override_dh_installemacsen:
-
 override_dh_compress:
 	dh_compress -X.txt -Xcontrib
