@@ -1,3 +1,84 @@
+Version v2.32.0; changes since v2.32.0-rc3:
+-------------------------------------------
+
+Alex Henrie (1):
+      l10n: Update Catalan translation
+
+Alexander Shopov (1):
+      l10n: bg.po: Updated Bulgarian translation (5204t)
+
+Alexey Roslyakov (1):
+      l10n: ru.po: fix typo in Russian translation
+
+Bagas Sanjaya (5):
+      l10n: id: po-id for 2.32.0 (round 1)
+      l10n: README: document git-po-helper
+      l10n: README: document "core translation"
+      l10n: README: document l10n conventions
+      l10n: README: note on fuzzy translations
+
+Christopher Diaz Riveros (1):
+      l10n: es: 2.32.0 round 1
+
+Daniel Santos (2):
+      l10n: pt_PT: add Portuguese translations part 2
+      l10n: pt_PT: add Portuguese translations part 3
+
+Emir Sarı (1):
+      l10n: tr: v2.32.0-r1
+
+Jean-Noël Avila (1):
+      l10n: fr: v2.32.0 round 1
+
+Jiang Xin (4):
+      l10n: git.pot: v2.32.0 round 1 (126 new, 26 removed)
+      l10n: fix typos in po/TEAMS
+      l10n: README: add file extention ".md"
+      l10n: zh_CN: for git v2.32.0 l10n round 1
+
+Jordi Mas (1):
+      l10n: Update Catalan translation
+
+Junio C Hamano (2):
+      fsync(): be prepared to see EINTR
+      Git 2.32
+
+Matthias Rüster (1):
+      l10n: de.po: Update German translation for Git v2.32.0
+
+Peter Krefting (1):
+      l10n: sv.po: Update Swedish translation (5204t0f0u)
+
+René Scharfe (1):
+      parallel-checkout: avoid dash local bug in tests
+
+Trần Ngọc Quân (1):
+      l10n: vi.po(5204t): Updated Vietnamese translation for v2.32.0
+
+Vincent Tam (1):
+      l10n: fr.po fixed inconsistencies
+
+Yi-Jyun Pan (2):
+      l10n: zh_TW.po: v2.32.0 round 1 (11 untranslated)
+      l10n: zh_TW.po: localized
+
+rlespinasse (1):
+      l10n: fr: fixed inconsistencies
+
+
+Version v2.32.0-rc3; changes since v2.32.0-rc2:
+-----------------------------------------------
+
+David Aguilar (1):
+      contrib/completion: fix zsh completion regression from 59d85a2a05
+
+Junio C Hamano (1):
+      Git 2.32-rc3
+
+Ævar Arnfjörð Bjarmason (1):
+      builtin/fsck.c: don't conflate "int" and "enum" in callback
+
+
 Version v2.32.0-rc2; changes since v2.32.0-rc1:
 -----------------------------------------------
 
