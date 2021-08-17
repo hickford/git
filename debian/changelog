@@ -1,3 +1,9 @@
+git (1:2.33.0-1) unstable; urgency=low
+
+  * new upstream release (see RelNotes/2.33.0.txt).
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 16 Aug 2021 17:54:01 -0700
+
 git (1:2.32.0-1) unstable; urgency=low
 
   * new upstream release (see RelNotes/2.32.0.txt).
