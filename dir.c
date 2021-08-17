@@ -53,12 +53,6 @@ static enum path_treatment read_directory_recursive(struct dir_struct *dir,
 	int check_only, int stop_at_first_file, const struct pathspec *pathspec);
 static int resolve_dtype(int dtype, struct index_state *istate,
 			 const char *path, int len);
-
-void dir_init(struct dir_struct *dir)
-{
-	memset(dir, 0, sizeof(*dir));
-}
-
 struct dirent *readdir_skip_dot_and_dotdot(DIR *dirp)
 {
 	struct dirent *e;
@@ -84,9 +78,19 @@ int fspathcmp(const char *a, const char *b)
 	return ignore_case ? strcasecmp(a, b) : strcmp(a, b);
 }
 
+int fspatheq(const char *a, const char *b)
+{
+	return !fspathcmp(a, b);
+}
+
 int fspathncmp(const char *a, const char *b, size_t count)
 {
 	return ignore_case ? strncasecmp(a, b, count) : strncmp(a, b, count);
+}
+
+unsigned int fspathhash(const char *str)
+{
+	return ignore_case ? strihash(str) : strhash(str);
 }
 
 int git_fnmatch(const struct pathspec_item *item,
@@ -778,9 +782,7 @@ static void add_pattern_to_hashsets(struct pattern_list *pl, struct path_pattern
 		translated->pattern = truncated;
 		translated->patternlen = given->patternlen - 2;
 		hashmap_entry_init(&translated->ent,
-				   ignore_case ?
-				   strihash(translated->pattern) :
-				   strhash(translated->pattern));
+				   fspathhash(translated->pattern));
 
 		if (!hashmap_get_entry(&pl->recursive_hashmap,
 				       translated, ent, NULL)) {
@@ -809,9 +811,7 @@ static void add_pattern_to_hashsets(struct pattern_list *pl, struct path_pattern
 	translated->pattern = dup_and_filter_pattern(given->pattern);
 	translated->patternlen = given->patternlen;
 	hashmap_entry_init(&translated->ent,
-			   ignore_case ?
-			   strihash(translated->pattern) :
-			   strhash(translated->pattern));
+			   fspathhash(translated->pattern));
 
 	hashmap_add(&pl->recursive_hashmap, &translated->ent);
 
@@ -841,10 +841,7 @@ static int hashmap_contains_path(struct hashmap *map,
 	/* Check straight mapping */
 	p.pattern = pattern->buf;
 	p.patternlen = pattern->len;
-	hashmap_entry_init(&p.ent,
-			   ignore_case ?
-			   strihash(p.pattern) :
-			   strhash(p.pattern));
+	hashmap_entry_init(&p.ent, fspathhash(p.pattern));
 	return !!hashmap_get_entry(map, &p, ent, NULL);
 }
 
@@ -1376,7 +1373,7 @@ enum pattern_match_result path_matches_pattern_list(
 	struct path_pattern *pattern;
 	struct strbuf parent_pathname = STRBUF_INIT;
 	int result = NOT_MATCHED;
-	const char *slash_pos;
+	size_t slash_pos;
 
 	if (!pl->use_cone_patterns) {
 		pattern = last_matching_pattern_from_list(pathname, pathlen, basename,
@@ -1397,21 +1394,35 @@ enum pattern_match_result path_matches_pattern_list(
 	strbuf_addch(&parent_pathname, '/');
 	strbuf_add(&parent_pathname, pathname, pathlen);
 
+	/*
+	 * Directory entries are matched if and only if a file
+	 * contained immediately within them is matched. For the
+	 * case of a directory entry, modify the path to create
+	 * a fake filename within this directory, allowing us to
+	 * use the file-base matching logic in an equivalent way.
+	 */
+	if (parent_pathname.len > 0 &&
+	    parent_pathname.buf[parent_pathname.len - 1] == '/') {
+		slash_pos = parent_pathname.len - 1;
+		strbuf_add(&parent_pathname, "-", 1);
+	} else {
+		const char *slash_ptr = strrchr(parent_pathname.buf, '/');
+		slash_pos = slash_ptr ? slash_ptr - parent_pathname.buf : 0;
+	}
+
 	if (hashmap_contains_path(&pl->recursive_hashmap,
 				  &parent_pathname)) {
 		result = MATCHED_RECURSIVE;
 		goto done;
 	}
 
-	slash_pos = strrchr(parent_pathname.buf, '/');
-
-	if (slash_pos == parent_pathname.buf) {
+	if (!slash_pos) {
 		/* include every file in root */
 		result = MATCHED;
 		goto done;
 	}
 
-	strbuf_setlen(&parent_pathname, slash_pos - parent_pathname.buf);
+	strbuf_setlen(&parent_pathname, slash_pos);
 
 	if (hashmap_contains_path(&pl->parent_hashmap, &parent_pathname)) {
 		result = MATCHED;
@@ -3105,6 +3116,7 @@ void dir_clear(struct dir_struct *dir)
 	struct exclude_list_group *group;
 	struct pattern_list *pl;
 	struct exclude_stack *stk;
+	struct dir_struct new = DIR_INIT;
 
 	for (i = EXC_CMDL; i <= EXC_FILE; i++) {
 		group = &dir->exclude_list_group[i];
@@ -3132,7 +3144,7 @@ void dir_clear(struct dir_struct *dir)
 	}
 	strbuf_release(&dir->basebuf);
 
-	dir_init(dir);
+	memcpy(dir, &new, sizeof(*dir));
 }
 
 struct ondisk_untracked_cache {

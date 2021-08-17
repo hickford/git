@@ -115,7 +115,7 @@ static inline void git_SHA256_Clone(git_SHA256_CTX *dst, const git_SHA256_CTX *s
 
 struct object_id {
 	unsigned char hash[GIT_MAX_RAWSZ];
-	int algo;
+	int algo;	/* XXX requires 4-byte alignment */
 };
 
 /* A suitably aligned type for stack allocations of hash contexts. */
@@ -260,6 +260,22 @@ static inline void hashcpy(unsigned char *sha_dst, const unsigned char *sha_src)
 static inline void oidcpy(struct object_id *dst, const struct object_id *src)
 {
 	memcpy(dst->hash, src->hash, GIT_MAX_RAWSZ);
+	dst->algo = src->algo;
+}
+
+/* Like oidcpy() but zero-pads the unused bytes in dst's hash array. */
+static inline void oidcpy_with_padding(struct object_id *dst,
+				       const struct object_id *src)
+{
+	size_t hashsz;
+
+	if (!src->algo)
+		hashsz = the_hash_algo->rawsz;
+	else
+		hashsz = hash_algos[src->algo].rawsz;
+
+	memcpy(dst->hash, src->hash, hashsz);
+	memset(dst->hash + hashsz, 0, GIT_MAX_RAWSZ - hashsz);
 	dst->algo = src->algo;
 }
 
