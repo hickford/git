@@ -739,7 +739,7 @@ static int try_merge_strategy(const char *strategy, struct commit_list *common,
 
 		for (x = 0; x < xopts_nr; x++)
 			if (parse_merge_opt(&o, xopts[x]))
-				die(_("Unknown option for merge-recursive: -X%s"), xopts[x]);
+				die(_("unknown strategy option: -X%s"), xopts[x]);
 
 		o.branch1 = head_arg;
 		o.branch2 = merge_remote_util(remoteheads->item)->name;
@@ -862,9 +862,11 @@ static void prepare_to_commit(struct commit_list *remoteheads)
 			strbuf_commented_addf(&msg, "\n");
 		}
 		strbuf_commented_addf(&msg, _(merge_editor_comment));
-		strbuf_commented_addf(&msg, _(cleanup_mode == COMMIT_MSG_CLEANUP_SCISSORS ?
-			scissors_editor_comment :
-			no_scissors_editor_comment), comment_line_char);
+		if (cleanup_mode == COMMIT_MSG_CLEANUP_SCISSORS)
+			strbuf_commented_addf(&msg, _(scissors_editor_comment));
+		else
+			strbuf_commented_addf(&msg,
+				_(no_scissors_editor_comment), comment_line_char);
 	}
 	if (signoff)
 		append_signoff(&msg, ignore_non_trailer(msg.buf, msg.len), 0);
@@ -1136,9 +1138,7 @@ static void handle_fetch_head(struct commit_list **remotes, struct strbuf *merge
 		merge_names = &fetch_head_file;
 
 	filename = git_path_fetch_head(the_repository);
-	fd = open(filename, O_RDONLY);
-	if (fd < 0)
-		die_errno(_("could not open '%s' for reading"), filename);
+	fd = xopen(filename, O_RDONLY);
 
 	if (strbuf_read(merge_names, fd, 0) < 0)
 		die_errno(_("could not read '%s'"), filename);
@@ -1622,7 +1622,7 @@ int cmd_merge(int argc, const char **argv, const char *prefix)
 	}
 
 	if (fast_forward == FF_ONLY)
-		die(_("Not possible to fast-forward, aborting."));
+		die_ff_impossible();
 
 	if (autostash)
 		create_autostash(the_repository,

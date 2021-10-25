@@ -2477,7 +2477,6 @@ dep_args = -MF $(dep_file) -MQ $@ -MMD -MP
 endif
 
 ifneq ($(COMPUTE_HEADER_DEPENDENCIES),yes)
-dep_dirs =
 missing_dep_dirs =
 dep_args =
 endif
@@ -2603,10 +2602,10 @@ $(REMOTE_CURL_PRIMARY): remote-curl.o http.o http-walker.o GIT-LDFLAGS $(GITLIBS
 		$(CURL_LIBCURL) $(EXPAT_LIBEXPAT) $(LIBS)
 
 $(LIB_FILE): $(LIB_OBJS)
-	$(QUIET_AR)$(AR) $(ARFLAGS) $@ $^
+	$(QUIET_AR)$(RM) $@ && $(AR) $(ARFLAGS) $@ $^
 
 $(XDIFF_LIB): $(XDIFF_OBJS)
-	$(QUIET_AR)$(AR) $(ARFLAGS) $@ $^
+	$(QUIET_AR)$(RM) $@ && $(AR) $(ARFLAGS) $@ $^
 
 export DEFAULT_EDITOR DEFAULT_PAGER
 
@@ -3090,8 +3089,7 @@ endif
 		  ln "$$execdir/git-remote-http$X" "$$execdir/$$p" 2>/dev/null || \
 		  ln -s "git-remote-http$X" "$$execdir/$$p" 2>/dev/null || \
 		  cp "$$execdir/git-remote-http$X" "$$execdir/$$p" || exit; } \
-	done && \
-	./check_bindir "z$$bindir" "z$$execdir" "$$bindir/git-add$X"
+	done
 
 .PHONY: install-gitweb install-doc install-man install-man-perl install-html install-info install-pdf
 .PHONY: quick-install-doc quick-install-man quick-install-html
