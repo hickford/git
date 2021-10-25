@@ -1,3 +1,210 @@
+Version v2.33.1; changes since v2.33.0:
+---------------------------------------
+
+Alex Henrie (1):
+      pull: abort if --ff-only is given and fast-forwarding is impossible
+
+Andrzej Hunt (1):
+      connect: also update offset for features without values
+
+Bagas Sanjaya (1):
+      Documentation: fix default directory of git bugreport -o
+
+Carlo Marcelo Arenas Belón (12):
+      build: update detect-compiler for newer Xcode version
+      builtin/merge: avoid -Wformat-extra-args from ancient Xcode
+      ci: run a pedantic build as part of the GitHub workflow
+      ci: update freebsd 12 cirrus job
+      ci: use upload-artifacts v1 for dockerized jobs
+      remote: avoid -Wunused-but-set-variable in gcc with -DNDEBUG
+      tree-diff: fix leak when not HAVE_ALLOCA_H
+      t0000: avoid masking git exit value through pipes
+      git-cvsserver: use crypt correctly to compare password hashes
+      git-cvsserver: protect against NULL in crypt(3)
+      Documentation: cleanup git-cvsserver
+      unicode: update the width tables to Unicode 14
+
+David Aguilar (1):
+      difftool: fix symlink-file writing in dir-diff mode
+
+Derrick Stolee (1):
+      maintenance: skip bootout/bootstrap when plist is registered
+
+Elijah Newren (25):
+      t7601: test interaction of merge/rebase/fast-forward flags and options
+      t7601: add tests of interactions with multiple merge heads and config
+      pull: since --ff-only overrides, handle it first
+      pull: make --rebase and --no-rebase override pull.ff=only
+      pull: abort by default when fast-forwarding is not possible
+      pull: update docs & code for option compatibility with rebasing
+      pull: fix handling of multiple heads
+      git-rebase.txt: correct antiquated claims about --rebase-merges
+      directory-rename-detection.txt: small updates due to merge-ort optimizations
+      Documentation: edit awkward references to `git merge-recursive`
+      merge-strategies.txt: update wording for the resolve strategy
+      merge-strategies.txt: do not imply using copy detection is desired
+      merge-strategies.txt: avoid giving special preference to patience algorithm
+      merge-strategies.txt: fix simple capitalization error
+      git-rebase.txt: correct out-of-date and misleading text about renames
+      merge-strategies.txt: add coverage of the `ort` merge strategy
+      Update error message and code comment
+      t3903: document a pair of directory/file bugs
+      stash: avoid feeding directories to update-index
+      stash: restore untracked files AFTER restoring tracked files
+      git-am.txt: clarify --abort behavior
+      t4151: add a few am --abort tests
+      am: fix incorrect exit status on am fail to abort
+      trace2.h: fix trivial comment typo
+      merge-ort: fix completely wrong comment
+
+Felipe Contreras (4):
+      completion: bash: fix prefix detection in branch.*
+      completion: bash: fix for suboptions with value
+      completion: bash: fix for multiple dash commands
+      completion: bash: add correct suffix in variables
+
+Jeff Hostetler (1):
+      sparse-index: copy dir_hash in ensure_full_index()
+
+Jeff King (13):
+      build: clang version may not be followed by extra words
+      range-diff: drop useless "offset" variable from read_patches()
+      range-diff: handle unterminated lines in read_patches()
+      range-diff: use ssize_t for parsed "len" in read_patches()
+      apply: keep buffer/size pair in sync when parsing binary hunks
+      t5323: drop mentions of "master"
+      logmsg_reencode(): warn when iconv() fails
+      docs: use "character encoding" to refer to commit-object encoding
+      t5562: use alarm() to interrupt timed child-wait
+      strvec: use size_t to store nr and alloc
+      t1400: avoid SIGPIPE race condition on fifo
+      clone: handle unborn branch in bare repos
+      http: match headers case-insensitively when redacting
+
+Joel Klinghed (1):
+      commit: restore --edit when combined with --fixup
+
+Johannes Schindelin (1):
+      maintenance: create `launchctl` configuration using a lock file
+
+Johannes Sixt (1):
+      t9001: PATH must not use Windows-style paths
+
+Jonathan Tan (3):
+      send-pack: fix push.negotiate with remote helper
+      send-pack: fix push nego. when remote has refs
+      fetch: die on invalid --negotiation-tip hash
+
+Josh Steadmon (1):
+      connect, protocol: log negotiated protocol version
+
+Junio C Hamano (4):
+      build: catch clang that identifies itself as "$VENDOR clang"
+      apply: resolve trivial merge without hitting ll-merge with "--3way"
+      hash-object: prefix_filename() returns allocated memory these days
+      Git 2.33.1
+
+Kim Altintop (3):
+      t5730: introduce fetch command helper
+      upload-pack.c: treat want-ref relative to namespace
+      docs: clarify the interaction of transfer.hideRefs and namespaces
+
+Kyle Zhao (1):
+      pack-revindex.h: correct the time complexity descriptions
+
+Marvin Häuser (1):
+      send-email: avoid incorrect header propagation
+
+Matheus Tavares (1):
+      checkout: make delayed checkout respect --quiet and --no-progress
+
+Matthias Aßhauer (1):
+      documentation: add documentation for 'git version'
+
+Mickey Endito (1):
+      t5582: remove spurious 'cd "$D"' line
+
+Mike Hommey (1):
+      credential: fix leak in credential_apply_config()
+
+Patrick Steinhardt (1):
+      update-ref: fix streaming of status updates
+
+Philip Oakley (1):
+      doc: config, tell readers of `git help --config`
+
+Phillip Wood (7):
+      t3403: fix commit authorship
+      rebase --apply: restore some tests
+      rebase --continue: remove .git/MERGE_MSG
+      rebase -r: make 'merge -c' behave like reword
+      rebase -i: add another reword test
+      rebase -r: don't write .git/MERGE_MSG when fast-forwarding
+      rebase -r: fix merge -c with a merge strategy
+
+René Scharfe (10):
+      compat: let git_mmap use malloc(3) directly
+      xopen: explicitly report creation failures
+      use xopen() to handle fatal open(2) failures
+      show-branch: simplify rev_is_head()
+      archive: convert queue_directory to struct object_id
+      branch: allow deleting dangling branches with --force
+      range-diff: avoid segfault with -I
+      setup: use xopen and xdup in sanitize_stdfds
+      refs/files-backend: remove unused open mode parameter
+      compression: drop write-only core_compression_* variables
+
+SZEDER Gábor (3):
+      Makefile: remove archives before manipulating them with 'ar'
+      column: fix parsing of the '--nl' option
+      test-lib: set GIT_CEILING_DIRECTORIES to protect the surrounding repository
+
+Sergey Organov (1):
+      diff-index: restore -c/--cc options handling
+
+Takashi Iwai (1):
+      completion: tcsh: Fix regression by drop of wrapper functions
+
+Tal Kelrich (1):
+      fast-export: fix anonymized tag using original length
+
+Taylor Blau (4):
+      bulk-checkin.c: store checksum directly
+      pack-write.c: rename `.idx` files after `*.rev`
+      builtin/repack.c: move `.idx` files into place last
+      builtin/index-pack.c: move `.idx` files into place last
+
+Zoker (1):
+      doc: fix syntax error and the format of printf
+
+Ævar Arnfjörð Bjarmason (20):
+      pack-objects tests: cover blindspots in stdin handling
+      pack-objects: fix segfault in --stdin-packs option
+      bundle doc: rewrite the "DESCRIPTION" section
+      bundle doc: elaborate on object prerequisites
+      bundle doc: elaborate on rev<->ref restriction
+      bundle doc: replace "basis" with "prerequsite(s)"
+      ls-remote: set packet_trace_identity(<name>)
+      rebase: emit one "fatal" in "fatal: fatal: <error>"
+      protocol-caps.c: fix memory leak in send_info()
+      mailmap.c: fix a memory leak in free_mailap_{info,entry}()
+      gc: remove trailing dot from "gc.log" line
+      send-email: fix a "first config key wins" regression in v2.33.0
+      Makefile: remove the check_bindir script
+      pack-write: skip *.rev work when not writing *.rev
+      pack.h: line-wrap the definition of finish_tmp_packfile()
+      pack-write: refactor renaming in finish_tmp_packfile()
+      index-pack: refactor renaming in final()
+      pack-write: split up finish_tmp_packfile() function
+      pack-objects: rename .idx files into place after .bitmap files
+      Makefile: clean .depend dirs under COMPUTE_HEADER_DEPENDENCIES != yes
+
+Đoàn Trần Công Danh (3):
+      t6300: don't run cat-file on non-existent object
+      t6300: check for cat-file exit status code
+      diff-lib: ignore paths that are outside $cwd if --relative asked
+
+
 Version v2.33.0; changes since v2.33.0-rc2:
 -------------------------------------------
 
