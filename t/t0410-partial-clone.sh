@@ -4,6 +4,13 @@ test_description='partial clone'
 
 . ./test-lib.sh
 
+# missing promisor objects cause repacks which write bitmaps to fail
+GIT_TEST_MULTI_PACK_INDEX_WRITE_BITMAP=0
+# When enabled, some commands will write commit-graphs. This causes fsck
+# to fail when delete_object() is called because fsck will attempt to
+# verify the out-of-sync commit graph.
+GIT_TEST_COMMIT_GRAPH=0
+
 delete_object () {
 	rm $1/.git/objects/$(echo $2 | sed -e 's|^..|&/|')
 }
@@ -319,7 +326,7 @@ test_expect_success 'rev-list stops traversal at missing and promised commit' '
 
 	git -C repo config core.repositoryformatversion 1 &&
 	git -C repo config extensions.partialclone "arbitrary string" &&
-	GIT_TEST_COMMIT_GRAPH=0 git -C repo -c core.commitGraph=false rev-list --exclude-promisor-objects --objects bar >out &&
+	git -C repo rev-list --exclude-promisor-objects --objects bar >out &&
 	grep $(git -C repo rev-parse bar) out &&
 	! grep $FOO out
 '
@@ -536,7 +543,13 @@ test_expect_success 'gc does not repack promisor objects if there are none' '
 repack_and_check () {
 	rm -rf repo2 &&
 	cp -r repo repo2 &&
-	git -C repo2 repack $1 -d &&
+	if test x"$1" = "x--must-fail"
+	then
+		shift
+		test_must_fail git -C repo2 repack $1 -d
+	else
+		git -C repo2 repack $1 -d
+	fi &&
 	git -C repo2 fsck &&
 
 	git -C repo2 cat-file -e $2 &&
@@ -561,6 +574,7 @@ test_expect_success 'repack -d does not irreversibly delete promisor objects' '
 	printf "$THREE\n" | pack_as_from_promisor &&
 	delete_object repo "$ONE" &&
 
+	repack_and_check --must-fail -ab "$TWO" "$THREE" &&
 	repack_and_check -a "$TWO" "$THREE" &&
 	repack_and_check -A "$TWO" "$THREE" &&
 	repack_and_check -l "$TWO" "$THREE"

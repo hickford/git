@@ -449,6 +449,57 @@ test_expect_success !FAIL_PREREQS 'log with various grep.patternType configurati
 	)
 '
 
+test_expect_success 'log --author' '
+	cat >expect <<-\EOF &&
+	Author: <BOLD;RED>A U<RESET> Thor <author@example.com>
+	EOF
+	git log -1 --color=always --author="A U" >log &&
+	grep Author log >actual.raw &&
+	test_decode_color <actual.raw >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success 'log --committer' '
+	cat >expect <<-\EOF &&
+	Commit:     C O Mitter <committer@<BOLD;RED>example<RESET>.com>
+	EOF
+	git log -1 --color=always --pretty=fuller --committer="example" >log &&
+	grep "Commit:" log >actual.raw &&
+	test_decode_color <actual.raw >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success 'log -i --grep with color' '
+	cat >expect <<-\EOF &&
+	    <BOLD;RED>Sec<RESET>ond
+	    <BOLD;RED>sec<RESET>ond
+	EOF
+	git log --color=always -i --grep=^sec >log &&
+	grep -i sec log >actual.raw &&
+	test_decode_color <actual.raw >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success '-c color.grep.selected log --grep' '
+	cat >expect <<-\EOF &&
+	    <GREEN>th<RESET><BOLD;RED>ir<RESET><GREEN>d<RESET>
+	EOF
+	git -c color.grep.selected="green" log --color=always --grep=ir >log &&
+	grep ir log >actual.raw &&
+	test_decode_color <actual.raw >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success '-c color.grep.matchSelected log --grep' '
+	cat >expect <<-\EOF &&
+	    <BLUE>i<RESET>n<BLUE>i<RESET>t<BLUE>i<RESET>al
+	EOF
+	git -c color.grep.matchSelected="blue" log --color=always --grep=i >log &&
+	grep al log >actual.raw &&
+	test_decode_color <actual.raw >actual &&
+	test_cmp expect actual
+'
+
 cat > expect <<EOF
 * Second
 * sixth
@@ -1616,6 +1667,16 @@ test_expect_success GPGSM 'setup signed branch x509' '
 	git commit -S -m signed_commit
 '
 
+test_expect_success GPGSSH 'setup sshkey signed branch' '
+	test_config gpg.format ssh &&
+	test_config user.signingkey "${GPGSSH_KEY_PRIMARY}" &&
+	test_when_finished "git reset --hard && git checkout main" &&
+	git checkout -b signed-ssh main &&
+	echo foo >foo &&
+	git add foo &&
+	git commit -S -m signed_commit
+'
+
 test_expect_success GPGSM 'log x509 fingerprint' '
 	echo "F8BF62E0693D0694816377099909C779FA23FD65 | " >expect &&
 	git log -n1 --format="%GF | %GP" signed-x509 >actual &&
@@ -1625,6 +1686,13 @@ test_expect_success GPGSM 'log x509 fingerprint' '
 test_expect_success GPGSM 'log OpenPGP fingerprint' '
 	echo "D4BE22311AD3131E5EDA29A461092E85B7227189" > expect &&
 	git log -n1 --format="%GP" signed-subkey >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success GPGSSH 'log ssh key fingerprint' '
+	test_config gpg.ssh.allowedSignersFile "${GPGSSH_ALLOWED_SIGNERS}" &&
+	ssh-keygen -lf  "${GPGSSH_KEY_PRIMARY}" | awk "{print \$2\" | \"}" >expect &&
+	git log -n1 --format="%GF | %GP" signed-ssh >actual &&
 	test_cmp expect actual
 '
 
@@ -1638,6 +1706,12 @@ test_expect_success GPGSM 'log --graph --show-signature x509' '
 	git log --graph --show-signature -n1 signed-x509 >actual &&
 	grep "^| gpgsm: Signature made" actual &&
 	grep "^| gpgsm: Good signature" actual
+'
+
+test_expect_success GPGSSH 'log --graph --show-signature ssh' '
+	test_config gpg.ssh.allowedSignersFile "${GPGSSH_ALLOWED_SIGNERS}" &&
+	git log --graph --show-signature -n1 signed-ssh >actual &&
+	grep "${GOOD_SIGNATURE_TRUSTED}" actual
 '
 
 test_expect_success GPG 'log --graph --show-signature for merged tag' '
