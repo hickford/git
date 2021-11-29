@@ -1,3 +1,21 @@
+Version v2.34.1; changes since v2.34.0:
+---------------------------------------
+
+Derrick Stolee (1):
+      dir: revert "dir: select directories correctly"
+
+Erwin Villejo (1):
+      pull: should be noop when already-up-to-date
+
+Junio C Hamano (3):
+      Revert "grep/pcre2: fix an edge case concerning ascii patterns and UTF-8 data"
+      Revert "editor: save and reset terminal after calling EDITOR"
+      Git 2.34.1
+
+Philippe Blain (1):
+      SubmittingPatches: fix Asciidoc syntax in "GitHub CI" section
+
+
 Version v2.34.0; changes since v2.34.0-rc2:
 -------------------------------------------
 
