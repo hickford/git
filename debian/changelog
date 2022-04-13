@@ -1,3 +1,20 @@
+git (1:2.35.2-1) unstable; urgency=medium
+
+  * new upstream point release (see RelNotes/2.35.2.txt).
+    * Addresses the security issue CVE-2022-24765: Git users might
+      have found themselves unexpectedly in a Git worktree, e.g. when
+      another user created a repository in `/tmp/.git`, in a mounted
+      network drive or in a scratch space. Having a Git-aware prompt
+      that runs `git status` (or `git diff`) and navigating to a
+      directory which is supposedly not a Git worktree, or opening
+      such a directory in an IDE with Git support such as VS Code,
+      could then run commands specified by that other user.
+
+      Thanks to 俞晨东 for discovering this vulnerability and
+      Johannes Schindelin for the mitigation.
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Tue, 12 Apr 2022 21:25:57 -0700
+
 git (1:2.35.1-1) unstable; urgency=low
 
   * new upstream release (see RelNotes/2.35.0.txt, RelNotes/2.35.1.txt).

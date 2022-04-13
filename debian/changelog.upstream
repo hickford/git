@@ -1,3 +1,22 @@
+Version v2.35.2; changes since v2.35.1:
+---------------------------------------
+
+Carlo Marcelo Arenas Belón (1):
+      mingw: avoid fallback for {local,gm}time_r()
+
+Johannes Schindelin (10):
+      GIT-VERSION-GEN: bump to v2.33.1
+      Add a function to determine whether a path is owned by the current user
+      setup_git_directory(): add an owner check for the top-level directory
+      Fix `GIT_CEILING_DIRECTORIES` with `C:\` and the likes
+      Git 2.30.3
+      Git 2.31.2
+      Git 2.32.1
+      Git 2.33.2
+      Git 2.34.2
+      Git 2.35.2
+
+
 Version v2.35.1; changes since v2.35.0:
 ---------------------------------------
 
@@ -119,7 +138,7 @@ Taylor Blau (1):
       reftable tests: avoid "int" overflow, use "uint64_t"
 
 
-Version v2.35.0-rc0; changes since v2.34.1:
+Version v2.35.0-rc0; changes since v2.34.2:
 -------------------------------------------
 
 Alex Henrie (1):
@@ -678,6 +697,24 @@ brian m. carlson (1):
       am: support --allow-empty to record specific empty patches
 
 
+Version v2.34.2; changes since v2.34.1:
+---------------------------------------
+
+Carlo Marcelo Arenas Belón (1):
+      mingw: avoid fallback for {local,gm}time_r()
+
+Johannes Schindelin (9):
+      GIT-VERSION-GEN: bump to v2.33.1
+      Add a function to determine whether a path is owned by the current user
+      setup_git_directory(): add an owner check for the top-level directory
+      Fix `GIT_CEILING_DIRECTORIES` with `C:\` and the likes
+      Git 2.30.3
+      Git 2.31.2
+      Git 2.32.1
+      Git 2.33.2
+      Git 2.34.2
+
+
 Version v2.34.1; changes since v2.34.0:
 ---------------------------------------
 
@@ -852,7 +889,7 @@ René Scharfe (2):
       commit-graph: don't consider "replace" objects with "verify"
 
 
-Version v2.34.0-rc0; changes since v2.33.1:
+Version v2.34.0-rc0; changes since v2.33.2:
 -------------------------------------------
 
 Atharva Raykar (11):
@@ -1026,7 +1063,7 @@ Jeff Hostetler (7):
       t/helper/simple-ipc: convert test-simple-ipc to use start_bg_command
       t/perf/perf-lib.sh: remove test_times.* at the end test_perf_()
 
-Jeff King (59):
+Jeff King (58):
       http: drop support for curl < 7.11.1
       http: drop support for curl < 7.16.0
       http: drop support for curl < 7.19.4
@@ -1085,7 +1122,6 @@ Jeff King (59):
       transport-helper: recognize "expecting report" error from send-pack
       submodule: drop unused sm_name parameter from append_fetch_remotes()
       Documentation/Makefile: fix lint-docs mkdir dependency
-      log: document --encoding behavior on iconv() failure
 
 Jiang Xin (1):
       ci: new github-action for git-l10n code review
@@ -1155,7 +1191,7 @@ Jonathan Tan (19):
 Josh Steadmon (1):
       sequencer: advise if skipping cherry-picked commit
 
-Junio C Hamano (23):
+Junio C Hamano (22):
       expand_user_path: allow in-flight topics to keep using the old name
       bisect: do not run show-branch just to show the current commit
       bisect: simplify return code from bisect_checkout()
@@ -1177,7 +1213,6 @@ Junio C Hamano (23):
       The fourteenth batch
       branch (doc): -m/-c copies config and reflog
       The fifteenth batch
-      Revert "logmsg_reencode(): warn when iconv() fails"
       Git 2.34-rc0
 
 Kaartic Sivaraam (1):
@@ -1192,9 +1227,8 @@ Lénaïc Huard (4):
 Mahi Kolla (1):
       clone: set submodule.recurse=true if submodule.stickyRecursiveClone enabled
 
-Martin Ågren (6):
+Martin Ågren (5):
       config.txt: fix typo
-      git.txt: fix typo
       git-multi-pack-index.txt: change "folder" to "directory"
       gitignore.txt: change "folder" to "directory"
       gitweb.txt: change "folder" to "directory"
@@ -1583,6 +1617,38 @@ brian m. carlson (1):
       reflog: free() ref given to us by dwim_log()
 
 
+Version v2.33.2; changes since v2.33.1:
+---------------------------------------
+
+Carlo Marcelo Arenas Belón (1):
+      mingw: avoid fallback for {local,gm}time_r()
+
+Jeff King (1):
+      log: document --encoding behavior on iconv() failure
+
+Johannes Schindelin (8):
+      GIT-VERSION-GEN: bump to v2.33.1
+      Add a function to determine whether a path is owned by the current user
+      setup_git_directory(): add an owner check for the top-level directory
+      Fix `GIT_CEILING_DIRECTORIES` with `C:\` and the likes
+      Git 2.30.3
+      Git 2.31.2
+      Git 2.32.1
+      Git 2.33.2
+
+Junio C Hamano (1):
+      Revert "logmsg_reencode(): warn when iconv() fails"
+
+Martin Ågren (1):
+      git.txt: fix typo
+
+Phillip Wood (1):
+      rebase -i: fix rewording with --committer-date-is-author-date
+
+Victoria Dye (1):
+      async_die_is_recursing: work around GCC v11.x issue on Fedora
+
+
 Version v2.33.1; changes since v2.33.0:
 ---------------------------------------
 
@@ -1969,7 +2035,7 @@ Thomas Bétous (1):
       t0001: fix broken not-quite getcwd(3) test in bed67874e2
 
 
-Version v2.33.0-rc0; changes since v2.32.0:
+Version v2.33.0-rc0; changes since v2.32.1:
 -------------------------------------------
 
 Alex Henrie (6):
@@ -2419,6 +2485,21 @@ edef (1):
       t6402: preserve git exit status code
 
 
+Version v2.32.1; changes since v2.32.0:
+---------------------------------------
+
+Carlo Marcelo Arenas Belón (1):
+      mingw: avoid fallback for {local,gm}time_r()
+
+Johannes Schindelin (6):
+      Add a function to determine whether a path is owned by the current user
+      setup_git_directory(): add an owner check for the top-level directory
+      Fix `GIT_CEILING_DIRECTORIES` with `C:\` and the likes
+      Git 2.30.3
+      Git 2.31.2
+      Git 2.32.1
+
+
 Version v2.32.0; changes since v2.32.0-rc3:
 -------------------------------------------
 
@@ -2583,7 +2664,7 @@ ZheNing Hu (1):
       Makefile: make PERL_DEFINES recursively expanded
 
 
-Version v2.32.0-rc0; changes since v2.31.1:
+Version v2.32.0-rc0; changes since v2.31.2:
 -------------------------------------------
 
 Adam Dinwoodie (1):
@@ -3233,6 +3314,20 @@ brian m. carlson (14):
       am: learn to process quoted lines that ends with CRLF
 
 
+Version v2.31.2; changes since v2.31.1:
+---------------------------------------
+
+Carlo Marcelo Arenas Belón (1):
+      mingw: avoid fallback for {local,gm}time_r()
+
+Johannes Schindelin (5):
+      Add a function to determine whether a path is owned by the current user
+      setup_git_directory(): add an owner check for the top-level directory
+      Fix `GIT_CEILING_DIRECTORIES` with `C:\` and the likes
+      Git 2.30.3
+      Git 2.31.2
+
+
 Version v2.31.1; changes since v2.31.0:
 ---------------------------------------
 
@@ -3467,7 +3562,7 @@ Taylor Blau (1):
       commit-graph.c: display correct number of chunks when writing
 
 
-Version v2.31.0-rc0; changes since v2.30.2:
+Version v2.31.0-rc0; changes since v2.30.3:
 -------------------------------------------
 
 Abhishek Kumar (11):
@@ -4061,6 +4156,19 @@ brian m. carlson (8):
       test libs: rename "diff-lib" to "lib-diff"
       test-lib-functions: remove bug-inducing "diagnostics" helper param
       test-lib-functions: assert correct parameter count
+
+
+Version v2.30.3; changes since v2.30.2:
+---------------------------------------
+
+Carlo Marcelo Arenas Belón (1):
+      mingw: avoid fallback for {local,gm}time_r()
+
+Johannes Schindelin (4):
+      Add a function to determine whether a path is owned by the current user
+      setup_git_directory(): add an owner check for the top-level directory
+      Fix `GIT_CEILING_DIRECTORIES` with `C:\` and the likes
+      Git 2.30.3
 
 
 Version v2.30.2; changes since v2.30.1:
