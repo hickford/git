@@ -560,7 +560,8 @@ static enum extension_result handle_extension(const char *var,
 			return config_error_nonbool(var);
 		format = hash_algo_by_name(value);
 		if (format == GIT_HASH_UNKNOWN)
-			return error("invalid value for 'extensions.objectformat'");
+			return error(_("invalid value for '%s': '%s'"),
+				     "extensions.objectformat", value);
 		data->hash_algo = format;
 		return EXTENSION_OK;
 	}
@@ -1099,9 +1100,14 @@ static int safe_directory_cb(const char *key, const char *value, void *d)
 {
 	struct safe_directory_data *data = d;
 
-	if (!value || !*value)
+	if (strcmp(key, "safe.directory"))
+		return 0;
+
+	if (!value || !*value) {
 		data->is_safe = 0;
-	else {
+	} else if (!strcmp(value, "*")) {
+		data->is_safe = 1;
+	} else {
 		const char *interpolated = NULL;
 
 		if (!git_config_pathname(&interpolated, key, value) &&
@@ -1118,7 +1124,8 @@ static int ensure_valid_ownership(const char *path)
 {
 	struct safe_directory_data data = { .path = path };
 
-	if (is_path_owned_by_current_user(path))
+	if (!git_env_bool("GIT_TEST_ASSUME_DIFFERENT_OWNER", 0) &&
+	    is_path_owned_by_current_user(path))
 		return 1;
 
 	read_very_early_config(safe_directory_cb, &data);
