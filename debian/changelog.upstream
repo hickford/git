@@ -1,3 +1,24 @@
+Version v2.36.1; changes since v2.36.0:
+---------------------------------------
+
+Junio C Hamano (4):
+      2.36 gitk/diff-tree --stdin regression fix
+      2.36 show regression fix
+      cocci: drop bogus xstrdup_or_null() rule
+      Git 2.36.1
+
+Orgad Shaneh (1):
+      submodule--helper: fix initialization of warn_if_uninitialized
+
+René Scharfe (3):
+      Revert "name-rev: release unused name strings"
+      2.36 format-patch regression fix
+      2.36 fast-export regression fix
+
+Ævar Arnfjörð Bjarmason (1):
+      CI: select CC based on CC_PACKAGE (again)
+
+
 Version v2.36.0; changes since v2.36.0-rc2:
 -------------------------------------------
 
