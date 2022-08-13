@@ -1,3 +1,10 @@
+git (1:2.37.2-1) unstable; urgency=low
+
+  * new upstream release (closes: #1016723; see RelNotes/2.37.0.txt,
+    RelNotes/2.37.1.txt, RelNotes/2.37.2.txt).
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Fri, 12 Aug 2022 19:27:24 -0700
+
 git (1:2.36.1-1) unstable; urgency=low
 
   * new upstream point release (closes: #1010720; see
