@@ -65,6 +65,7 @@ build-stamp:
 override_dh_auto_build-arch: build-stamp
 	$(MAKE) -C contrib/subtree all $(OPTS)
 	ln -s contrib/subtree/git-subtree
+	$(MAKE) -C contrib/credential/libsecret all $(OPTS)
 
 override_dh_auto_test-arch:
 	test -z '$(TEST)' || \
@@ -92,6 +93,7 @@ override_dh_auto_clean:
 	$(MAKE) -C contrib/subtree clean $(OPTS)
 	$(MAKE) clean $(OPTS)
 	rm -f git-subtree
+	$(MAKE) -C contrib/credential/libsecret clean $(OPTS)
 
 override_dh_clean:
 	dh_clean -Xmailinfo.c.orig
@@ -100,6 +102,9 @@ override_dh_auto_install-arch:
 	# git
 	DESTDIR='$(GIT)' $(MAKE) install $(OPTS)
 	DESTDIR='$(GIT)' $(MAKE) -C contrib/subtree install $(OPTS)
+	install -d -m0755 '$(TMP)'/usr/lib/git-core/
+	install -m0755 contrib/credential/libsecret/git-credential-libsecret \
+	 '$(TMP)'/usr/lib/git-core/
 	install -d -m0755 '$(GIT)'/var/lib/git
 	rm -rf '$(GIT)'/usr/share/man
 	# don't include arch, cvs, p4, svn, email, gui tools, and gitk program

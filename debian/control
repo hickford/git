@@ -6,6 +6,7 @@ Uploaders: Anders Kaseorg <andersk@mit.edu>
 Build-Depends: libz-dev, gettext,
  libpcre2-dev | libpcre3-dev,
  libcurl4-gnutls-dev, libexpat1-dev,
+ libsecret-1-dev,
  subversion, libsvn-perl, libyaml-perl,
  tcl, python3,
  libhttp-date-perl | libtime-parsedate-perl,
@@ -33,6 +34,7 @@ Pre-Depends: ${misc:Pre-Depends}
 Recommends: ca-certificates, patch, less, ssh-client
 Suggests: gettext-base, git-daemon-run | git-daemon-sysvinit,
  git-doc, git-email, git-gui, gitk, gitweb,
+ git-credential-libsecret,
  git-cvs, git-mediawiki, git-svn
 Breaks: bash-completion (<< 1:1.90-1),
  dgit (<< 5.1~),
@@ -296,11 +298,28 @@ Description: fast, scalable, distributed revision control system (web interface)
  If libcgi-fast-perl is installed, gitweb can also be run over FastCGI
  (and served by nginx, for example).
 
+Package: git-credential-libsecret
+Architecture: all
+Multi-Arch: foreign
+Depends: ${misc:Depends}, git (>> ${source:Upstream-Version}), git (<< ${source:Upstream-Version}-.), libsecret-1
+Description: fast, scalable, distributed revision control system (libsecret credential helper)
+ Git is popular version control system designed to handle very large
+ projects with speed and efficiency; it is used for many high profile
+ open source projects, most notably the Linux kernel.
+ .
+ Git falls in the category of distributed source code management tools.
+ Every Git working directory is a full-fledged repository with full
+ revision tracking capabilities, not dependent on network access or a
+ central server.
+ .
+ This package provides a helper for storing credentials using libsecret.
+
 Package: git-all
 Architecture: all
 Multi-Arch: foreign
 Depends: ${misc:Depends}, git (>> ${source:Upstream-Version}), git (<< ${source:Upstream-Version}-.),
  git-doc, git-cvs, git-mediawiki, git-svn,
+ git-credential-libsecret,
  git-email, git-gui, gitk, gitweb
 Suggests: git-daemon-run | git-daemon-sysvinit
 Description: fast, scalable, distributed revision control system (all subpackages)
