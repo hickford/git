@@ -1,3 +1,903 @@
+Version v2.38.1; changes since v2.38.0:
+---------------------------------------
+
+Jeff King (2):
+      shell: add basic tests
+      shell: limit size of interactive commands
+
+Kevin Backhouse (1):
+      alias.c: reject too-long cmdline strings in split_cmdline()
+
+Taylor Blau (31):
+      builtin/clone.c: disallow `--local` clones with symlinks
+      t/lib-submodule-update.sh: allow local submodules
+      t/t1NNN: allow local submodules
+      t/2NNNN: allow local submodules
+      t/t3NNN: allow local submodules
+      t/t4NNN: allow local submodules
+      t/t5NNN: allow local submodules
+      t/t6NNN: allow local submodules
+      t/t7NNN: allow local submodules
+      t/t9NNN: allow local submodules
+      transport: make `protocol.file.allow` be "user" by default
+      t1092: prepare for changing protocol.file.allow
+      t2080: prepare for changing protocol.file.allow
+      t1092: prepare for changing protocol.file.allow
+      t2080: prepare for changing protocol.file.allow
+      t3207: prepare for changing protocol.file.allow
+      t5516: prepare for changing protocol.file.allow
+      t5537: prepare for changing protocol.file.allow
+      t7814: prepare for changing protocol.file.allow
+      t3206: prepare for changing protocol.file.allow
+      t5537: prepare for changing protocol.file.allow
+      Git 2.30.6
+      Git 2.31.5
+      Git 2.32.4
+      Git 2.33.5
+      Git 2.34.5
+      Git 2.35.5
+      Git 2.36.3
+      t7527: prepare for changing protocol.file.allow
+      Git 2.37.4
+      Git 2.38.1
+
+
+Version v2.38.0; changes since v2.38.0-rc2:
+-------------------------------------------
+
+Alex Henrie (2):
+      l10n: fr: don't say that merge is "the default strategy"
+      l10n: es: update translation
+
+Alexander Shopov (3):
+      l10n: bg.po: Updated Bulgarian translation (5482t)
+      l10n: bg.po: Updated Bulgarian translation (5484t)
+      l10n: bg.po: Updated Bulgarian translation (5484t)
+
+Bagas Sanjaya (3):
+      l10n: po-id for 2.38 (round 1)
+      l10n: po-id for 2.38 (round 2)
+      l10n: po-id for 2.38 (round 3)
+
+Emir SARI (3):
+      l10n: tr: Update translations for v2.38.0 round #1
+      l10n: tr: v2.38.0 round 2
+      l10n: tr: v2.38.0 3rd round
+
+Fangyi Zhou (2):
+      l10n: zh_CN v2.38.0 rounds 1 & 2
+      l10n: zh_CN: 2.38.0 round 3
+
+Hubert Bossot (1):
+      l10n: fr: The word 'branche' is only feminine
+
+Jean-Noël Avila (3):
+      l10n: fr: v2.38 round 1
+      l10n: fr: v2.38.0 round 2
+      l10n: fr: v2.38.0 round 3
+
+Jordi Mas (3):
+      l10n: Update Catalan translation
+      l10n: Update Catalan translation
+      l10n: Update Catalan translation
+
+Junio C Hamano (1):
+      Git 2.38
+
+Peter Krefting (2):
+      l10n: sv.po: Update Swedish translation (5482t0f0u)
+      l10n: sv.po: Update Swedish translation (5484t0f0u)
+
+Ralf Thielow (2):
+      l10n: de.po: update German translation
+      l10n: de.po: update German translation
+
+Yi-Jyun Pan (1):
+      l10n: zh_TW.po: Git 2.38.0, round 3
+
+
+Version v2.38.0-rc2; changes since v2.38.0-rc1:
+-----------------------------------------------
+
+Alex Henrie (1):
+      pack-bitmap: improve grammar of "xor chain" error message
+
+Derrick Stolee (1):
+      pack-bitmap: remove trace2 region from hot path
+
+Jeff King (1):
+      list-objects-filter: initialize sub-filter structs
+
+Junio C Hamano (1):
+      Git 2.38-rc2
+
+Martin Ågren (1):
+      cmd-list.perl: fix identifying man sections
+
+
+Version v2.38.0-rc1; changes since v2.38.0-rc0:
+-----------------------------------------------
+
+Adam Dinwoodie (1):
+      t1800: correct test to handle Cygwin
+
+Alex Henrie (2):
+      gc: don't translate literal commands
+      builtin/diagnose.c: don't translate the two mode values
+
+Elijah Conners (1):
+      reftable: use a pointer for pq_entry param
+
+Eric Sunshine (19):
+      t: add skeleton chainlint.pl
+      chainlint.pl: add POSIX shell lexical analyzer
+      chainlint.pl: add POSIX shell parser
+      chainlint.pl: add parser to validate tests
+      chainlint.pl: add parser to identify test definitions
+      chainlint.pl: validate test scripts in parallel
+      chainlint.pl: don't require `return|exit|continue` to end with `&&`
+      t/Makefile: apply chainlint.pl to existing self-tests
+      chainlint.pl: don't require `&` background command to end with `&&`
+      chainlint.pl: don't flag broken &&-chain if `$?` handled explicitly
+      chainlint.pl: don't flag broken &&-chain if failure indicated explicitly
+      chainlint.pl: complain about loops lacking explicit failure handling
+      chainlint.pl: allow `|| echo` to signal failure upstream of a pipe
+      t/chainlint: add more chainlint.pl self-tests
+      test-lib: retire "lint harder" optimization hack
+      test-lib: replace chainlint.sed with chainlint.pl
+      t/Makefile: teach `make test` and `make prove` to run chainlint.pl
+      t: retire unused chainlint.sed
+      chainlint: colorize problem annotations and test delimiters
+
+Fangyi Zhou (1):
+      help: fix doubled words in explanation for developer interfaces
+
+Jacob Stopak (2):
+      Documentation: clean up a few misspelled word typos
+      Documentation: clean up various typos in technical docs
+
+Jeff King (4):
+      list-objects-filter: don't memset after releasing filter struct
+      list-objects-filter: handle null default filter spec
+      list-objects-filter: add and use initializers
+      list-objects-filter: convert filter_spec to a strbuf
+
+Johannes Schindelin (2):
+      git help: special-case `scalar`
+      scalar: implement the `help` subcommand
+
+Junio C Hamano (3):
+      A bit more of remaining topics before -rc1
+      Final batch before -rc1
+      Git 2.38-rc1
+
+Miaoqian Lin (1):
+      commit-graph: Fix missing closedir in expire_commit_graphs
+
+SZEDER Gábor (1):
+      t/Makefile: remove 'test-results' on 'make clean'
+
+Shaoxuan Yuan (10):
+      t7002: add tests for moving from in-cone to out-of-cone
+      mv: rename check_dir_in_index() to empty_dir_has_sparse_contents()
+      mv: free the with_slash in check_dir_in_index()
+      mv: check if <destination> is a SKIP_WORKTREE_DIR
+      mv: remove BOTH from enum update_mode
+      mv: from in-cone to out-of-cone
+      mv: cleanup empty WORKING_DIRECTORY
+      advice.h: add advise_on_moving_dirty_path()
+      mv: check overwrite for in-to-out move
+      builtin/mv.c: fix possible segfault in add_slash()
+
+Todd Zullinger (2):
+      docs: fix a few recently broken links
+      api docs: link to html version of api-trace2
+
+Victoria Dye (11):
+      scalar: fix command documentation section header
+      scalar: include in standard Git build & installation
+      scalar: add to 'git help -a' command list
+      scalar-clone: add test coverage
+      t/perf: add Scalar performance tests
+      t/perf: add 'GIT_PERF_USE_SCALAR' run option
+      Documentation/technical: include Scalar technical doc
+      diagnose.c: refactor to safely use 'd_type'
+      Documentation: add ReviewingGuidelines
+      diagnose: add to command-list.txt
+      version: fix builtin linking & documentation
+
+ZheNing Hu (1):
+      ls-files: fix black space in error message
+
+
+Version v2.38.0-rc0; changes since v2.37.4:
+-------------------------------------------
+
+Abhradeep Chakraborty (6):
+      Documentation/technical: describe bitmap lookup table extension
+      bitmap: move `get commit positions` code to `bitmap_writer_finish`
+      pack-bitmap-write.c: write lookup table extension
+      pack-bitmap-write: learn pack.writeBitmapLookupTable and add tests
+      pack-bitmap: prepare to read lookup table extension
+      bitmap-lookup-table: add performance tests for lookup table
+
+Calvin Wan (1):
+      submodule merge: update conflict error message
+
+Carlos López (1):
+      grep: add --max-count command line option
+
+Christian Couder (1):
+      Documentation: clarify whitespace rules for trailers
+
+Derrick Stolee (40):
+      branch: add branch_checked_out() helper
+      branch: check for bisects and rebases
+      fetch: use new branch_checked_out() and add tests
+      branch: use branch_checked_out() when deleting refs
+      branch: fix branch_checked_out() leaks
+      pack-bitmap-write: use const for hashes
+      midx: extract bitmap write setup
+      midx: reduce memory pressure while writing bitmaps
+      t2407: test bisect and rebase as black-boxes
+      t2407: test branches currently using apply backend
+      branch: consider refs under 'update-refs'
+      rebase-interactive: update 'merge' description
+      sequencer: define array with enum values
+      sequencer: add update-ref command
+      rebase: add --update-refs option
+      rebase: update refs from 'update-ref' commands
+      sequencer: rewrite update-refs as user edits todo list
+      rebase: add rebase.updateRefs config option
+      sequencer: ignore HEAD ref under --update-refs
+      sequencer: notify user of --update-refs activity
+      refs: allow "HEAD" as decoration filter
+      t4207: modernize test
+      t4207: test coloring of grafted decorations
+      refs: add array of ref namespaces
+      refs: use ref_namespaces for replace refs base
+      log-tree: use ref_namespaces instead of if/else-if
+      log: add default decoration filter
+      log: add --clear-decorations option
+      log: create log.initialDecorationSet=all
+      maintenance: stop writing log.excludeDecoration
+      fetch: use ref_namespaces during prefetch
+      docs: document bundle URI standard
+      bundle-uri: add example bundle organization
+      remote-curl: add 'get' capability
+      bundle-uri: create basic file-copy logic
+      clone: add --bundle-uri option
+      bundle-uri: add support for http(s):// and file://
+      clone: --bundle-uri cannot be combined with --depth
+      t6019: modernize tests with helper
+      clone: warn on failure to repo_init()
+
+Elijah Newren (36):
+      merge-tree: rename merge_trees() to trivial_merge_trees()
+      merge-tree: move logic for existing merge into new function
+      merge-tree: add option parsing and initial shell for real merge function
+      merge-tree: implement real merges
+      merge-ort: split out a separate display_update_messages() function
+      merge-tree: support including merge messages in output
+      merge-ort: provide a merge_get_conflicted_files() helper function
+      merge-ort: remove command-line-centric submodule message from merge-ort
+      merge-tree: provide a list of which files have conflicts
+      merge-tree: provide easy access to `ls-files -u` style info
+      merge-ort: store more specific conflict information
+      merge-ort: optionally produce machine-readable output
+      merge-tree: allow `ls-files -u` style info to be NUL terminated
+      merge-tree: add a --allow-unrelated-histories flag
+      git-merge-tree.txt: add a section on potentional usage mistakes
+      merge-ort-wrappers: make printed message match the one from recursive
+      merge-resolve: abort if index does not match HEAD
+      merge: abort if index does not match HEAD for trivial merges
+      merge: do not abort early if one strategy fails to handle the merge
+      merge: fix save_state() to work when there are stat-dirty files
+      merge: make restore_state() restore staged state too
+      merge: ensure we can actually restore pre-merge state
+      merge: do not exit restore_state() prematurely
+      merge-ort: remove translator lego in new "submodule conflict suggestion"
+      merge-ort: avoid surprise with new sub_flag variable
+      merge-ort: provide helpful submodule update message when possible
+      merge-ort: remove code obsoleted by other changes
+      rev-list-options.txt: fix simple typo
+      revision: allow --ancestry-path to take an argument
+      merge: cleanup confusing logic for handling successful merges
+      merge: small code readability improvement
+      t4301: add more interesting merge-tree testcases
+      t64xx: convert 'test_create_repo' to 'git init'
+      diff: have submodule_format logic avoid additional diff headers
+      diff: fix filtering of additional headers under --remerge-diff
+      diff: fix filtering of merge commits under --remerge-diff
+
+Eric DeCosta (1):
+      fsmonitor: option to allow fsmonitor to run against network-mounted repos
+
+Eric Sunshine (6):
+      t2407: fix broken &&-chains in compound statement
+      t1092: fix buggy sparse "blame" test
+      t: detect and signal failure within loop
+      t4301: account for behavior differences between sed implementations
+      t4301: fix broken &&-chains and add missing loop termination
+      t4301: emit blank line in more idiomatic fashion
+
+Glen Choo (15):
+      submodule--helper: eliminate internal "--update" option
+      submodule--helper tests: add missing "display path" coverage
+      submodule--helper update: use display path helper
+      submodule--helper: don't recreate recursive prefix
+      submodule--helper: use correct display path helper
+      submodule--helper update: use --super-prefix
+      submodule--helper: remove display path helper
+      Documentation/git-config.txt: add SCOPES section
+      Documentation: define protected configuration
+      config: learn `git_protected_config()`
+      safe.directory: use git_protected_config()
+      setup.c: create `safe.bareRepository`
+      config.c: NULL check when reading protected config
+      submodule--helper: add "const" to copy of "update_data"
+      submodule--helper: refactor "errmsg_str" to be a "struct strbuf"
+
+Han Xin (4):
+      unpack-objects: low memory footprint for get_data() in dry_run mode
+      object-file.c: refactor write_loose_object() to several steps
+      object-file.c: add "stream_loose_object()" to handle large object
+      unpack-objects: use stream_loose_object() to unpack large objects
+
+Jacob Keller (1):
+      remote: handle negative refspecs in git remote show
+
+Jacob Stopak (1):
+      Documentation: fix various repeat word typos
+
+Jaydeep Das (1):
+      gpg-interface: add function for converting trust level to string
+
+Jeff King (43):
+      is_promisor_object(): walk promisor packs in pack-order
+      fetch: stop passing around unused worktrees variable
+      branch: drop unused worktrees variable
+      ref-filter: disable save_commit_buffer while traversing
+      write_midx_bitmap(): drop unused refs_snapshot parameter
+      git-compat-util: add UNUSED macro
+      refs: mark unused each_ref_fn parameters
+      refs: mark unused reflog callback parameters
+      refs: mark unused virtual method parameters
+      transport: mark bundle transport_options as unused
+      streaming: mark unused virtual method parameters
+      config: mark unused callback parameters
+      hashmap: mark unused callback parameters
+      mark unused read_tree_recursive() callback parameters
+      run-command: mark unused async callback parameters
+      is_path_owned_by_current_uid(): mark "report" parameter as unused
+      xdiff: drop unused mmfile parameters from xdl_do_histogram_diff()
+      log-tree: drop unused commit param in remerge_diff()
+      match_pathname(): drop unused "flags" parameter
+      verify_one_sparse(): drop unused parameters
+      reftable: drop unused parameter from reader_seek_linear()
+      reflog: assert PARSE_OPT_NONEG in parse-options callbacks
+      xdiff: drop unused mmfile parameters from xdl_do_patience_diff()
+      pass subcommand "prefix" arguments to parse_options()
+      maintenance: add parse-options boilerplate for subcommands
+      remote: run "remote rm" argv through parse_options()
+      pack-bitmap-write: drop unused pack_idx_entry parameters
+      tempfile: drop active flag
+      tempfile: update comment describing state transitions
+      test-crontab: minor memory and error handling fixes
+      lookup_commit_in_graph(): use prepare_commit_graph() to check for graph
+      rev-list: disable commit graph with --verify-objects
+      parse_object(): allow skipping hash check
+      upload-pack: skip parse-object re-hashing of "want" objects
+      parse_object(): check commit-graph when skip_hash set
+      t1060: check partial clone of misnamed blob
+      list_objects_filter_copy(): deep-copy sparse_oid_name field
+      transport: deep-copy object-filter struct for fetch-pack
+      transport: free filter options in disconnect_git()
+      list_objects_filter_options: plug leak of filter_spec strings
+      prepare_repo_settings(): plug leak of config values
+      fetch: stop checking for NULL transport->remote in do_fetch()
+      fetch: add branch.*.merge to default ref-prefix extension
+
+Johannes Schindelin (14):
+      merge-ort: store messages in a list, not in a single strbuf
+      merge-ort: make `path_messages` a strmap to a string_list
+      t5351: avoid relying on `core.fsyncMethod = batch` to be supported
+      t5351: avoid using `test_cmp` for binary data
+      scalar unregister: stop FSMonitor daemon
+      range-diff: reorder argument handling
+      range-diff: consistently validate the arguments
+      range-diff: optionally accept pathspecs
+      add -p: avoid ambiguous signed/unsigned comparison
+      t3701: test the built-in `add -i` regardless of NO_PERL
+      t6132(NO_PERL): do not run the scripted `add -p`
+      add -p: detect more mismatches between plain vs colored diffs
+      add -p: gracefully handle unparseable hunk headers in colored diffs
+      add -p: ignore dirty submodules
+
+Jonathan Tan (1):
+      fetch-pack: write effective filter to trace2
+
+Josh Steadmon (1):
+      fetch-pack: add tracing for negotiation rounds
+
+Julien Rouhaud (1):
+      gitweb: remove title shortening heuristics
+
+Junio C Hamano (30):
+      A regression fix for 2.37
+      builtin/mv.c: use the MOVE_ARRAY() macro instead of memmove()
+      The first batch after Git 2.37
+      The second batch
+      The third batch
+      The fourth batch
+      The fifth batch
+      The sixth batch
+      The seventh batch
+      The eighth batch
+      The ninth batch
+      doc: consolidate --rerere-autoupdate description
+      doc: clarify rerere-autoupdate
+      The tenth batch
+      The eleventh batch
+      The twelfth batch
+      The thirteenth batch
+      The fourteenth batch
+      t5329: notice a failure within a loop
+      The fifteenth batch
+      pretty: separate out the logic to decide the use of in-body from
+      format-patch: allow forcing the use of in-body From: header
+      format-patch: learn format.forceInBodyFrom configuration variable
+      The sixteenth batch
+      The seventeenth batch
+      The eighteenth batch
+      The nineteenth batch
+      The twentieth batch
+      Prepare for 2.38-rc0
+      Git 2.38-rc0
+
+Justin Donnelly (1):
+      git-prompt: show presence of unresolved conflicts at command prompt
+
+Kyle Zhao (1):
+      send-pack.c: add config push.useBitmaps
+
+Li Linchao (2):
+      remote-curl: send Accept-Language header to server
+      rev-list: support human-readable output for `--disk-usage`
+
+Linus Torvalds (1):
+      symbolic-ref: refuse to set syntactically invalid target
+
+Matheus Tavares (3):
+      t0021: avoid grepping for a Perl-specific string at filter output
+      t0021: implementation the rot13-filter.pl script in C
+      tests: use the new C rot13-filter helper to avoid PERL prereq
+
+Matthew John Cheetham (1):
+      scalar: enable built-in FSMonitor on `register`
+
+Michael J Gruber (3):
+      sequencer: do not translate reflog messages
+      sequencer: do not translate parameters to error_resolve_conflict()
+      sequencer: do not translate command names
+
+Moritz Baumann (2):
+      git-p4: fix typo in P4Submit.applyCommit()
+      git-p4: fix error handling in P4Unshelve.renameBranch()
+
+Phillip Wood (4):
+      xdiff: introduce XDL_ALLOC_ARRAY()
+      xdiff: introduce xdl_calloc
+      xdiff: introduce XDL_CALLOC_ARRAY()
+      xdiff: introduce XDL_ALLOC_GROW()
+
+René Scharfe (24):
+      archive: update format documentation
+      archive: rename archiver data field to filter_command
+      archive-tar: factor out write_block()
+      archive-tar: add internal gzip implementation
+      archive-tar: use OS_CODE 3 (Unix) for internal gzip
+      archive-tar: use internal gzip by default
+      cocci: avoid normalization rules for memcpy
+      mergesort: unify ranks loops
+      mergesort: tighten merge loop
+      mergesort: add macros for typed sort of linked lists
+      test-mergesort: use DEFINE_LIST_SORT_DEBUG
+      test-mergesort: use DEFINE_LIST_SORT
+      blame: use DEFINE_LIST_SORT
+      commit: use DEFINE_LIST_SORT
+      fetch-pack: use DEFINE_LIST_SORT
+      packfile: use DEFINE_LIST_SORT
+      mergesort: remove llist_mergesort()
+      tempfile: avoid directory cleanup race
+      test-mergesort: read sort input all at once
+      test-mergesort: use mem_pool for sort input
+      diff-no-index: release strbuf on queue error
+      diff-no-index: release prefixed filenames
+      diff-no-index: simplify argv index calculation
+      add -p: fix worktree patch mode prompts
+
+SZEDER Gábor (27):
+      Makefile: build 'gitweb' in the default target
+      multi-pack-index: simplify handling of unknown --options
+      git.c: update NO_PARSEOPT markings
+      t3301-notes.sh: check that default operation mode doesn't take arguments
+      t5505-remote.sh: check the behavior without a subcommand
+      t0040-parse-options: test parse_options() with various 'parse_opt_flags'
+      api-parse-options.txt: fix description of OPT_CMDMODE
+      parse-options: PARSE_OPT_KEEP_UNKNOWN only applies to --options
+      parse-options: clarify the limitations of PARSE_OPT_NODASH
+      parse-options: drop leading space from '--git-completion-helper' output
+      parse-options: add support for parsing subcommands
+      builtin/bundle.c: let parse-options parse subcommands
+      builtin/commit-graph.c: let parse-options parse subcommands
+      builtin/gc.c: let parse-options parse 'git maintenance's subcommands
+      builtin/hook.c: let parse-options parse subcommands
+      builtin/multi-pack-index.c: let parse-options parse subcommands
+      builtin/notes.c: let parse-options parse subcommands
+      builtin/reflog.c: let parse-options parse subcommands
+      builtin/remote.c: let parse-options parse subcommands
+      builtin/sparse-checkout.c: let parse-options parse subcommands
+      builtin/stash.c: let parse-options parse subcommands
+      builtin/worktree.c: let parse-options parse subcommands
+      t0040-parse-options: remove leftover debugging
+      test-parse-options.c: don't use for loop initial declaration
+      test-parse-options.c: fix style of comparison with zero
+      notes: simplify default operation mode arguments check
+      notes, remote: show unknown subcommands between `'
+
+Shaoxuan Yuan (12):
+      t7002: add tests for moving out-of-cone file/directory
+      t1092: mv directory from out-of-cone to in-cone
+      mv: update sparsity after moving from out-of-cone to in-cone
+      mv: decouple if/else-if checks using goto
+      mv: check if out-of-cone file exists in index with SKIP_WORKTREE bit
+      mv: check if <destination> exists in index to handle overwriting
+      mv: use flags mode for update_mode
+      mv: add check_dir_in_index() and solve general dir check issue
+      t1092: add tests for `git-rm`
+      pathspec.h: move pathspec_needs_expanded_index() from reset.c to here
+      rm: expand the index only when necessary
+      rm: integrate with sparse-index
+
+Siddharth Asthana (4):
+      revision: improve commit_rewrite_person()
+      ident: move commit_rewrite_person() to ident.c
+      ident: rename commit_rewrite_person() to apply_mailmap_to_header()
+      cat-file: add mailmap support
+
+Taylor Blau (10):
+      commit-graph: pass repo_settings instead of repository
+      t1006: extract --batch-command inputs to variables
+      builtin/cat-file.c: support NUL-delimited input with `-z`
+      t5326: demonstrate potential bitmap corruption
+      t/lib-bitmap.sh: avoid silencing stderr
+      midx.c: extract `struct midx_fanout`
+      midx.c: extract `midx_fanout_add_midx_fanout()`
+      midx.c: extract `midx_fanout_add_pack_fanout()`
+      midx.c: include preferred pack correctly with existing MIDX
+      midx.c: avoid adding preferred objects twice
+
+Teng Long (8):
+      pack-bitmap.c: fix formatting of error messages
+      pack-bitmap.c: mark more strings for translations
+      pack-bitmap.c: rename "idx_name" to "bitmap_name"
+      pack-bitmap.c: do not ignore error when opening a bitmap file
+      pack-bitmap.c: using error() instead of silently returning -1
+      pack-bitmap.c: continue looping when first MIDX bitmap is found
+      api-trace2.txt: print config key-value pair
+      tr2: shows scope unconditionally in addition to key-value pair
+
+Victoria Dye (22):
+      scalar: reword command documentation to clarify purpose
+      scalar: convert README.md into a technical design doc
+      scalar-diagnose: use "$GIT_UNZIP" in test
+      scalar-diagnose: avoid 32-bit overflow of size_t
+      scalar-diagnose: add directory to archiver more gently
+      scalar-diagnose: move 'get_disk_info()' to 'compat/'
+      scalar-diagnose: move functionality to common location
+      diagnose.c: add option to configure archive contents
+      builtin/diagnose.c: create 'git diagnose' builtin
+      builtin/diagnose.c: add '--mode' option
+      builtin/bugreport.c: create '--diagnose' option
+      scalar-diagnose: use 'git diagnose --mode=all'
+      scalar: update technical doc roadmap
+      scalar: constrain enlistment search
+      scalar-unregister: handle error codes greater than 0
+      scalar-[un]register: clearly indicate source of error
+      scalar-delete: do not 'die()' in 'delete_enlistment()'
+      scalar: move config setting logic into its own function
+      scalar: update technical doc roadmap with FSMonitor support
+      p0004: fix prereq declaration
+      p0006: fix 'read-tree' argument ordering
+      unpack-trees: fix sparse directory recursion check
+
+ZheNing Hu (1):
+      ls-files: introduce "--format" option
+
+brian m. carlson (2):
+      sha256: add support for Nettle
+      gc: use temporary file for editing crontab
+
+Ævar Arnfjörð Bjarmason (149):
+      t0008: don't rely on default ".git/info/exclude"
+      tests: don't depend on template-created .git/branches
+      tests: don't assume a .git/info for .git/info/grafts
+      tests: don't assume a .git/info for .git/info/attributes
+      tests: don't assume a .git/info for .git/info/refs
+      tests: don't assume a .git/info for .git/info/exclude
+      tests: don't assume a .git/info for .git/info/sparse-checkout
+      object-file.c: factor out deflate part of write_loose_object()
+      core doc: modernize core.bigFileThreshold documentation
+      git-submodule.sh: remove unused sanitize_submodule_env()
+      git-submodule.sh: remove unused $prefix variable
+      git-submodule.sh: make the "$cached" variable a boolean
+      git-submodule.sh: remove unused top-level "--branch" argument
+      submodule--helper: have --require-init imply --init
+      submodule update: remove "-v" option
+      submodule--helper: rename "absorb-git-dirs" to "absorbgitdirs"
+      submodule--helper: report "submodule" as our name in some "-h" output
+      submodule--helper: understand --checkout, --merge and --rebase synonyms
+      git-submodule.sh: use "$quiet", not "$GIT_QUIET"
+      git-sh-setup.sh: remove "say" function, change last users
+      gitweb/Makefile: define all .PHONY prerequisites inline
+      gitweb/Makefile: add a $(GITWEB_ALL) variable
+      gitweb/Makefile: clear up and de-duplicate the gitweb.{css,js} vars
+      gitweb/Makefile: prepare to merge into top-level Makefile
+      gitweb: remove "test" and "test-installed" targets
+      gitweb/Makefile: include in top-level Makefile
+      gitweb/Makefile: add a "NO_GITWEB" parameter
+      submodule--helper: remove unused SUPPORT_SUPER_PREFIX flags
+      check-ref-format: fix trivial memory leak
+      clone: fix memory leak in wanted_peer_refs()
+      submodule.c: free() memory from xgetcwd()
+      revert: free "struct replay_opts" members
+      cat-file: fix a memory leak in --batch-command mode
+      merge-file: refactor for subsequent memory leak fix
+      merge-file: fix memory leaks on error path
+      checkout: avoid "struct unpack_trees_options" leak
+      gc: fix a memory leak
+      cat-file: fix a common "struct object_context" memory leak
+      pull: fix a "struct oid_array" memory leak
+      test-tool test-hash: fix a memory leak
+      test-tool path-utils: fix a memory leak
+      test-tool {dump,scrap}-cache-tree: fix memory leaks
+      test-tool urlmatch-normalization: fix a memory leak
+      test-tool regex: call regfree(), fix memory leaks
+      test-tool json-writer: fix memory leaks
+      test-tool bloom: fix memory leaks
+      test-tool ref-store: fix a memory leak
+      test-tool delta: fix a memory leak
+      Makefile: remove mandatory "spatch" arguments from SPATCH_FLAGS
+      Makefile & .gitignore: ignore & clean "git.res", not "*.res"
+      cocci: add a "coccicheck-test" target and test *.cocci rules
+      cocci: have "coccicheck{,-pending}" depend on "coccicheck-test"
+      cocci: add and apply a rule to find "unused" strbufs
+      cocci: generalize "unused" rule to cover more than "strbuf"
+      trace2: only include "fsync" events if we git_fsync()
+      test-lib: use $1, not $@ in test_known_broken_{ok,failure}_
+      test-lib: don't set GIT_EXIT_OK before calling test_atexit_handler
+      test-lib: fix GIT_EXIT_OK logic errors, use BAIL_OUT
+      test-lib: add a --invert-exit-code switch
+      t/README: reword the "GIT_TEST_PASSING_SANITIZE_LEAK" description
+      test-lib: add a SANITIZE=leak logging mode
+      t/Makefile: don't remove test-results in "clean-except-prove-cache"
+      tests: move copy/pasted PERL + Test::More checks to a lib-perl.sh
+      test-lib: simplify by removing test_external
+      test-lib: add a GIT_TEST_PASSING_SANITIZE_LEAK=check mode
+      test-lib: have the "check" mode for SANITIZE=leak consider leak logs
+      leak tests: don't skip some tests under SANITIZE=leak
+      leak tests: mark passing SANITIZE=leak tests as leak-free
+      upload-pack: fix a memory leak in create_pack_file()
+      CI: use "GIT_TEST_SANITIZE_LEAK_LOG=true" in linux-leaks
+      bisect.c: add missing "goto" for release_revisions()
+      test-fast-rebase helper: use release_revisions() (again)
+      log: fix a memory leak in "git show <revision>..."
+      log: refactor "rev.pending" code in cmd_show()
+      bisect.c: partially fix bisect_rev_setup() memory leak
+      revisions API: don't leak memory on argv elements that need free()-ing
+      help.c: refactor drop_prefix() to use a "switch" statement"
+      help.c: remove common category behavior from drop_prefix() behavior
+      git help doc: use "<doc>" instead of "<guide>"
+      git docs: add a category for user-facing file, repo and command UX
+      git docs: add a category for file formats, protocols and interfaces
+      docs: move commit-graph format docs to man section 5
+      docs: move protocol-related docs to man section 5
+      docs: move index format docs to man section 5
+      docs: move signature docs to man section 5
+      docs: move pack format docs to man section 5
+      docs: move cruft pack docs to gitformat-pack
+      docs: move http-protocol docs to man section 5
+      Makefile + hash.h: remove PPC_SHA1 implementation
+      Makefile: use $(OBJECTS) instead of $(C_OBJ)
+      git-compat-util.h: use "UNUSED", not "UNUSED(var)"
+      git-compat-util.h: use "deprecated" for UNUSED variables
+      submodule tests: test usage behavior
+      submodule tests: test for "add <repository> <abs-path>"
+      submodule--helper: remove unused "name" helper
+      submodule--helper: remove unused "list" helper
+      test-tool submodule-config: remove unused "--url" handling
+      submodule--helper: move "is-active" to a test-tool
+      submodule--helper: move "check-name" to a test-tool
+      submodule--helper: move "resolve-relative-url-test" to a test-tool
+      submodule--helper style: don't separate declared variables with \n\n
+      submodule--helper style: add \n\n after variable declarations
+      submodule--helper: replace memset() with { 0 }-initialization
+      submodule--helper: use xstrfmt() in clone_submodule()
+      submodule--helper: move "sb" in clone_submodule() to its own scope
+      submodule--helper: add "const" to passed "module_clone_data"
+      submodule--helper: add "const" to passed "struct update_data"
+      submodule--helper: don't redundantly check "else if (res)"
+      submodule--helper: rename "int res" to "int ret"
+      submodule--helper: return "ret", not "1" from update_submodule()
+      submodule--helper: add missing braces to "else" arm
+      submodule--helper: don't call submodule_strategy_to_string() in BUG()
+      submodule API: don't handle SM_..{UNSPECIFIED,COMMAND} in to_string()
+      submodule--helper: use "code" in run_update_command()
+      submodule--helper: don't exit() on failure, return
+      submodule--helper: libify determine_submodule_update_strategy()
+      submodule--helper: libify "must_die_on_failure" code paths
+      submodule--helper update: don't override 'checkout' exit code
+      submodule--helper: libify "must_die_on_failure" code paths (for die)
+      submodule--helper: check repo{_submodule,}_init() return values
+      submodule--helper: libify more "die" paths for module_update()
+      submodule--helper: libify even more "die" paths for module_update()
+      submodule--helper: fix bad config API usage
+      submodule--helper: fix a leak in "clone_submodule"
+      submodule--helper: fix trivial get_default_remote_submodule() leak
+      submodule--helper: fix most "struct pathspec" memory leaks
+      submodule--helper: "struct pathspec" memory leak in module_update()
+      submodule--helper: don't leak {run,capture}_command() cp.dir argument
+      submodule--helper: add and use *_release() functions
+      submodule--helper: fix "errmsg_str" memory leak
+      submodule--helper: fix "sm_path" and other "module_cb_list" leaks
+      submodule--helper: fix a leak with repo_clear()
+      submodule--helper: fix a memory leak in get_default_remote_submodule()
+      submodule--helper: fix "reference" leak
+      submodule--helper: fix obscure leak in module_add()
+      submodule--helper: fix a leak in module_add()
+      submodule--helper: fix a memory leak in print_status()
+      submodule--helper: free some "displaypath" in "struct update_data"
+      submodule--helper: free rest of "displaypath" in "struct update_data"
+      submodule--helper: fix a configure_added_submodule() leak
+      docs: add and use include template for config/* includes
+      grep docs: de-duplicate configuration sections
+      send-email docs: de-duplicate configuration sections
+      apply docs: de-duplicate configuration sections
+      notes docs: de-duplicate and combine configuration sections
+      difftool docs: de-duplicate configuration sections
+      log docs: de-duplicate configuration sections
+      docs: add CONFIGURATION sections that map to a built-in
+      docs: add CONFIGURATION sections that fuzzy map to built-ins
+
+Øystein Walle (1):
+      rev-parse --parseopt: detect missing opt-spec
+
+
+Version v2.37.4; changes since v2.37.3:
+---------------------------------------
+
+Anthony Delannoy (1):
+      preload-index: fix memleak
+
+Derrick Stolee (1):
+      ci: update 'static-analysis' to Ubuntu 22.04
+
+Elijah Newren (1):
+      merge: only apply autostash when appropriate
+
+Jeff King (8):
+      is_promisor_object(): fix use-after-free of tree buffer
+      compat: add function to enable nonblocking pipes
+      git-compat-util: make MAX_IO_SIZE define globally available
+      pipe_command(): avoid xwrite() for writing to pipe
+      pipe_command(): handle ENOSPC when writing to a pipe
+      pipe_command(): mark stdin descriptor as non-blocking
+      shell: add basic tests
+      shell: limit size of interactive commands
+
+Junio C Hamano (1):
+      Merge a handful of topics from the 'master' front
+
+Kevin Backhouse (1):
+      alias.c: reject too-long cmdline strings in split_cmdline()
+
+René Scharfe (1):
+      nonblock: support Windows
+
+SZEDER Gábor (1):
+      promisor-remote: fix xcalloc() argument order
+
+Taylor Blau (30):
+      builtin/clone.c: disallow `--local` clones with symlinks
+      t/lib-submodule-update.sh: allow local submodules
+      t/t1NNN: allow local submodules
+      t/2NNNN: allow local submodules
+      t/t3NNN: allow local submodules
+      t/t4NNN: allow local submodules
+      t/t5NNN: allow local submodules
+      t/t6NNN: allow local submodules
+      t/t7NNN: allow local submodules
+      t/t9NNN: allow local submodules
+      transport: make `protocol.file.allow` be "user" by default
+      t1092: prepare for changing protocol.file.allow
+      t2080: prepare for changing protocol.file.allow
+      t1092: prepare for changing protocol.file.allow
+      t2080: prepare for changing protocol.file.allow
+      t3207: prepare for changing protocol.file.allow
+      t5516: prepare for changing protocol.file.allow
+      t5537: prepare for changing protocol.file.allow
+      t7814: prepare for changing protocol.file.allow
+      t3206: prepare for changing protocol.file.allow
+      t5537: prepare for changing protocol.file.allow
+      Git 2.30.6
+      Git 2.31.5
+      Git 2.32.4
+      Git 2.33.5
+      Git 2.34.5
+      Git 2.35.5
+      Git 2.36.3
+      t7527: prepare for changing protocol.file.allow
+      Git 2.37.4
+
+
+Version v2.37.3; changes since v2.37.2:
+---------------------------------------
+
+Carlo Marcelo Arenas Belón (1):
+      cmake: support local installations of git
+
+Felipe Contreras (7):
+      mergetools: vimdiff: fix comment
+      mergetools: vimdiff: make vimdiff3 actually work
+      mergetools: vimdiff: silence annoying messages
+      mergetools: vimdiff: fix for diffopt
+      mergetools: vimdiff: rework tab logic
+      mergetools: vimdiff: fix single window layouts
+      mergetools: vimdiff: simplify tabfirst
+
+Glen Choo (1):
+      Documentation/git-reflog: remove unneeded \ from \{
+
+Jeff King (4):
+      config.mak.dev: squelch -Wno-missing-braces for older gcc
+      tree-walk: add a mechanism for getting non-canonicalized modes
+      fsck: actually detect bad file modes in trees
+      fsck: downgrade tree badFilemode to "info"
+
+Johannes Schindelin (11):
+      windows: include the Python bits when building Git for Windows
+      mingw: remove unneeded `NO_GETTEXT` directive
+      mingw: remove unneeded `NO_CURL` directive
+      lstat(mingw): correctly detect ENOTDIR scenarios
+      merge-ort: clean up after failed merge
+      merge-ort: do leave trace2 region even if checkout fails
+      setup: fix some formatting
+      setup: prepare for more detailed "dubious ownership" messages
+      mingw: provide details about unsafe directories' ownership
+      mingw: be more informative when ownership check fails on FAT32
+      mingw: handle a file owned by the Administrators group correctly
+
+Junio C Hamano (2):
+      A handful more topics from the 'master' front for 2.37.3
+      Git 2.37.3
+
+Philip Oakley (1):
+      doc add: renormalize is not idempotent for CRCRLF
+
+Phillip Wood (1):
+      tests: cache glibc version check
+
+Victoria Dye (4):
+      checkout: fix nested sparse directory diff in sparse index
+      oneway_diff: handle removed sparse directories
+      cache.h: create 'index_name_pos_sparse()'
+      unpack-trees: unpack new trees as sparse directories
+
+Ævar Arnfjörð Bjarmason (1):
+      hook API: don't segfault on strbuf_addf() to NULL "out"
+
+
 Version v2.37.2; changes since v2.37.1:
 ---------------------------------------
 
@@ -272,7 +1172,7 @@ Philip Oakley (4):
       tests: add LIBCURL prerequisite to tests needing libcurl
 
 
-Version v2.37.0-rc0; changes since v2.36.2:
+Version v2.37.0-rc0; changes since v2.36.3:
 -------------------------------------------
 
 Abhradeep Chakraborty (1):
@@ -663,6 +1563,45 @@ halilsen (2):
       hook API: fix v2.36.0 regression: hooks should be connected to a TTY
 
 
+Version v2.36.3; changes since v2.36.2:
+---------------------------------------
+
+Jeff King (2):
+      shell: add basic tests
+      shell: limit size of interactive commands
+
+Kevin Backhouse (1):
+      alias.c: reject too-long cmdline strings in split_cmdline()
+
+Taylor Blau (26):
+      builtin/clone.c: disallow `--local` clones with symlinks
+      t/lib-submodule-update.sh: allow local submodules
+      t/t1NNN: allow local submodules
+      t/2NNNN: allow local submodules
+      t/t3NNN: allow local submodules
+      t/t4NNN: allow local submodules
+      t/t5NNN: allow local submodules
+      t/t6NNN: allow local submodules
+      t/t7NNN: allow local submodules
+      t/t9NNN: allow local submodules
+      transport: make `protocol.file.allow` be "user" by default
+      t1092: prepare for changing protocol.file.allow
+      t2080: prepare for changing protocol.file.allow
+      t1092: prepare for changing protocol.file.allow
+      t2080: prepare for changing protocol.file.allow
+      t3207: prepare for changing protocol.file.allow
+      t5516: prepare for changing protocol.file.allow
+      t5537: prepare for changing protocol.file.allow
+      t7814: prepare for changing protocol.file.allow
+      Git 2.30.6
+      Git 2.31.5
+      Git 2.32.4
+      Git 2.33.5
+      Git 2.34.5
+      Git 2.35.5
+      Git 2.36.3
+
+
 Version v2.36.2; changes since v2.36.1:
 ---------------------------------------
 
@@ -866,7 +1805,7 @@ Victoria Dye (1):
       ls-tree doc: document interaction with submodules
 
 
-Version v2.36.0-rc0; changes since v2.35.4:
+Version v2.36.0-rc0; changes since v2.35.5:
 -------------------------------------------
 
 Abhradeep Chakraborty (2):
@@ -1645,6 +2584,40 @@ brian m. carlson (6):
       reftable: make assignments portable to AIX xlc v12.01
 
 
+Version v2.35.5; changes since v2.35.4:
+---------------------------------------
+
+Jeff King (2):
+      shell: add basic tests
+      shell: limit size of interactive commands
+
+Kevin Backhouse (1):
+      alias.c: reject too-long cmdline strings in split_cmdline()
+
+Taylor Blau (21):
+      builtin/clone.c: disallow `--local` clones with symlinks
+      t/lib-submodule-update.sh: allow local submodules
+      t/t1NNN: allow local submodules
+      t/2NNNN: allow local submodules
+      t/t3NNN: allow local submodules
+      t/t4NNN: allow local submodules
+      t/t5NNN: allow local submodules
+      t/t6NNN: allow local submodules
+      t/t7NNN: allow local submodules
+      t/t9NNN: allow local submodules
+      transport: make `protocol.file.allow` be "user" by default
+      t1092: prepare for changing protocol.file.allow
+      t2080: prepare for changing protocol.file.allow
+      t1092: prepare for changing protocol.file.allow
+      t2080: prepare for changing protocol.file.allow
+      Git 2.30.6
+      Git 2.31.5
+      Git 2.32.4
+      Git 2.33.5
+      Git 2.34.5
+      Git 2.35.5
+
+
 Version v2.35.4; changes since v2.35.3:
 ---------------------------------------
 
@@ -1818,7 +2791,7 @@ Taylor Blau (1):
       reftable tests: avoid "int" overflow, use "uint64_t"
 
 
-Version v2.35.0-rc0; changes since v2.34.4:
+Version v2.35.0-rc0; changes since v2.34.5:
 -------------------------------------------
 
 Alex Henrie (1):
@@ -2377,6 +3350,37 @@ brian m. carlson (1):
       am: support --allow-empty to record specific empty patches
 
 
+Version v2.34.5; changes since v2.34.4:
+---------------------------------------
+
+Jeff King (2):
+      shell: add basic tests
+      shell: limit size of interactive commands
+
+Kevin Backhouse (1):
+      alias.c: reject too-long cmdline strings in split_cmdline()
+
+Taylor Blau (18):
+      builtin/clone.c: disallow `--local` clones with symlinks
+      t/lib-submodule-update.sh: allow local submodules
+      t/t1NNN: allow local submodules
+      t/2NNNN: allow local submodules
+      t/t3NNN: allow local submodules
+      t/t4NNN: allow local submodules
+      t/t5NNN: allow local submodules
+      t/t6NNN: allow local submodules
+      t/t7NNN: allow local submodules
+      t/t9NNN: allow local submodules
+      transport: make `protocol.file.allow` be "user" by default
+      t1092: prepare for changing protocol.file.allow
+      t2080: prepare for changing protocol.file.allow
+      Git 2.30.6
+      Git 2.31.5
+      Git 2.32.4
+      Git 2.33.5
+      Git 2.34.5
+
+
 Version v2.34.4; changes since v2.34.3:
 ---------------------------------------
 
@@ -2601,7 +3605,7 @@ René Scharfe (2):
       commit-graph: don't consider "replace" objects with "verify"
 
 
-Version v2.34.0-rc0; changes since v2.33.4:
+Version v2.34.0-rc0; changes since v2.33.5:
 -------------------------------------------
 
 Atharva Raykar (11):
@@ -3329,6 +4333,36 @@ brian m. carlson (1):
       reflog: free() ref given to us by dwim_log()
 
 
+Version v2.33.5; changes since v2.33.4:
+---------------------------------------
+
+Jeff King (2):
+      shell: add basic tests
+      shell: limit size of interactive commands
+
+Kevin Backhouse (1):
+      alias.c: reject too-long cmdline strings in split_cmdline()
+
+Taylor Blau (17):
+      builtin/clone.c: disallow `--local` clones with symlinks
+      t/lib-submodule-update.sh: allow local submodules
+      t/t1NNN: allow local submodules
+      t/2NNNN: allow local submodules
+      t/t3NNN: allow local submodules
+      t/t4NNN: allow local submodules
+      t/t5NNN: allow local submodules
+      t/t6NNN: allow local submodules
+      t/t7NNN: allow local submodules
+      t/t9NNN: allow local submodules
+      transport: make `protocol.file.allow` be "user" by default
+      t1092: prepare for changing protocol.file.allow
+      t2080: prepare for changing protocol.file.allow
+      Git 2.30.6
+      Git 2.31.5
+      Git 2.32.4
+      Git 2.33.5
+
+
 Version v2.33.4; changes since v2.33.3:
 ---------------------------------------
 
@@ -3778,7 +4812,7 @@ Thomas Bétous (1):
       t0001: fix broken not-quite getcwd(3) test in bed67874e2
 
 
-Version v2.33.0-rc0; changes since v2.32.3:
+Version v2.33.0-rc0; changes since v2.32.4:
 -------------------------------------------
 
 Alex Henrie (6):
@@ -4228,6 +5262,35 @@ edef (1):
       t6402: preserve git exit status code
 
 
+Version v2.32.4; changes since v2.32.3:
+---------------------------------------
+
+Jeff King (2):
+      shell: add basic tests
+      shell: limit size of interactive commands
+
+Kevin Backhouse (1):
+      alias.c: reject too-long cmdline strings in split_cmdline()
+
+Taylor Blau (16):
+      builtin/clone.c: disallow `--local` clones with symlinks
+      t/lib-submodule-update.sh: allow local submodules
+      t/t1NNN: allow local submodules
+      t/2NNNN: allow local submodules
+      t/t3NNN: allow local submodules
+      t/t4NNN: allow local submodules
+      t/t5NNN: allow local submodules
+      t/t6NNN: allow local submodules
+      t/t7NNN: allow local submodules
+      t/t9NNN: allow local submodules
+      transport: make `protocol.file.allow` be "user" by default
+      t1092: prepare for changing protocol.file.allow
+      t2080: prepare for changing protocol.file.allow
+      Git 2.30.6
+      Git 2.31.5
+      Git 2.32.4
+
+
 Version v2.32.3; changes since v2.32.2:
 ---------------------------------------
 
@@ -4437,7 +5500,7 @@ ZheNing Hu (1):
       Makefile: make PERL_DEFINES recursively expanded
 
 
-Version v2.32.0-rc0; changes since v2.31.4:
+Version v2.32.0-rc0; changes since v2.31.5:
 -------------------------------------------
 
 Adam Dinwoodie (1):
@@ -5087,6 +6150,32 @@ brian m. carlson (14):
       am: learn to process quoted lines that ends with CRLF
 
 
+Version v2.31.5; changes since v2.31.4:
+---------------------------------------
+
+Jeff King (2):
+      shell: add basic tests
+      shell: limit size of interactive commands
+
+Kevin Backhouse (1):
+      alias.c: reject too-long cmdline strings in split_cmdline()
+
+Taylor Blau (13):
+      builtin/clone.c: disallow `--local` clones with symlinks
+      t/lib-submodule-update.sh: allow local submodules
+      t/t1NNN: allow local submodules
+      t/2NNNN: allow local submodules
+      t/t3NNN: allow local submodules
+      t/t4NNN: allow local submodules
+      t/t5NNN: allow local submodules
+      t/t6NNN: allow local submodules
+      t/t7NNN: allow local submodules
+      t/t9NNN: allow local submodules
+      transport: make `protocol.file.allow` be "user" by default
+      Git 2.30.6
+      Git 2.31.5
+
+
 Version v2.31.4; changes since v2.31.3:
 ---------------------------------------
 
@@ -5364,7 +6453,7 @@ Taylor Blau (1):
       commit-graph.c: display correct number of chunks when writing
 
 
-Version v2.31.0-rc0; changes since v2.30.5:
+Version v2.31.0-rc0; changes since v2.30.6:
 -------------------------------------------
 
 Abhishek Kumar (11):
@@ -5958,6 +7047,31 @@ brian m. carlson (8):
       test libs: rename "diff-lib" to "lib-diff"
       test-lib-functions: remove bug-inducing "diagnostics" helper param
       test-lib-functions: assert correct parameter count
+
+
+Version v2.30.6; changes since v2.30.5:
+---------------------------------------
+
+Jeff King (2):
+      shell: add basic tests
+      shell: limit size of interactive commands
+
+Kevin Backhouse (1):
+      alias.c: reject too-long cmdline strings in split_cmdline()
+
+Taylor Blau (12):
+      builtin/clone.c: disallow `--local` clones with symlinks
+      t/lib-submodule-update.sh: allow local submodules
+      t/t1NNN: allow local submodules
+      t/2NNNN: allow local submodules
+      t/t3NNN: allow local submodules
+      t/t4NNN: allow local submodules
+      t/t5NNN: allow local submodules
+      t/t6NNN: allow local submodules
+      t/t7NNN: allow local submodules
+      t/t9NNN: allow local submodules
+      transport: make `protocol.file.allow` be "user" by default
+      Git 2.30.6
 
 
 Version v2.30.5; changes since v2.30.4:
