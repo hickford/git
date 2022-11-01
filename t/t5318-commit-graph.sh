@@ -12,12 +12,12 @@ test_expect_success 'usage' '
 
 test_expect_success 'usage shown without sub-command' '
 	test_expect_code 129 git commit-graph 2>err &&
-	! grep error: err
+	grep usage: err
 '
 
 test_expect_success 'usage shown with an error on unknown sub-command' '
 	cat >expect <<-\EOF &&
-	error: unrecognized subcommand: unknown
+	error: unknown subcommand: `unknown'\''
 	EOF
 	test_expect_code 129 git commit-graph unknown 2>stderr &&
 	grep error stderr >actual &&
@@ -361,13 +361,14 @@ test_expect_success 'replace-objects invalidates commit-graph' '
 test_expect_success 'commit grafts invalidate commit-graph' '
 	cd "$TRASH_DIRECTORY" &&
 	test_when_finished rm -rf graft &&
-	git clone full graft &&
+	git clone --template= full graft &&
 	(
 		cd graft &&
 		git commit-graph write --reachable &&
 		test_path_is_file .git/objects/info/commit-graph &&
 		H1=$(git rev-parse --verify HEAD~1) &&
 		H3=$(git rev-parse --verify HEAD~3) &&
+		mkdir .git/info &&
 		echo "$H1 $H3" >.git/info/grafts &&
 		git -c core.commitGraph=false log >expect &&
 		git -c core.commitGraph=true log >actual &&

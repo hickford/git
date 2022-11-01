@@ -329,8 +329,9 @@ static int check_and_set_terms(struct bisect_terms *terms, const char *cmd)
 	return 0;
 }
 
-static int inc_nr(const char *refname, const struct object_id *oid,
-		  int flag, void *cb_data)
+static int inc_nr(const char *refname UNUSED,
+		  const struct object_id *oid UNUSED,
+		  int flag UNUSED, void *cb_data)
 {
 	unsigned int *nr = (unsigned int *)cb_data;
 	(*nr)++;
@@ -518,7 +519,7 @@ finish:
 }
 
 static int add_bisect_ref(const char *refname, const struct object_id *oid,
-			  int flags, void *cb)
+			  int flags UNUSED, void *cb)
 {
 	struct add_bisect_ref_data *data = cb;
 
@@ -1134,8 +1135,9 @@ static int bisect_visualize(struct bisect_terms *terms, const char **argv, int a
 	return res;
 }
 
-static int get_first_good(const char *refname, const struct object_id *oid,
-			  int flag, void *cb_data)
+static int get_first_good(const char *refname UNUSED,
+			  const struct object_id *oid,
+			  int flag UNUSED, void *cb_data)
 {
 	oidcpy(cb_data, oid);
 	return 1;
@@ -1324,7 +1326,7 @@ int cmd_bisect__helper(int argc, const char **argv, const char *prefix)
 
 	argc = parse_options(argc, argv, prefix, options,
 			     git_bisect_helper_usage,
-			     PARSE_OPT_KEEP_DASHDASH | PARSE_OPT_KEEP_UNKNOWN);
+			     PARSE_OPT_KEEP_DASHDASH | PARSE_OPT_KEEP_UNKNOWN_OPT);
 
 	if (!cmdmode)
 		usage_with_options(git_bisect_helper_usage, options);
