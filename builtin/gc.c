@@ -42,7 +42,7 @@ static const char * const builtin_gc_usage[] = {
 
 static int pack_refs = 1;
 static int prune_reflogs = 1;
-static int cruft_packs = 0;
+static int cruft_packs = -1;
 static int aggressive_depth = 50;
 static int aggressive_window = 250;
 static int gc_auto_threshold = 6700;
@@ -167,16 +167,11 @@ static void gc_config(void)
 struct maintenance_run_opts;
 static int maintenance_task_pack_refs(MAYBE_UNUSED struct maintenance_run_opts *opts)
 {
-	struct strvec pack_refs_cmd = STRVEC_INIT;
-	int ret;
+	struct child_process cmd = CHILD_PROCESS_INIT;
 
-	strvec_pushl(&pack_refs_cmd, "pack-refs", "--all", "--prune", NULL);
-
-	ret = run_command_v_opt(pack_refs_cmd.v, RUN_GIT_CMD);
-
-	strvec_clear(&pack_refs_cmd);
-
-	return ret;
+	cmd.git_cmd = 1;
+	strvec_pushl(&cmd.args, "pack-refs", "--all", "--prune", NULL);
+	return run_command(&cmd);
 }
 
 static int too_many_loose_objects(void)
@@ -329,7 +324,7 @@ static uint64_t estimate_repack_memory(struct packed_git *pack)
 	return os_cache + heap;
 }
 
-static int keep_one_pack(struct string_list_item *item, void *data)
+static int keep_one_pack(struct string_list_item *item, void *data UNUSED)
 {
 	strvec_pushf(&repack, "--keep-pack=%s", basename(item->string));
 	return 0;
@@ -542,8 +537,14 @@ static void gc_before_repack(void)
 	if (pack_refs && maintenance_task_pack_refs(NULL))
 		die(FAILED_RUN, "pack-refs");
 
-	if (prune_reflogs && run_command_v_opt(reflog.v, RUN_GIT_CMD))
-		die(FAILED_RUN, reflog.v[0]);
+	if (prune_reflogs) {
+		struct child_process cmd = CHILD_PROCESS_INIT;
+
+		cmd.git_cmd = 1;
+		strvec_pushv(&cmd.args, reflog.v);
+		if (run_command(&cmd))
+			die(FAILED_RUN, reflog.v[0]);
+	}
 }
 
 int cmd_gc(int argc, const char **argv, const char *prefix)
@@ -557,6 +558,7 @@ int cmd_gc(int argc, const char **argv, const char *prefix)
 	int daemonized = 0;
 	int keep_largest_pack = -1;
 	timestamp_t dummy;
+	struct child_process rerere_cmd = CHILD_PROCESS_INIT;
 
 	struct option builtin_gc_options[] = {
 		OPT__QUIET(&quiet, N_("suppress progress reporting")),
@@ -599,6 +601,10 @@ int cmd_gc(int argc, const char **argv, const char *prefix)
 
 	if (prune_expire && parse_expiry_date(prune_expire, &dummy))
 		die(_("failed to parse prune expiry value %s"), prune_expire);
+
+	prepare_repo_settings(the_repository);
+	if (cruft_packs < 0)
+		cruft_packs = the_repository->settings.gc_cruft_packs;
 
 	if (aggressive) {
 		strvec_push(&repack, "-f");
@@ -678,11 +684,17 @@ int cmd_gc(int argc, const char **argv, const char *prefix)
 	gc_before_repack();
 
 	if (!repository_format_precious_objects) {
-		if (run_command_v_opt(repack.v,
-				      RUN_GIT_CMD | RUN_CLOSE_OBJECT_STORE))
+		struct child_process repack_cmd = CHILD_PROCESS_INIT;
+
+		repack_cmd.git_cmd = 1;
+		repack_cmd.close_object_store = 1;
+		strvec_pushv(&repack_cmd.args, repack.v);
+		if (run_command(&repack_cmd))
 			die(FAILED_RUN, repack.v[0]);
 
 		if (prune_expire) {
+			struct child_process prune_cmd = CHILD_PROCESS_INIT;
+
 			/* run `git prune` even if using cruft packs */
 			strvec_push(&prune, prune_expire);
 			if (quiet)
@@ -690,18 +702,26 @@ int cmd_gc(int argc, const char **argv, const char *prefix)
 			if (has_promisor_remote())
 				strvec_push(&prune,
 					    "--exclude-promisor-objects");
-			if (run_command_v_opt(prune.v, RUN_GIT_CMD))
+			prune_cmd.git_cmd = 1;
+			strvec_pushv(&prune_cmd.args, prune.v);
+			if (run_command(&prune_cmd))
 				die(FAILED_RUN, prune.v[0]);
 		}
 	}
 
 	if (prune_worktrees_expire) {
+		struct child_process prune_worktrees_cmd = CHILD_PROCESS_INIT;
+
 		strvec_push(&prune_worktrees, prune_worktrees_expire);
-		if (run_command_v_opt(prune_worktrees.v, RUN_GIT_CMD))
+		prune_worktrees_cmd.git_cmd = 1;
+		strvec_pushv(&prune_worktrees_cmd.args, prune_worktrees.v);
+		if (run_command(&prune_worktrees_cmd))
 			die(FAILED_RUN, prune_worktrees.v[0]);
 	}
 
-	if (run_command_v_opt(rerere.v, RUN_GIT_CMD))
+	rerere_cmd.git_cmd = 1;
+	strvec_pushv(&rerere_cmd.args, rerere.v);
+	if (run_command(&rerere_cmd))
 		die(FAILED_RUN, rerere.v[0]);
 
 	report_garbage = report_pack_garbage;
@@ -711,7 +731,6 @@ int cmd_gc(int argc, const char **argv, const char *prefix)
 		clean_pack_garbage();
 	}
 
-	prepare_repo_settings(the_repository);
 	if (the_repository->settings.gc_write_commit_graph == 1)
 		write_commit_graph_reachable(the_repository->objects->odb,
 					     !quiet && !daemonized ? COMMIT_GRAPH_WRITE_PROGRESS : 0,
@@ -1461,20 +1480,23 @@ static char *get_maintpath(void)
 }
 
 static char const * const builtin_maintenance_register_usage[] = {
-	"git maintenance register",
+	"git maintenance register [--config-file <path>]",
 	NULL
 };
 
 static int maintenance_register(int argc, const char **argv, const char *prefix)
 {
+	char *config_file = NULL;
 	struct option options[] = {
+		OPT_STRING(0, "config-file", &config_file, N_("file"), N_("use given config file")),
 		OPT_END(),
 	};
-	int rc;
+	int found = 0;
+	const char *key = "maintenance.repo";
 	char *config_value;
-	struct child_process config_set = CHILD_PROCESS_INIT;
-	struct child_process config_get = CHILD_PROCESS_INIT;
 	char *maintpath = get_maintpath();
+	struct string_list_item *item;
+	const struct string_list *list;
 
 	argc = parse_options(argc, argv, prefix, options,
 			     builtin_maintenance_register_usage, 0);
@@ -1491,46 +1513,63 @@ static int maintenance_register(int argc, const char **argv, const char *prefix)
 	else
 		git_config_set("maintenance.strategy", "incremental");
 
-	config_get.git_cmd = 1;
-	strvec_pushl(&config_get.args, "config", "--global", "--get",
-		     "--fixed-value", "maintenance.repo", maintpath, NULL);
-	config_get.out = -1;
-
-	if (start_command(&config_get)) {
-		rc = error(_("failed to run 'git config'"));
-		goto done;
+	list = git_config_get_value_multi(key);
+	if (list) {
+		for_each_string_list_item(item, list) {
+			if (!strcmp(maintpath, item->string)) {
+				found = 1;
+				break;
+			}
+		}
 	}
 
-	/* We already have this value in our config! */
-	if (!finish_command(&config_get)) {
-		rc = 0;
-		goto done;
+	if (!found) {
+		int rc;
+		char *user_config = NULL, *xdg_config = NULL;
+
+		if (!config_file) {
+			git_global_config(&user_config, &xdg_config);
+			config_file = user_config;
+			if (!user_config)
+				die(_("$HOME not set"));
+		}
+		rc = git_config_set_multivar_in_file_gently(
+			config_file, "maintenance.repo", maintpath,
+			CONFIG_REGEX_NONE, 0);
+		free(user_config);
+		free(xdg_config);
+
+		if (rc)
+			die(_("unable to add '%s' value of '%s'"),
+			    key, maintpath);
 	}
 
-	config_set.git_cmd = 1;
-	strvec_pushl(&config_set.args, "config", "--add", "--global", "maintenance.repo",
-		     maintpath, NULL);
-
-	rc = run_command(&config_set);
-
-done:
 	free(maintpath);
-	return rc;
+	return 0;
 }
 
 static char const * const builtin_maintenance_unregister_usage[] = {
-	"git maintenance unregister",
+	"git maintenance unregister [--config-file <path>] [--force]",
 	NULL
 };
 
 static int maintenance_unregister(int argc, const char **argv, const char *prefix)
 {
+	int force = 0;
+	char *config_file = NULL;
 	struct option options[] = {
+		OPT_STRING(0, "config-file", &config_file, N_("file"), N_("use given config file")),
+		OPT__FORCE(&force,
+			   N_("return success even if repository was not registered"),
+			   PARSE_OPT_NOCOMPLETE),
 		OPT_END(),
 	};
-	int rc;
-	struct child_process config_unset = CHILD_PROCESS_INIT;
+	const char *key = "maintenance.repo";
 	char *maintpath = get_maintpath();
+	int found = 0;
+	struct string_list_item *item;
+	const struct string_list *list;
+	struct config_set cs = { { 0 } };
 
 	argc = parse_options(argc, argv, prefix, options,
 			     builtin_maintenance_unregister_usage, 0);
@@ -1538,13 +1577,48 @@ static int maintenance_unregister(int argc, const char **argv, const char *prefi
 		usage_with_options(builtin_maintenance_unregister_usage,
 				   options);
 
-	config_unset.git_cmd = 1;
-	strvec_pushl(&config_unset.args, "config", "--global", "--unset",
-		     "--fixed-value", "maintenance.repo", maintpath, NULL);
+	if (config_file) {
+		git_configset_init(&cs);
+		git_configset_add_file(&cs, config_file);
+		list = git_configset_get_value_multi(&cs, key);
+	} else {
+		list = git_config_get_value_multi(key);
+	}
+	if (list) {
+		for_each_string_list_item(item, list) {
+			if (!strcmp(maintpath, item->string)) {
+				found = 1;
+				break;
+			}
+		}
+	}
 
-	rc = run_command(&config_unset);
+	if (found) {
+		int rc;
+		char *user_config = NULL, *xdg_config = NULL;
+		if (!config_file) {
+			git_global_config(&user_config, &xdg_config);
+			config_file = user_config;
+			if (!user_config)
+				die(_("$HOME not set"));
+		}
+		rc = git_config_set_multivar_in_file_gently(
+			config_file, key, NULL, maintpath,
+			CONFIG_FLAGS_MULTI_REPLACE | CONFIG_FLAGS_FIXED_VALUE);
+		free(user_config);
+		free(xdg_config);
+
+		if (rc &&
+		    (!force || rc == CONFIG_NOTHING_SET))
+			die(_("unable to unset '%s' value of '%s'"),
+			    key, maintpath);
+	} else if (!force) {
+		die(_("repository '%s' is not registered"), maintpath);
+	}
+
+	git_configset_clear(&cs);
 	free(maintpath);
-	return rc;
+	return 0;
 }
 
 static const char *get_frequency(enum schedule_priority schedule)
@@ -1881,20 +1955,16 @@ static char *schtasks_task_name(const char *frequency)
 static int schtasks_remove_task(enum schedule_priority schedule)
 {
 	const char *cmd = "schtasks";
-	int result;
-	struct strvec args = STRVEC_INIT;
+	struct child_process child = CHILD_PROCESS_INIT;
 	const char *frequency = get_frequency(schedule);
 	char *name = schtasks_task_name(frequency);
 
 	get_schedule_cmd(&cmd, NULL);
-	strvec_split(&args, cmd);
-	strvec_pushl(&args, "/delete", "/tn", name, "/f", NULL);
-
-	result = run_command_v_opt(args.v, 0);
-
-	strvec_clear(&args);
+	strvec_split(&child.args, cmd);
+	strvec_pushl(&child.args, "/delete", "/tn", name, "/f", NULL);
 	free(name);
-	return result;
+
+	return run_command(&child);
 }
 
 static int schtasks_remove_tasks(void)

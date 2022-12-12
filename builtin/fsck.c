@@ -1,4 +1,4 @@
-#define USE_THE_INDEX_COMPATIBILITY_MACROS
+#define USE_THE_INDEX_VARIABLE
 #include "builtin.h"
 #include "cache.h"
 #include "repository.h"
@@ -228,6 +228,8 @@ static void mark_unreachable_referents(const struct object_id *oid)
 
 	options.walk = mark_used;
 	fsck_walk(obj, NULL, &options);
+	if (obj->type == OBJ_TREE)
+		free_tree_buffer((struct tree *)obj);
 }
 
 static int mark_loose_unreachable_referents(const struct object_id *oid,
@@ -437,9 +439,6 @@ static int fsck_obj(struct object *obj, void *buffer, unsigned long size)
 out:
 	if (obj->type == OBJ_TREE)
 		free_tree_buffer((struct tree *)obj);
-	if (obj->type == OBJ_COMMIT)
-		free_commit_buffer(the_repository->parsed_objects,
-				   (struct commit *)obj);
 	return err;
 }
 
@@ -821,7 +820,10 @@ static int mark_packed_for_connectivity(const struct object_id *oid,
 }
 
 static char const * const fsck_usage[] = {
-	N_("git fsck [<options>] [<object>...]"),
+	N_("git fsck [--tags] [--root] [--unreachable] [--cache] [--no-reflogs]\n"
+	   "         [--[no-]full] [--strict] [--verbose] [--lost-found]\n"
+	   "         [--[no-]dangling] [--[no-]progress] [--connectivity-only]\n"
+	   "         [--[no-]name-objects] [<object>...]"),
 	NULL
 };
 
@@ -853,6 +855,7 @@ int cmd_fsck(int argc, const char **argv, const char *prefix)
 
 	errors_found = 0;
 	read_replace_refs = 0;
+	save_commit_buffer = 0;
 
 	argc = parse_options(argc, argv, prefix, fsck_opts, fsck_usage, 0);
 
@@ -955,29 +958,29 @@ int cmd_fsck(int argc, const char **argv, const char *prefix)
 	if (keep_cache_objects) {
 		verify_index_checksum = 1;
 		verify_ce_order = 1;
-		read_cache();
+		repo_read_index(the_repository);
 		/* TODO: audit for interaction with sparse-index. */
 		ensure_full_index(&the_index);
-		for (i = 0; i < active_nr; i++) {
+		for (i = 0; i < the_index.cache_nr; i++) {
 			unsigned int mode;
 			struct blob *blob;
 			struct object *obj;
 
-			mode = active_cache[i]->ce_mode;
+			mode = the_index.cache[i]->ce_mode;
 			if (S_ISGITLINK(mode))
 				continue;
 			blob = lookup_blob(the_repository,
-					   &active_cache[i]->oid);
+					   &the_index.cache[i]->oid);
 			if (!blob)
 				continue;
 			obj = &blob->object;
 			obj->flags |= USED;
 			fsck_put_object_name(&fsck_walk_options, &obj->oid,
-					     ":%s", active_cache[i]->name);
+					     ":%s", the_index.cache[i]->name);
 			mark_object_reachable(obj);
 		}
-		if (active_cache_tree)
-			fsck_cache_tree(active_cache_tree);
+		if (the_index.cache_tree)
+			fsck_cache_tree(the_index.cache_tree);
 		fsck_resolve_undo(&the_index);
 	}
 

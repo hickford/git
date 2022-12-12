@@ -1,4 +1,4 @@
-#define USE_THE_INDEX_COMPATIBILITY_MACROS
+#define USE_THE_INDEX_VARIABLE
 #include "builtin.h"
 #include "repository.h"
 #include "cache.h"
@@ -181,7 +181,7 @@ static void module_list_release(struct module_list *ml)
 	free(ml->entries);
 }
 
-static int module_list_compute(int argc, const char **argv,
+static int module_list_compute(const char **argv,
 			       const char *prefix,
 			       struct pathspec *pathspec,
 			       struct module_list *list)
@@ -196,11 +196,11 @@ static int module_list_compute(int argc, const char **argv,
 	if (pathspec->nr)
 		ps_matched = xcalloc(pathspec->nr, 1);
 
-	if (read_cache() < 0)
+	if (repo_read_index(the_repository) < 0)
 		die(_("index file corrupt"));
 
-	for (i = 0; i < active_nr; i++) {
-		const struct cache_entry *ce = active_cache[i];
+	for (i = 0; i < the_index.cache_nr; i++) {
+		const struct cache_entry *ce = the_index.cache[i];
 
 		if (!match_pathspec(&the_index, pathspec, ce->name, ce_namelen(ce),
 				    0, ps_matched, 1) ||
@@ -209,8 +209,8 @@ static int module_list_compute(int argc, const char **argv,
 
 		ALLOC_GROW(list->entries, list->nr + 1, list->alloc);
 		list->entries[list->nr++] = ce;
-		while (i + 1 < active_nr &&
-		       !strcmp(ce->name, active_cache[i + 1]->name))
+		while (i + 1 < the_index.cache_nr &&
+		       !strcmp(ce->name, the_index.cache[i + 1]->name))
 			/*
 			 * Skip entries with the same name in different stages
 			 * to make sure an entry is returned only once.
@@ -405,7 +405,7 @@ static int module_foreach(int argc, const char **argv, const char *prefix)
 	argc = parse_options(argc, argv, prefix, module_foreach_options,
 			     git_submodule_helper_usage, 0);
 
-	if (module_list_compute(0, NULL, prefix, &pathspec, &list) < 0)
+	if (module_list_compute(NULL, prefix, &pathspec, &list) < 0)
 		goto cleanup;
 
 	info.argc = argc;
@@ -545,7 +545,7 @@ static int module_init(int argc, const char **argv, const char *prefix)
 	argc = parse_options(argc, argv, prefix, module_init_options,
 			     git_submodule_helper_usage, 0);
 
-	if (module_list_compute(argc, argv, prefix, &pathspec, &list) < 0)
+	if (module_list_compute(argv, prefix, &pathspec, &list) < 0)
 		goto cleanup;
 
 	/*
@@ -616,6 +616,9 @@ static void status_submodule(const char *path, const struct object_id *ce_oid,
 	int diff_files_result;
 	struct strbuf buf = STRBUF_INIT;
 	const char *git_dir;
+	struct setup_revision_opt opt = {
+		.free_removed_argv_elements = 1,
+	};
 
 	if (!submodule_from_path(the_repository, null_oid(), path))
 		die(_("no submodule mapping found in .gitmodules for path '%s'"),
@@ -649,9 +652,7 @@ static void status_submodule(const char *path, const struct object_id *ce_oid,
 
 	repo_init_revisions(the_repository, &rev, NULL);
 	rev.abbrev = 0;
-	diff_files_args.nr = setup_revisions(diff_files_args.nr,
-					     diff_files_args.v,
-					     &rev, NULL);
+	setup_revisions(diff_files_args.nr, diff_files_args.v, &rev, &opt);
 	diff_files_result = run_diff_files(&rev, 0);
 
 	if (!diff_result_code(&rev.diffopt, diff_files_result)) {
@@ -732,7 +733,7 @@ static int module_status(int argc, const char **argv, const char *prefix)
 	argc = parse_options(argc, argv, prefix, module_status_options,
 			     git_submodule_helper_usage, 0);
 
-	if (module_list_compute(argc, argv, prefix, &pathspec, &list) < 0)
+	if (module_list_compute(argv, prefix, &pathspec, &list) < 0)
 		goto cleanup;
 
 	info.prefix = prefix;
@@ -1109,13 +1110,13 @@ static int compute_summary_module_list(struct object_id *head_oid,
 	if (!info->cached) {
 		if (diff_cmd == DIFF_INDEX)
 			setup_work_tree();
-		if (read_cache_preload(&rev.diffopt.pathspec) < 0) {
-			perror("read_cache_preload");
+		if (repo_read_index_preload(the_repository, &rev.diffopt.pathspec, 0) < 0) {
+			perror("repo_read_index_preload");
 			ret = -1;
 			goto cleanup;
 		}
-	} else if (read_cache() < 0) {
-		perror("read_cache");
+	} else if (repo_read_index(the_repository) < 0) {
+		perror("repo_read_cache");
 		ret = -1;
 		goto cleanup;
 	}
@@ -1326,7 +1327,7 @@ static int module_sync(int argc, const char **argv, const char *prefix)
 	argc = parse_options(argc, argv, prefix, module_sync_options,
 			     git_submodule_helper_usage, 0);
 
-	if (module_list_compute(argc, argv, prefix, &pathspec, &list) < 0)
+	if (module_list_compute(argv, prefix, &pathspec, &list) < 0)
 		goto cleanup;
 
 	info.prefix = prefix;
@@ -1378,8 +1379,7 @@ static void deinit_submodule(const char *path, const char *prefix,
 					  ".git file by using absorbgitdirs."),
 					displaypath);
 
-			absorb_git_dir_into_superproject(path,
-							 ABSORB_GITDIR_RECURSE_SUBMODULES);
+			absorb_git_dir_into_superproject(path);
 
 		}
 
@@ -1479,7 +1479,7 @@ static int module_deinit(int argc, const char **argv, const char *prefix)
 	if (!argc && !all)
 		die(_("Use '--all' if you really want to deinitialize all submodules"));
 
-	if (module_list_compute(argc, argv, prefix, &pathspec, &list) < 0)
+	if (module_list_compute(argv, prefix, &pathspec, &list) < 0)
 		goto cleanup;
 
 	info.prefix = prefix;
@@ -2567,12 +2567,20 @@ static int update_submodules(struct update_data *update_data)
 {
 	int i, ret = 0;
 	struct submodule_update_clone suc = SUBMODULE_UPDATE_CLONE_INIT;
+	const struct run_process_parallel_opts opts = {
+		.tr2_category = "submodule",
+		.tr2_label = "parallel/update",
+
+		.processes = update_data->max_jobs,
+
+		.get_next_task = update_clone_get_next_task,
+		.start_failure = update_clone_start_failure,
+		.task_finished = update_clone_task_finished,
+		.data = &suc,
+	};
 
 	suc.update_data = update_data;
-	run_processes_parallel_tr2(suc.update_data->max_jobs, update_clone_get_next_task,
-				   update_clone_start_failure,
-				   update_clone_task_finished, &suc, "submodule",
-				   "parallel/update");
+	run_processes_parallel(&opts);
 
 	/*
 	 * We saved the output and put it out all at once now.
@@ -2635,9 +2643,6 @@ static int module_update(int argc, const char **argv, const char *prefix)
 			 N_("traverse submodules recursively")),
 		OPT_BOOL('N', "no-fetch", &opt.nofetch,
 			 N_("don't fetch new objects from the remote site")),
-		OPT_STRING(0, "prefix", &opt.prefix,
-			   N_("path"),
-			   N_("path into the working tree")),
 		OPT_SET_INT(0, "checkout", &opt.update_default,
 			N_("use the 'checkout' update strategy (default)"),
 			SM_UPDATE_CHECKOUT),
@@ -2693,11 +2698,12 @@ static int module_update(int argc, const char **argv, const char *prefix)
 	}
 
 	opt.filter_options = &filter_options;
+	opt.prefix = prefix;
 
 	if (opt.update_default)
 		opt.update_strategy.type = opt.update_default;
 
-	if (module_list_compute(argc, argv, prefix, &pathspec, &opt.list) < 0) {
+	if (module_list_compute(argv, prefix, &pathspec, &opt.list) < 0) {
 		ret = 1;
 		goto cleanup;
 	}
@@ -2709,7 +2715,7 @@ static int module_update(int argc, const char **argv, const char *prefix)
 		struct module_list list = MODULE_LIST_INIT;
 		struct init_cb info = INIT_CB_INIT;
 
-		if (module_list_compute(argc, argv, opt.prefix,
+		if (module_list_compute(argv, opt.prefix,
 					&pathspec2, &list) < 0) {
 			module_list_release(&list);
 			ret = 1;
@@ -2822,13 +2828,7 @@ static int absorb_git_dirs(int argc, const char **argv, const char *prefix)
 	int i;
 	struct pathspec pathspec = { 0 };
 	struct module_list list = MODULE_LIST_INIT;
-	unsigned flags = ABSORB_GITDIR_RECURSE_SUBMODULES;
 	struct option embed_gitdir_options[] = {
-		OPT_STRING(0, "prefix", &prefix,
-			   N_("path"),
-			   N_("path into the working tree")),
-		OPT_BIT(0, "--recursive", &flags, N_("recurse into submodules"),
-			ABSORB_GITDIR_RECURSE_SUBMODULES),
 		OPT_END()
 	};
 	const char *const git_submodule_helper_usage[] = {
@@ -2840,62 +2840,17 @@ static int absorb_git_dirs(int argc, const char **argv, const char *prefix)
 	argc = parse_options(argc, argv, prefix, embed_gitdir_options,
 			     git_submodule_helper_usage, 0);
 
-	if (module_list_compute(argc, argv, prefix, &pathspec, &list) < 0)
+	if (module_list_compute(argv, prefix, &pathspec, &list) < 0)
 		goto cleanup;
 
 	for (i = 0; i < list.nr; i++)
-		absorb_git_dir_into_superproject(list.entries[i]->name, flags);
+		absorb_git_dir_into_superproject(list.entries[i]->name);
 
 	ret = 0;
 cleanup:
 	clear_pathspec(&pathspec);
 	module_list_release(&list);
 	return ret;
-}
-
-static int module_config(int argc, const char **argv, const char *prefix)
-{
-	enum {
-		CHECK_WRITEABLE = 1,
-		DO_UNSET = 2
-	} command = 0;
-	struct option module_config_options[] = {
-		OPT_CMDMODE(0, "check-writeable", &command,
-			    N_("check if it is safe to write to the .gitmodules file"),
-			    CHECK_WRITEABLE),
-		OPT_CMDMODE(0, "unset", &command,
-			    N_("unset the config in the .gitmodules file"),
-			    DO_UNSET),
-		OPT_END()
-	};
-	const char *const git_submodule_helper_usage[] = {
-		N_("git submodule--helper config <name> [<value>]"),
-		N_("git submodule--helper config --unset <name>"),
-		"git submodule--helper config --check-writeable",
-		NULL
-	};
-
-	argc = parse_options(argc, argv, prefix, module_config_options,
-			     git_submodule_helper_usage, PARSE_OPT_KEEP_ARGV0);
-
-	if (argc == 1 && command == CHECK_WRITEABLE)
-		return is_writing_gitmodules_ok() ? 0 : -1;
-
-	/* Equivalent to ACTION_GET in builtin/config.c */
-	if (argc == 2 && command != DO_UNSET)
-		return print_config_from_gitmodules(the_repository, argv[1]);
-
-	/* Equivalent to ACTION_SET in builtin/config.c */
-	if (argc == 3 || (argc == 2 && command == DO_UNSET)) {
-		const char *value = (argc == 3) ? argv[2] : NULL;
-
-		if (!is_writing_gitmodules_ok())
-			die(_("please make sure that the .gitmodules file is in the working tree"));
-
-		return config_set_in_gitmodules_file_gently(argv[1], value);
-	}
-
-	usage_with_options(git_submodule_helper_usage, module_config_options);
 }
 
 static int module_set_url(int argc, const char **argv, const char *prefix)
@@ -3232,7 +3187,7 @@ static void die_on_index_match(const char *path, int force)
 	const char *args[] = { path, NULL };
 	parse_pathspec(&ps, 0, PATHSPEC_PREFER_CWD, NULL, args);
 
-	if (read_cache_preload(NULL) < 0)
+	if (repo_read_index_preload(the_repository, NULL, 0) < 0)
 		die(_("index file corrupt"));
 
 	if (ps.nr) {
@@ -3247,15 +3202,15 @@ static void die_on_index_match(const char *path, int force)
 		 * need to check ps_matched[0] to know if a cache
 		 * entry matched.
 		 */
-		for (i = 0; i < active_nr; i++) {
-			ce_path_match(&the_index, active_cache[i], &ps,
+		for (i = 0; i < the_index.cache_nr; i++) {
+			ce_path_match(&the_index, the_index.cache[i], &ps,
 				      ps_matched);
 
 			if (ps_matched[0]) {
 				if (!force)
 					die(_("'%s' already exists in the index"),
 					    path);
-				if (!S_ISGITLINK(active_cache[i]->ce_mode))
+				if (!S_ISGITLINK(the_index.cache[i]->ce_mode))
 					die(_("'%s' already exists in the index "
 					      "and is not a submodule"), path);
 				break;
@@ -3396,48 +3351,45 @@ cleanup:
 	return ret;
 }
 
-#define SUPPORT_SUPER_PREFIX (1<<0)
-
-struct cmd_struct {
-	const char *cmd;
-	int (*fn)(int, const char **, const char *);
-	unsigned option;
-};
-
-static struct cmd_struct commands[] = {
-	{"clone", module_clone, SUPPORT_SUPER_PREFIX},
-	{"add", module_add, 0},
-	{"update", module_update, SUPPORT_SUPER_PREFIX},
-	{"foreach", module_foreach, SUPPORT_SUPER_PREFIX},
-	{"init", module_init, 0},
-	{"status", module_status, SUPPORT_SUPER_PREFIX},
-	{"sync", module_sync, SUPPORT_SUPER_PREFIX},
-	{"deinit", module_deinit, 0},
-	{"summary", module_summary, 0},
-	{"push-check", push_check, 0},
-	{"absorbgitdirs", absorb_git_dirs, SUPPORT_SUPER_PREFIX},
-	{"config", module_config, 0},
-	{"set-url", module_set_url, 0},
-	{"set-branch", module_set_branch, 0},
-	{"create-branch", module_create_branch, 0},
-};
-
 int cmd_submodule__helper(int argc, const char **argv, const char *prefix)
 {
-	int i;
-	if (argc < 2 || !strcmp(argv[1], "-h"))
-		usage("git submodule--helper <command>");
+	const char *cmd = argv[0];
+	const char *subcmd;
+	parse_opt_subcommand_fn *fn = NULL;
+	const char *const usage[] = {
+		N_("git submodule--helper <command>"),
+		NULL
+	};
+	struct option options[] = {
+		OPT_SUBCOMMAND("clone", &fn, module_clone),
+		OPT_SUBCOMMAND("add", &fn, module_add),
+		OPT_SUBCOMMAND("update", &fn, module_update),
+		OPT_SUBCOMMAND("foreach", &fn, module_foreach),
+		OPT_SUBCOMMAND("init", &fn, module_init),
+		OPT_SUBCOMMAND("status", &fn, module_status),
+		OPT_SUBCOMMAND("sync", &fn, module_sync),
+		OPT_SUBCOMMAND("deinit", &fn, module_deinit),
+		OPT_SUBCOMMAND("summary", &fn, module_summary),
+		OPT_SUBCOMMAND("push-check", &fn, push_check),
+		OPT_SUBCOMMAND("absorbgitdirs", &fn, absorb_git_dirs),
+		OPT_SUBCOMMAND("set-url", &fn, module_set_url),
+		OPT_SUBCOMMAND("set-branch", &fn, module_set_branch),
+		OPT_SUBCOMMAND("create-branch", &fn, module_create_branch),
+		OPT_END()
+	};
+	argc = parse_options(argc, argv, prefix, options, usage, 0);
+	subcmd = argv[0];
 
-	for (i = 0; i < ARRAY_SIZE(commands); i++) {
-		if (!strcmp(argv[1], commands[i].cmd)) {
-			if (get_super_prefix() &&
-			    !(commands[i].option & SUPPORT_SUPER_PREFIX))
-				die(_("%s doesn't support --super-prefix"),
-				    commands[i].cmd);
-			return commands[i].fn(argc - 1, argv + 1, prefix);
-		}
-	}
+	if (strcmp(subcmd, "clone") && strcmp(subcmd, "update") &&
+	    strcmp(subcmd, "foreach") && strcmp(subcmd, "status") &&
+	    strcmp(subcmd, "sync") && strcmp(subcmd, "absorbgitdirs") &&
+	    get_super_prefix())
+		/*
+		 * xstrfmt() rather than "%s %s" to keep the translated
+		 * string identical to git.c's.
+		 */
+		die(_("%s doesn't support --super-prefix"),
+		    xstrfmt("'%s %s'", cmd, subcmd));
 
-	die(_("'%s' is not a valid submodule--helper "
-	      "subcommand"), argv[1]);
+	return fn(argc, argv, prefix);
 }
