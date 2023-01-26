@@ -1,3 +1,11 @@
+git (1:2.39.1-0.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * New upstream stable release (Closes: #1029114)
+    Fixes CVE-2022-23521 and CVE-2022-41903.
+
+ -- Aron Xu <aron@debian.org>  Thu, 26 Jan 2023 13:43:04 +0800
+
 git (1:2.39.0-1) unstable; urgency=low
 
   * new upstream release (see RelNotes/2.39.0.txt).
