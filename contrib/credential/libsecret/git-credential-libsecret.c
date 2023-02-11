@@ -27,7 +27,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <glib.h>
+#include <stdint.h>
+#include <inttypes.h>
 #include <libsecret/secret.h>
+
+typedef uintmax_t timestamp_t;
+#define PRItime PRIuMAX
+#define parse_timestamp strtoumax
+#define TIME_MAX UINTMAX_MAX
 
 /*
  * This credential struct and API is simplified from git's credential.{h,c}
@@ -39,9 +46,10 @@ struct credential {
 	char *path;
 	char *username;
 	char *password;
+	uintmax_t password_expiry_utc;
 };
 
-#define CREDENTIAL_INIT { 0 }
+#define CREDENTIAL_INIT { .password_expiry_utc = TIME_MAX }
 
 typedef int (*credential_op_cb)(struct credential *);
 
@@ -78,6 +86,8 @@ static GHashTable *make_attr_list(struct credential *c)
 		g_hash_table_insert(al, "port", g_strdup_printf("%hu", c->port));
 	if (c->path)
 		g_hash_table_insert(al, "object", g_strdup(c->path));
+	if (c->password_expiry_utc < TIME_MAX)
+		g_hash_table_insert(al, "password_expiry_utc", g_strdup_printf("%"PRItime, c->password_expiry_utc));
 
 	return al;
 }
@@ -126,6 +136,13 @@ static int keyring_get(struct credential *c)
 		if (s) {
 			g_free(c->username);
 			c->username = g_strdup(s);
+		}
+
+		s = g_hash_table_lookup(attributes, "password_expiry_utc");
+		if (s) {
+			c->password_expiry_utc = parse_timestamp(s, NULL, 10);
+			if (c->password_expiry_utc == 0 || errno)
+				c->password_expiry_utc = TIME_MAX;
 		}
 
 		s = secret_value_get_text(secret);
@@ -229,6 +246,7 @@ static struct credential_operation const credential_helper_ops[] = {
 static void credential_init(struct credential *c)
 {
 	memset(c, 0, sizeof(*c));
+	c->password_expiry_utc = TIME_MAX;
 }
 
 static void credential_clear(struct credential *c)
@@ -290,6 +308,10 @@ static int credential_read(struct credential *c)
 			c->password = g_strdup(value);
 			while (*value)
 				*value++ = '\0';
+		} else if (!strcmp(key, "password_expiry_utc")) {
+			c->password_expiry_utc = parse_timestamp(value, NULL, 10);
+			if (c->password_expiry_utc == 0 || errno)
+				c->password_expiry_utc = TIME_MAX;
 		}
 		/*
 		 * Ignore other lines; we don't know what they mean, but
@@ -312,9 +334,10 @@ static void credential_write_item(FILE *fp, const char *key, const char *value)
 
 static void credential_write(const struct credential *c)
 {
-	/* only write username/password, if set */
 	credential_write_item(stdout, "username", c->username);
 	credential_write_item(stdout, "password", c->password);
+	if (c->password_expiry_utc < TIME_MAX)
+		credential_write_item(stdout, "password_expiry_utc", g_strdup_printf("%"PRItime, c->password_expiry_utc));
 }
 
 static void usage(const char *name)
