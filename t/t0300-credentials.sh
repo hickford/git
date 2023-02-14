@@ -120,7 +120,7 @@ test_expect_success 'credential_fill continues through partial response' '
 '
 
 test_expect_success 'credential_fill populates password_expiry_utc' '
-	check fill "verbatim-with-expiry one two 9999999999" <<-\EOF
+	check fill "verbatim-with-expiry one two 2147483646" <<-\EOF
 	protocol=http
 	host=example.com
 	--
@@ -128,7 +128,7 @@ test_expect_success 'credential_fill populates password_expiry_utc' '
 	host=example.com
 	username=one
 	password=two
-	password_expiry_utc=9999999999
+	password_expiry_utc=2147483646
 	--
 	verbatim-with-expiry: get
 	verbatim-with-expiry: protocol=http
@@ -202,7 +202,7 @@ test_expect_success 'credential_approve stores password expiry' '
 	host=example.com
 	username=foo
 	password=bar
-	password_expiry_utc=9999999999
+	password_expiry_utc=2147483646
 	--
 	--
 	useless: store
@@ -210,7 +210,7 @@ test_expect_success 'credential_approve stores password expiry' '
 	useless: host=example.com
 	useless: username=foo
 	useless: password=bar
-	useless: password_expiry_utc=9999999999
+	useless: password_expiry_utc=2147483646
 	EOF
 '
 
@@ -224,7 +224,7 @@ test_expect_success 'do not bother storing password-less credential' '
 	EOF
 '
 
-test_expect_success 'credential_approve does not store expired credential' '
+test_expect_success 'credential_approve does not store credential with expired password' '
 	check approve useless <<-\EOF
 	protocol=http
 	host=example.com
@@ -257,7 +257,7 @@ test_expect_success 'credential_reject calls all helpers' '
 	EOF
 '
 
-test_expect_success 'credential_reject erases expired credential' '
+test_expect_success 'credential_reject erases credential with expired password' '
 	check reject useless <<-\EOF
 	protocol=http
 	host=example.com

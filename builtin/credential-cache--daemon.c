@@ -127,7 +127,7 @@ static void serve_one_client(FILE *in, FILE *out)
 		if (e) {
 			fprintf(out, "username=%s\n", e->item.username);
 			fprintf(out, "password=%s\n", e->item.password);
-			if (e->item.password_expiry_utc != TIME_MAX)
+			if (e->item.password_expiry_utc != 0)
 				fprintf(out, "password_expiry_utc=%"PRItime"\n",
 					e->item.password_expiry_utc);
 		}

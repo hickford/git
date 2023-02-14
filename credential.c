@@ -237,8 +237,8 @@ int credential_read(struct credential *c, FILE *fp)
 			c->path = xstrdup(value);
 		} else if (!strcmp(key, "password_expiry_utc")) {
 			c->password_expiry_utc = parse_timestamp(value, NULL, 10);
-			if (c->password_expiry_utc == 0 || errno)
-				c->password_expiry_utc = TIME_MAX;
+			if (errno)
+				c->password_expiry_utc = 0;
 		} else if (!strcmp(key, "url")) {
 			credential_from_url(c, value);
 		} else if (!strcmp(key, "quit")) {
@@ -274,7 +274,7 @@ void credential_write(const struct credential *c, FILE *fp)
 	credential_write_item(fp, "path", c->path, 0);
 	credential_write_item(fp, "username", c->username, 0);
 	credential_write_item(fp, "password", c->password, 0);
-	if (c->password_expiry_utc != TIME_MAX) {
+	if (c->password_expiry_utc != 0) {
 		char *s = xstrfmt("%"PRItime, c->password_expiry_utc);
 		credential_write_item(fp, "password_expiry_utc", s, 0);
 		free(s);
@@ -344,6 +344,7 @@ static int credential_do(struct credential *c, const char *helper,
 void credential_fill(struct credential *c)
 {
 	int i;
+	int password_expired;
 
 	if (c->username && c->password)
 		return;
@@ -352,9 +353,11 @@ void credential_fill(struct credential *c)
 
 	for (i = 0; i < c->helpers.nr; i++) {
 		credential_do(c, c->helpers.items[i].string, "get");
-		if (c->password_expiry_utc < time(NULL)) {
+		password_expired = c->password_expiry_utc != 0
+			&& c->password_expiry_utc < time(NULL);
+		if (password_expired) {
 			FREE_AND_NULL(c->password);
-			c->password_expiry_utc = TIME_MAX;
+			c->password_expiry_utc = 0;
 		}
 		if (c->username && c->password)
 			return;
@@ -371,10 +374,13 @@ void credential_fill(struct credential *c)
 void credential_approve(struct credential *c)
 {
 	int i;
+	int password_expired;
 
 	if (c->approved)
 		return;
-	if (!c->username || !c->password || c->password_expiry_utc < time(NULL))
+	password_expired = c->password_expiry_utc != 0
+		&& c->password_expiry_utc < time(NULL);
+	if (!c->username || !c->password || password_expired)
 		return;
 
 	credential_apply_config(c);
@@ -395,7 +401,7 @@ void credential_reject(struct credential *c)
 
 	FREE_AND_NULL(c->username);
 	FREE_AND_NULL(c->password);
-	c->password_expiry_utc = TIME_MAX;
+	c->password_expiry_utc = 0;
 	c->approved = 0;
 }
 
