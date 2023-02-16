@@ -1,3 +1,83 @@
+Version v2.39.2; changes since v2.39.1:
+---------------------------------------
+
+Jeff King (3):
+      http-push: prefer CURLOPT_UPLOAD to CURLOPT_PUT
+      http: prefer CURLOPT_SEEKFUNCTION to CURLOPT_IOCTLFUNCTION
+      http: support CURLOPT_PROTOCOLS_STR
+
+Johannes Schindelin (12):
+      fsck: document the new `gitattributes` message IDs
+      attr: adjust a mismatched data type
+      attr: adjust a mismatched data type
+      Git 2.31.7
+      Git 2.32.6
+      Git 2.33.7
+      Git 2.34.7
+      Git 2.35.7
+      Git 2.36.5
+      Git 2.37.6
+      Git 2.38.4
+      Git 2.39.2
+
+Junio C Hamano (1):
+      Git 2.30.8
+
+Patrick Steinhardt (1):
+      apply: fix writing behind newly created symbolic links
+
+Taylor Blau (3):
+      t5619: demonstrate clone_local() with ambiguous transport
+      clone: delay picking a transport until after get_repo_path()
+      dir-iterator: prevent top-level symlinks without FOLLOW_SYMLINKS
+
+
+Version v2.39.1; changes since v2.39.0:
+---------------------------------------
+
+Carlo Marcelo Arenas Belón (1):
+      test-lib: add prerequisite for 64-bit platforms
+
+Junio C Hamano (10):
+      Git 2.30.7
+      Git 2.31.6
+      Git 2.32.5
+      Git 2.33.6
+      Git 2.34.6
+      Git 2.35.6
+      Git 2.36.4
+      Git 2.37.5
+      Git 2.38.3
+      Git 2.39.1
+
+Patrick Steinhardt (25):
+      attr: fix overflow when upserting attribute with overly long name
+      attr: fix out-of-bounds read with huge attribute names
+      attr: fix integer overflow when parsing huge attribute names
+      attr: fix out-of-bounds write when parsing huge number of attributes
+      attr: fix out-of-bounds read with unreasonable amount of patterns
+      attr: fix integer overflow with more than INT_MAX macros
+      attr: harden allocation against integer overflows
+      attr: fix silently splitting up lines longer than 2048 bytes
+      attr: ignore attribute lines exceeding 2048 bytes
+      attr: ignore overly large gitattributes files
+      pretty: fix out-of-bounds write caused by integer overflow
+      pretty: fix out-of-bounds read when left-flushing with stealing
+      pretty: fix out-of-bounds read when parsing invalid padding format
+      pretty: fix adding linefeed when placeholder is not expanded
+      pretty: fix integer overflow in wrapping format
+      utf8: fix truncated string lengths in `utf8_strnwidth()`
+      utf8: fix returning negative string width
+      utf8: fix overflow when returning string width
+      utf8: fix checking for glyph width in `strbuf_utf8_replace()`
+      utf8: refactor `strbuf_utf8_replace` to not rely on preallocated buffer
+      pretty: restrict input lengths for padding and wrapping formats
+      fsck: refactor `fsck_blob()` to allow for more checks
+      fsck: pull out function to check a set of blobs
+      fsck: move checks for gitattributes
+      fsck: implement checks for gitattributes
+
+
 Version v2.39.0; changes since v2.39.0-rc2:
 -------------------------------------------
 
@@ -132,7 +212,7 @@ SZEDER Gábor (3):
       trace2 tests: guard pthread test with "PTHREAD"
 
 
-Version v2.39.0-rc0; changes since v2.38.2:
+Version v2.39.0-rc0; changes since v2.38.4:
 -------------------------------------------
 
 Alex Henrie (1):
@@ -562,6 +642,82 @@ srz_zumix (1):
       bisect--helper: parse subcommand with OPT_SUBCOMMAND
 
 
+Version v2.38.4; changes since v2.38.3:
+---------------------------------------
+
+Jeff King (3):
+      http-push: prefer CURLOPT_UPLOAD to CURLOPT_PUT
+      http: prefer CURLOPT_SEEKFUNCTION to CURLOPT_IOCTLFUNCTION
+      http: support CURLOPT_PROTOCOLS_STR
+
+Johannes Schindelin (9):
+      attr: adjust a mismatched data type
+      Git 2.31.7
+      Git 2.32.6
+      Git 2.33.7
+      Git 2.34.7
+      Git 2.35.7
+      Git 2.36.5
+      Git 2.37.6
+      Git 2.38.4
+
+Junio C Hamano (1):
+      Git 2.30.8
+
+Patrick Steinhardt (1):
+      apply: fix writing behind newly created symbolic links
+
+Taylor Blau (3):
+      t5619: demonstrate clone_local() with ambiguous transport
+      clone: delay picking a transport until after get_repo_path()
+      dir-iterator: prevent top-level symlinks without FOLLOW_SYMLINKS
+
+
+Version v2.38.3; changes since v2.38.2:
+---------------------------------------
+
+Carlo Marcelo Arenas Belón (1):
+      test-lib: add prerequisite for 64-bit platforms
+
+Junio C Hamano (9):
+      Git 2.30.7
+      Git 2.31.6
+      Git 2.32.5
+      Git 2.33.6
+      Git 2.34.6
+      Git 2.35.6
+      Git 2.36.4
+      Git 2.37.5
+      Git 2.38.3
+
+Patrick Steinhardt (25):
+      attr: fix overflow when upserting attribute with overly long name
+      attr: fix out-of-bounds read with huge attribute names
+      attr: fix integer overflow when parsing huge attribute names
+      attr: fix out-of-bounds write when parsing huge number of attributes
+      attr: fix out-of-bounds read with unreasonable amount of patterns
+      attr: fix integer overflow with more than INT_MAX macros
+      attr: harden allocation against integer overflows
+      attr: fix silently splitting up lines longer than 2048 bytes
+      attr: ignore attribute lines exceeding 2048 bytes
+      attr: ignore overly large gitattributes files
+      pretty: fix out-of-bounds write caused by integer overflow
+      pretty: fix out-of-bounds read when left-flushing with stealing
+      pretty: fix out-of-bounds read when parsing invalid padding format
+      pretty: fix adding linefeed when placeholder is not expanded
+      pretty: fix integer overflow in wrapping format
+      utf8: fix truncated string lengths in `utf8_strnwidth()`
+      utf8: fix returning negative string width
+      utf8: fix overflow when returning string width
+      utf8: fix checking for glyph width in `strbuf_utf8_replace()`
+      utf8: refactor `strbuf_utf8_replace` to not rely on preallocated buffer
+      pretty: restrict input lengths for padding and wrapping formats
+      fsck: refactor `fsck_blob()` to allow for more checks
+      fsck: pull out function to check a set of blobs
+      fsck: move checks for gitattributes
+      fsck: implement checks for gitattributes
+
+
 Version v2.38.2; changes since v2.38.1:
 ---------------------------------------
 
@@ -887,7 +1043,7 @@ ZheNing Hu (1):
       ls-files: fix black space in error message
 
 
-Version v2.38.0-rc0; changes since v2.37.4:
+Version v2.38.0-rc0; changes since v2.37.6:
 -------------------------------------------
 
 Abhradeep Chakraborty (6):
@@ -1451,6 +1607,80 @@ brian m. carlson (2):
       rev-parse --parseopt: detect missing opt-spec
 
 
+Version v2.37.6; changes since v2.37.5:
+---------------------------------------
+
+Jeff King (3):
+      http-push: prefer CURLOPT_UPLOAD to CURLOPT_PUT
+      http: prefer CURLOPT_SEEKFUNCTION to CURLOPT_IOCTLFUNCTION
+      http: support CURLOPT_PROTOCOLS_STR
+
+Johannes Schindelin (8):
+      attr: adjust a mismatched data type
+      Git 2.31.7
+      Git 2.32.6
+      Git 2.33.7
+      Git 2.34.7
+      Git 2.35.7
+      Git 2.36.5
+      Git 2.37.6
+
+Junio C Hamano (1):
+      Git 2.30.8
+
+Patrick Steinhardt (1):
+      apply: fix writing behind newly created symbolic links
+
+Taylor Blau (3):
+      t5619: demonstrate clone_local() with ambiguous transport
+      clone: delay picking a transport until after get_repo_path()
+      dir-iterator: prevent top-level symlinks without FOLLOW_SYMLINKS
+
+
+Version v2.37.5; changes since v2.37.4:
+---------------------------------------
+
+Carlo Marcelo Arenas Belón (1):
+      test-lib: add prerequisite for 64-bit platforms
+
+Junio C Hamano (8):
+      Git 2.30.7
+      Git 2.31.6
+      Git 2.32.5
+      Git 2.33.6
+      Git 2.34.6
+      Git 2.35.6
+      Git 2.36.4
+      Git 2.37.5
+
+Patrick Steinhardt (25):
+      attr: fix overflow when upserting attribute with overly long name
+      attr: fix out-of-bounds read with huge attribute names
+      attr: fix integer overflow when parsing huge attribute names
+      attr: fix out-of-bounds write when parsing huge number of attributes
+      attr: fix out-of-bounds read with unreasonable amount of patterns
+      attr: fix integer overflow with more than INT_MAX macros
+      attr: harden allocation against integer overflows
+      attr: fix silently splitting up lines longer than 2048 bytes
+      attr: ignore attribute lines exceeding 2048 bytes
+      attr: ignore overly large gitattributes files
+      pretty: fix out-of-bounds write caused by integer overflow
+      pretty: fix out-of-bounds read when left-flushing with stealing
+      pretty: fix out-of-bounds read when parsing invalid padding format
+      pretty: fix adding linefeed when placeholder is not expanded
+      pretty: fix integer overflow in wrapping format
+      utf8: fix truncated string lengths in `utf8_strnwidth()`
+      utf8: fix returning negative string width
+      utf8: fix overflow when returning string width
+      utf8: fix checking for glyph width in `strbuf_utf8_replace()`
+      utf8: refactor `strbuf_utf8_replace` to not rely on preallocated buffer
+      pretty: restrict input lengths for padding and wrapping formats
+      fsck: refactor `fsck_blob()` to allow for more checks
+      fsck: pull out function to check a set of blobs
+      fsck: move checks for gitattributes
+      fsck: implement checks for gitattributes
+
+
 Version v2.37.4; changes since v2.37.3:
 ---------------------------------------
 
@@ -1849,7 +2079,7 @@ Philip Oakley (4):
       tests: add LIBCURL prerequisite to tests needing libcurl
 
 
-Version v2.37.0-rc0; changes since v2.36.3:
+Version v2.37.0-rc0; changes since v2.36.5:
 -------------------------------------------
 
 Abhradeep Chakraborty (1):
@@ -2240,6 +2470,78 @@ halilsen (2):
       hook API: fix v2.36.0 regression: hooks should be connected to a TTY
 
 
+Version v2.36.5; changes since v2.36.4:
+---------------------------------------
+
+Jeff King (3):
+      http-push: prefer CURLOPT_UPLOAD to CURLOPT_PUT
+      http: prefer CURLOPT_SEEKFUNCTION to CURLOPT_IOCTLFUNCTION
+      http: support CURLOPT_PROTOCOLS_STR
+
+Johannes Schindelin (7):
+      attr: adjust a mismatched data type
+      Git 2.31.7
+      Git 2.32.6
+      Git 2.33.7
+      Git 2.34.7
+      Git 2.35.7
+      Git 2.36.5
+
+Junio C Hamano (1):
+      Git 2.30.8
+
+Patrick Steinhardt (1):
+      apply: fix writing behind newly created symbolic links
+
+Taylor Blau (3):
+      t5619: demonstrate clone_local() with ambiguous transport
+      clone: delay picking a transport until after get_repo_path()
+      dir-iterator: prevent top-level symlinks without FOLLOW_SYMLINKS
+
+
+Version v2.36.4; changes since v2.36.3:
+---------------------------------------
+
+Carlo Marcelo Arenas Belón (1):
+      test-lib: add prerequisite for 64-bit platforms
+
+Junio C Hamano (7):
+      Git 2.30.7
+      Git 2.31.6
+      Git 2.32.5
+      Git 2.33.6
+      Git 2.34.6
+      Git 2.35.6
+      Git 2.36.4
+
+Patrick Steinhardt (25):
+      attr: fix overflow when upserting attribute with overly long name
+      attr: fix out-of-bounds read with huge attribute names
+      attr: fix integer overflow when parsing huge attribute names
+      attr: fix out-of-bounds write when parsing huge number of attributes
+      attr: fix out-of-bounds read with unreasonable amount of patterns
+      attr: fix integer overflow with more than INT_MAX macros
+      attr: harden allocation against integer overflows
+      attr: fix silently splitting up lines longer than 2048 bytes
+      attr: ignore attribute lines exceeding 2048 bytes
+      attr: ignore overly large gitattributes files
+      pretty: fix out-of-bounds write caused by integer overflow
+      pretty: fix out-of-bounds read when left-flushing with stealing
+      pretty: fix out-of-bounds read when parsing invalid padding format
+      pretty: fix adding linefeed when placeholder is not expanded
+      pretty: fix integer overflow in wrapping format
+      utf8: fix truncated string lengths in `utf8_strnwidth()`
+      utf8: fix returning negative string width
+      utf8: fix overflow when returning string width
+      utf8: fix checking for glyph width in `strbuf_utf8_replace()`
+      utf8: refactor `strbuf_utf8_replace` to not rely on preallocated buffer
+      pretty: restrict input lengths for padding and wrapping formats
+      fsck: refactor `fsck_blob()` to allow for more checks
+      fsck: pull out function to check a set of blobs
+      fsck: move checks for gitattributes
+      fsck: implement checks for gitattributes
+
+
 Version v2.36.3; changes since v2.36.2:
 ---------------------------------------
 
@@ -2482,7 +2784,7 @@ Victoria Dye (1):
       ls-tree doc: document interaction with submodules
 
 
-Version v2.36.0-rc0; changes since v2.35.5:
+Version v2.36.0-rc0; changes since v2.35.7:
 -------------------------------------------
 
 Abhradeep Chakraborty (2):
@@ -3261,6 +3563,76 @@ brian m. carlson (6):
       reftable: make assignments portable to AIX xlc v12.01
 
 
+Version v2.35.7; changes since v2.35.6:
+---------------------------------------
+
+Jeff King (3):
+      http-push: prefer CURLOPT_UPLOAD to CURLOPT_PUT
+      http: prefer CURLOPT_SEEKFUNCTION to CURLOPT_IOCTLFUNCTION
+      http: support CURLOPT_PROTOCOLS_STR
+
+Johannes Schindelin (6):
+      attr: adjust a mismatched data type
+      Git 2.31.7
+      Git 2.32.6
+      Git 2.33.7
+      Git 2.34.7
+      Git 2.35.7
+
+Junio C Hamano (1):
+      Git 2.30.8
+
+Patrick Steinhardt (1):
+      apply: fix writing behind newly created symbolic links
+
+Taylor Blau (3):
+      t5619: demonstrate clone_local() with ambiguous transport
+      clone: delay picking a transport until after get_repo_path()
+      dir-iterator: prevent top-level symlinks without FOLLOW_SYMLINKS
+
+
+Version v2.35.6; changes since v2.35.5:
+---------------------------------------
+
+Carlo Marcelo Arenas Belón (1):
+      test-lib: add prerequisite for 64-bit platforms
+
+Junio C Hamano (6):
+      Git 2.30.7
+      Git 2.31.6
+      Git 2.32.5
+      Git 2.33.6
+      Git 2.34.6
+      Git 2.35.6
+
+Patrick Steinhardt (25):
+      attr: fix overflow when upserting attribute with overly long name
+      attr: fix out-of-bounds read with huge attribute names
+      attr: fix integer overflow when parsing huge attribute names
+      attr: fix out-of-bounds write when parsing huge number of attributes
+      attr: fix out-of-bounds read with unreasonable amount of patterns
+      attr: fix integer overflow with more than INT_MAX macros
+      attr: harden allocation against integer overflows
+      attr: fix silently splitting up lines longer than 2048 bytes
+      attr: ignore attribute lines exceeding 2048 bytes
+      attr: ignore overly large gitattributes files
+      pretty: fix out-of-bounds write caused by integer overflow
+      pretty: fix out-of-bounds read when left-flushing with stealing
+      pretty: fix out-of-bounds read when parsing invalid padding format
+      pretty: fix adding linefeed when placeholder is not expanded
+      pretty: fix integer overflow in wrapping format
+      utf8: fix truncated string lengths in `utf8_strnwidth()`
+      utf8: fix returning negative string width
+      utf8: fix overflow when returning string width
+      utf8: fix checking for glyph width in `strbuf_utf8_replace()`
+      utf8: refactor `strbuf_utf8_replace` to not rely on preallocated buffer
+      pretty: restrict input lengths for padding and wrapping formats
+      fsck: refactor `fsck_blob()` to allow for more checks
+      fsck: pull out function to check a set of blobs
+      fsck: move checks for gitattributes
+      fsck: implement checks for gitattributes
+
+
 Version v2.35.5; changes since v2.35.4:
 ---------------------------------------
 
@@ -3468,7 +3840,7 @@ Taylor Blau (1):
       reftable tests: avoid "int" overflow, use "uint64_t"
 
 
-Version v2.35.0-rc0; changes since v2.34.5:
+Version v2.35.0-rc0; changes since v2.34.7:
 -------------------------------------------
 
 Alex Henrie (1):
@@ -4027,6 +4399,74 @@ brian m. carlson (1):
       am: support --allow-empty to record specific empty patches
 
 
+Version v2.34.7; changes since v2.34.6:
+---------------------------------------
+
+Jeff King (3):
+      http-push: prefer CURLOPT_UPLOAD to CURLOPT_PUT
+      http: prefer CURLOPT_SEEKFUNCTION to CURLOPT_IOCTLFUNCTION
+      http: support CURLOPT_PROTOCOLS_STR
+
+Johannes Schindelin (5):
+      attr: adjust a mismatched data type
+      Git 2.31.7
+      Git 2.32.6
+      Git 2.33.7
+      Git 2.34.7
+
+Junio C Hamano (1):
+      Git 2.30.8
+
+Patrick Steinhardt (1):
+      apply: fix writing behind newly created symbolic links
+
+Taylor Blau (3):
+      t5619: demonstrate clone_local() with ambiguous transport
+      clone: delay picking a transport until after get_repo_path()
+      dir-iterator: prevent top-level symlinks without FOLLOW_SYMLINKS
+
+
+Version v2.34.6; changes since v2.34.5:
+---------------------------------------
+
+Carlo Marcelo Arenas Belón (1):
+      test-lib: add prerequisite for 64-bit platforms
+
+Junio C Hamano (5):
+      Git 2.30.7
+      Git 2.31.6
+      Git 2.32.5
+      Git 2.33.6
+      Git 2.34.6
+
+Patrick Steinhardt (25):
+      attr: fix overflow when upserting attribute with overly long name
+      attr: fix out-of-bounds read with huge attribute names
+      attr: fix integer overflow when parsing huge attribute names
+      attr: fix out-of-bounds write when parsing huge number of attributes
+      attr: fix out-of-bounds read with unreasonable amount of patterns
+      attr: fix integer overflow with more than INT_MAX macros
+      attr: harden allocation against integer overflows
+      attr: fix silently splitting up lines longer than 2048 bytes
+      attr: ignore attribute lines exceeding 2048 bytes
+      attr: ignore overly large gitattributes files
+      pretty: fix out-of-bounds write caused by integer overflow
+      pretty: fix out-of-bounds read when left-flushing with stealing
+      pretty: fix out-of-bounds read when parsing invalid padding format
+      pretty: fix adding linefeed when placeholder is not expanded
+      pretty: fix integer overflow in wrapping format
+      utf8: fix truncated string lengths in `utf8_strnwidth()`
+      utf8: fix returning negative string width
+      utf8: fix overflow when returning string width
+      utf8: fix checking for glyph width in `strbuf_utf8_replace()`
+      utf8: refactor `strbuf_utf8_replace` to not rely on preallocated buffer
+      pretty: restrict input lengths for padding and wrapping formats
+      fsck: refactor `fsck_blob()` to allow for more checks
+      fsck: pull out function to check a set of blobs
+      fsck: move checks for gitattributes
+      fsck: implement checks for gitattributes
+
+
 Version v2.34.5; changes since v2.34.4:
 ---------------------------------------
 
@@ -4282,7 +4722,7 @@ René Scharfe (2):
       commit-graph: don't consider "replace" objects with "verify"
 
 
-Version v2.34.0-rc0; changes since v2.33.5:
+Version v2.34.0-rc0; changes since v2.33.7:
 -------------------------------------------
 
 Atharva Raykar (11):
@@ -5010,6 +5450,67 @@ brian m. carlson (1):
       reflog: free() ref given to us by dwim_log()
 
 
+Version v2.33.7; changes since v2.33.6:
+---------------------------------------
+
+Johannes Schindelin (4):
+      attr: adjust a mismatched data type
+      Git 2.31.7
+      Git 2.32.6
+      Git 2.33.7
+
+Junio C Hamano (1):
+      Git 2.30.8
+
+Patrick Steinhardt (1):
+      apply: fix writing behind newly created symbolic links
+
+Taylor Blau (3):
+      t5619: demonstrate clone_local() with ambiguous transport
+      clone: delay picking a transport until after get_repo_path()
+      dir-iterator: prevent top-level symlinks without FOLLOW_SYMLINKS
+
+
+Version v2.33.6; changes since v2.33.5:
+---------------------------------------
+
+Carlo Marcelo Arenas Belón (1):
+      test-lib: add prerequisite for 64-bit platforms
+
+Junio C Hamano (4):
+      Git 2.30.7
+      Git 2.31.6
+      Git 2.32.5
+      Git 2.33.6
+
+Patrick Steinhardt (25):
+      attr: fix overflow when upserting attribute with overly long name
+      attr: fix out-of-bounds read with huge attribute names
+      attr: fix integer overflow when parsing huge attribute names
+      attr: fix out-of-bounds write when parsing huge number of attributes
+      attr: fix out-of-bounds read with unreasonable amount of patterns
+      attr: fix integer overflow with more than INT_MAX macros
+      attr: harden allocation against integer overflows
+      attr: fix silently splitting up lines longer than 2048 bytes
+      attr: ignore attribute lines exceeding 2048 bytes
+      attr: ignore overly large gitattributes files
+      pretty: fix out-of-bounds write caused by integer overflow
+      pretty: fix out-of-bounds read when left-flushing with stealing
+      pretty: fix out-of-bounds read when parsing invalid padding format
+      pretty: fix adding linefeed when placeholder is not expanded
+      pretty: fix integer overflow in wrapping format
+      utf8: fix truncated string lengths in `utf8_strnwidth()`
+      utf8: fix returning negative string width
+      utf8: fix overflow when returning string width
+      utf8: fix checking for glyph width in `strbuf_utf8_replace()`
+      utf8: refactor `strbuf_utf8_replace` to not rely on preallocated buffer
+      pretty: restrict input lengths for padding and wrapping formats
+      fsck: refactor `fsck_blob()` to allow for more checks
+      fsck: pull out function to check a set of blobs
+      fsck: move checks for gitattributes
+      fsck: implement checks for gitattributes
+
+
 Version v2.33.5; changes since v2.33.4:
 ---------------------------------------
 
@@ -5489,7 +5990,7 @@ Thomas Bétous (1):
       t0001: fix broken not-quite getcwd(3) test in bed67874e2
 
 
-Version v2.33.0-rc0; changes since v2.32.4:
+Version v2.33.0-rc0; changes since v2.32.6:
 -------------------------------------------
 
 Alex Henrie (6):
@@ -5939,6 +6440,65 @@ edef (1):
       t6402: preserve git exit status code
 
 
+Version v2.32.6; changes since v2.32.5:
+---------------------------------------
+
+Johannes Schindelin (3):
+      attr: adjust a mismatched data type
+      Git 2.31.7
+      Git 2.32.6
+
+Junio C Hamano (1):
+      Git 2.30.8
+
+Patrick Steinhardt (1):
+      apply: fix writing behind newly created symbolic links
+
+Taylor Blau (3):
+      t5619: demonstrate clone_local() with ambiguous transport
+      clone: delay picking a transport until after get_repo_path()
+      dir-iterator: prevent top-level symlinks without FOLLOW_SYMLINKS
+
+
+Version v2.32.5; changes since v2.32.4:
+---------------------------------------
+
+Carlo Marcelo Arenas Belón (1):
+      test-lib: add prerequisite for 64-bit platforms
+
+Junio C Hamano (3):
+      Git 2.30.7
+      Git 2.31.6
+      Git 2.32.5
+
+Patrick Steinhardt (25):
+      attr: fix overflow when upserting attribute with overly long name
+      attr: fix out-of-bounds read with huge attribute names
+      attr: fix integer overflow when parsing huge attribute names
+      attr: fix out-of-bounds write when parsing huge number of attributes
+      attr: fix out-of-bounds read with unreasonable amount of patterns
+      attr: fix integer overflow with more than INT_MAX macros
+      attr: harden allocation against integer overflows
+      attr: fix silently splitting up lines longer than 2048 bytes
+      attr: ignore attribute lines exceeding 2048 bytes
+      attr: ignore overly large gitattributes files
+      pretty: fix out-of-bounds write caused by integer overflow
+      pretty: fix out-of-bounds read when left-flushing with stealing
+      pretty: fix out-of-bounds read when parsing invalid padding format
+      pretty: fix adding linefeed when placeholder is not expanded
+      pretty: fix integer overflow in wrapping format
+      utf8: fix truncated string lengths in `utf8_strnwidth()`
+      utf8: fix returning negative string width
+      utf8: fix overflow when returning string width
+      utf8: fix checking for glyph width in `strbuf_utf8_replace()`
+      utf8: refactor `strbuf_utf8_replace` to not rely on preallocated buffer
+      pretty: restrict input lengths for padding and wrapping formats
+      fsck: refactor `fsck_blob()` to allow for more checks
+      fsck: pull out function to check a set of blobs
+      fsck: move checks for gitattributes
+      fsck: implement checks for gitattributes
+
+
 Version v2.32.4; changes since v2.32.3:
 ---------------------------------------
 
@@ -6177,7 +6737,7 @@ ZheNing Hu (1):
       Makefile: make PERL_DEFINES recursively expanded
 
 
-Version v2.32.0-rc0; changes since v2.31.5:
+Version v2.32.0-rc0; changes since v2.31.7:
 -------------------------------------------
 
 Adam Dinwoodie (1):
@@ -6827,6 +7387,59 @@ brian m. carlson (14):
       am: learn to process quoted lines that ends with CRLF
 
 
+Version v2.31.7; changes since v2.31.6:
+---------------------------------------
+
+Johannes Schindelin (2):
+      attr: adjust a mismatched data type
+      Git 2.31.7
+
+Junio C Hamano (1):
+      Git 2.30.8
+
+Patrick Steinhardt (1):
+      apply: fix writing behind newly created symbolic links
+
+Taylor Blau (3):
+      t5619: demonstrate clone_local() with ambiguous transport
+      clone: delay picking a transport until after get_repo_path()
+      dir-iterator: prevent top-level symlinks without FOLLOW_SYMLINKS
+
+
+Version v2.31.6; changes since v2.31.5:
+---------------------------------------
+
+Carlo Marcelo Arenas Belón (1):
+      test-lib: add prerequisite for 64-bit platforms
+
+Junio C Hamano (2):
+      Git 2.30.7
+      Git 2.31.6
+
+Patrick Steinhardt (21):
+      attr: fix overflow when upserting attribute with overly long name
+      attr: fix out-of-bounds read with huge attribute names
+      attr: fix integer overflow when parsing huge attribute names
+      attr: fix out-of-bounds write when parsing huge number of attributes
+      attr: fix out-of-bounds read with unreasonable amount of patterns
+      attr: fix integer overflow with more than INT_MAX macros
+      attr: harden allocation against integer overflows
+      attr: fix silently splitting up lines longer than 2048 bytes
+      attr: ignore attribute lines exceeding 2048 bytes
+      attr: ignore overly large gitattributes files
+      pretty: fix out-of-bounds write caused by integer overflow
+      pretty: fix out-of-bounds read when left-flushing with stealing
+      pretty: fix out-of-bounds read when parsing invalid padding format
+      pretty: fix adding linefeed when placeholder is not expanded
+      pretty: fix integer overflow in wrapping format
+      utf8: fix truncated string lengths in `utf8_strnwidth()`
+      utf8: fix returning negative string width
+      utf8: fix overflow when returning string width
+      utf8: fix checking for glyph width in `strbuf_utf8_replace()`
+      utf8: refactor `strbuf_utf8_replace` to not rely on preallocated buffer
+      pretty: restrict input lengths for padding and wrapping formats
+
+
 Version v2.31.5; changes since v2.31.4:
 ---------------------------------------
 
@@ -7130,7 +7743,7 @@ Taylor Blau (1):
       commit-graph.c: display correct number of chunks when writing
 
 
-Version v2.31.0-rc0; changes since v2.30.6:
+Version v2.31.0-rc0; changes since v2.30.8:
 -------------------------------------------
 
 Abhishek Kumar (11):
@@ -7724,6 +8337,57 @@ brian m. carlson (8):
       test libs: rename "diff-lib" to "lib-diff"
       test-lib-functions: remove bug-inducing "diagnostics" helper param
       test-lib-functions: assert correct parameter count
+
+
+Version v2.30.8; changes since v2.30.7:
+---------------------------------------
+
+Johannes Schindelin (1):
+      attr: adjust a mismatched data type
+
+Junio C Hamano (1):
+      Git 2.30.8
+
+Patrick Steinhardt (1):
+      apply: fix writing behind newly created symbolic links
+
+Taylor Blau (3):
+      t5619: demonstrate clone_local() with ambiguous transport
+      clone: delay picking a transport until after get_repo_path()
+      dir-iterator: prevent top-level symlinks without FOLLOW_SYMLINKS
+
+
+Version v2.30.7; changes since v2.30.6:
+---------------------------------------
+
+Carlo Marcelo Arenas Belón (1):
+      test-lib: add prerequisite for 64-bit platforms
+
+Junio C Hamano (1):
+      Git 2.30.7
+
+Patrick Steinhardt (21):
+      attr: fix overflow when upserting attribute with overly long name
+      attr: fix out-of-bounds read with huge attribute names
+      attr: fix integer overflow when parsing huge attribute names
+      attr: fix out-of-bounds write when parsing huge number of attributes
+      attr: fix out-of-bounds read with unreasonable amount of patterns
+      attr: fix integer overflow with more than INT_MAX macros
+      attr: harden allocation against integer overflows
+      attr: fix silently splitting up lines longer than 2048 bytes
+      attr: ignore attribute lines exceeding 2048 bytes
+      attr: ignore overly large gitattributes files
+      pretty: fix out-of-bounds write caused by integer overflow
+      pretty: fix out-of-bounds read when left-flushing with stealing
+      pretty: fix out-of-bounds read when parsing invalid padding format
+      pretty: fix adding linefeed when placeholder is not expanded
+      pretty: fix integer overflow in wrapping format
+      utf8: fix truncated string lengths in `utf8_strnwidth()`
+      utf8: fix returning negative string width
+      utf8: fix overflow when returning string width
+      utf8: fix checking for glyph width in `strbuf_utf8_replace()`
+      utf8: refactor `strbuf_utf8_replace` to not rely on preallocated buffer
+      pretty: restrict input lengths for padding and wrapping formats
 
 
 Version v2.30.6; changes since v2.30.5:

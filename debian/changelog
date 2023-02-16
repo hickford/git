@@ -1,3 +1,10 @@
+git (1:2.39.2-1) unstable; urgency=medium
+
+  * new upstream point release (see RelNotes/2.39.2.txt).  Addresses
+    CVE-2023-22490 and CVE-2023-23946.
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Wed, 15 Feb 2023 17:08:12 -0800
+
 git (1:2.39.1-0.1) unstable; urgency=medium
 
   * Non-maintainer upload.
