@@ -1,3 +1,10 @@
+git (1:2.39.2-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload (only changes to git-doc).
+  * Correct paths in git-doc doc-base control files (Closes: #1023255)
+
+ -- Matthew Vernon <matthew@debian.org>  Tue, 28 Feb 2023 09:25:32 +0000
+
 git (1:2.39.2-1) unstable; urgency=medium
 
   * new upstream point release (see RelNotes/2.39.2.txt).  Addresses

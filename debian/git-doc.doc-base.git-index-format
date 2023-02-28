@@ -6,4 +6,4 @@ Abstract: The on-disk format of Git's staging area, merging area,
 Section: File Management
 
 Format: Text
-Files: /usr/share/doc/git-doc/technical/index-format.txt
+Files: /usr/share/doc/git-doc/gitformat-index.txt

@@ -5,5 +5,5 @@ Abstract: Git's packed data format.
 Section: File Management
 
 Format: Text
-Files: /usr/share/doc/git-doc/technical/pack-format.txt
+Files: /usr/share/doc/git-doc/gitformat-pack.txt
  /usr/share/doc/git-doc/technical/pack-heuristics.txt
