@@ -40,6 +40,7 @@ struct credential {
 	char *username;
 	char *password;
 	char *password_expiry_utc;
+	char *oauth_refresh_token;
 };
 
 #define CREDENTIAL_INIT { 0 }
@@ -136,6 +137,7 @@ static int keyring_get(struct credential *c)
 		SecretItem *item;
 		SecretValue *secret;
 		const char *s;
+		gchar **parts;
 
 		item = items->data;
 		secret = secret_item_get_secret(item);
@@ -155,8 +157,18 @@ static int keyring_get(struct credential *c)
 
 		s = secret_value_get_text(secret);
 		if (s) {
-			g_free(c->password);
-			c->password = g_strdup(s);
+			// password and refresh token joined by newline
+			parts = g_strsplit(s, "\n", 0);
+			if (g_strv_length(parts) >= 1) {
+				g_free(c->password);
+				c->password = g_strdup(parts[0]);
+			}
+			for (int i = 1; i < g_strv_length(parts); i++) {
+				if (g_str_has_prefix(parts[i], "oauth_refresh_token=")) {
+					g_free(c->oauth_refresh_token);
+					c->oauth_refresh_token = g_strdup(&parts[i][20]);
+				}
+			}
 		}
 
 		g_hash_table_unref(attributes);
@@ -173,6 +185,7 @@ static int keyring_store(struct credential *c)
 	char *label = NULL;
 	GHashTable *attributes = NULL;
 	GError *error = NULL;
+	gchar *secret;
 
 	/*
 	 * Sanity check that what we are storing is actually sensible.
@@ -187,13 +200,20 @@ static int keyring_store(struct credential *c)
 
 	label = make_label(c);
 	attributes = make_attr_list(c);
+	if (c->oauth_refresh_token) {
+		secret = g_strconcat(c->password, "\noauth_refresh_token=",
+			c->oauth_refresh_token, NULL);
+	} else {
+		secret = g_strdup(c->password);
+	}
 	secret_password_storev_sync(&schema,
 				    attributes,
 				    NULL,
 				    label,
-				    c->password,
+				    secret,
 				    NULL,
 				    &error);
+	g_free(secret);
 	g_free(label);
 	g_hash_table_unref(attributes);
 
@@ -264,6 +284,7 @@ static void credential_clear(struct credential *c)
 	g_free(c->username);
 	g_free(c->password);
 	g_free(c->password_expiry_utc);
+	g_free(c->oauth_refresh_token);
 
 	credential_init(c);
 }
@@ -318,6 +339,11 @@ static int credential_read(struct credential *c)
 			c->password = g_strdup(value);
 			while (*value)
 				*value++ = '\0';
+		} else if (!strcmp(key, "oauth_refresh_token")) {
+			g_free(c->oauth_refresh_token);
+			c->oauth_refresh_token = g_strdup(value);
+			while (*value)
+				*value++ = '\0';
 		}
 		/*
 		 * Ignore other lines; we don't know what they mean, but
@@ -345,6 +371,8 @@ static void credential_write(const struct credential *c)
 	credential_write_item(stdout, "password", c->password);
 	credential_write_item(stdout, "password_expiry_utc",
 		c->password_expiry_utc);
+	credential_write_item(stdout, "oauth_refresh_token",
+		c->oauth_refresh_token);
 }
 
 static void usage(const char *name)
