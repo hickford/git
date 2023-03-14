@@ -46,6 +46,8 @@ helper_test_clean "$GIT_TEST_CREDENTIAL_HELPER"
 
 helper_test "$GIT_TEST_CREDENTIAL_HELPER"
 
+helper_test_oauth_refresh_token "$GIT_TEST_CREDENTIAL_HELPER"
+
 if test -z "$GIT_TEST_CREDENTIAL_HELPER_TIMEOUT"; then
 	say "# skipping timeout tests (GIT_TEST_CREDENTIAL_HELPER_TIMEOUT not set)"
 else

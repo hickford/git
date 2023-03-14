@@ -25,6 +25,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <glib.h>
 #include <libsecret/secret.h>
@@ -40,6 +41,7 @@ struct credential {
 	char *username;
 	char *password;
 	char *password_expiry_utc;
+	char *oauth_refresh_token;
 };
 
 #define CREDENTIAL_INIT { 0 }
@@ -57,8 +59,7 @@ struct credential_operation {
 
 static const SecretSchema schema = {
 	"org.git.Password",
-	/* Ignore schema name for backwards compatibility with previous versions */
-	SECRET_SCHEMA_DONT_MATCH_NAME,
+	SECRET_SCHEMA_NONE,
 	{
 		{  "user", SECRET_SCHEMA_ATTRIBUTE_STRING },
 		{  "object", SECRET_SCHEMA_ATTRIBUTE_STRING },
@@ -66,6 +67,19 @@ static const SecretSchema schema = {
 		{  "port", SECRET_SCHEMA_ATTRIBUTE_INTEGER },
 		{  "server", SECRET_SCHEMA_ATTRIBUTE_STRING },
 		{  "password_expiry_utc", SECRET_SCHEMA_ATTRIBUTE_INTEGER },
+		{  NULL, 0 },
+	}
+};
+
+static const SecretSchema refresh_schema = {
+	"org.git.OAuthRefreshToken",
+	SECRET_SCHEMA_NONE,
+	{
+		{  "user", SECRET_SCHEMA_ATTRIBUTE_STRING },
+		{  "object", SECRET_SCHEMA_ATTRIBUTE_STRING },
+		{  "protocol", SECRET_SCHEMA_ATTRIBUTE_STRING },
+		{  "port", SECRET_SCHEMA_ATTRIBUTE_INTEGER },
+		{  "server", SECRET_SCHEMA_ATTRIBUTE_STRING },
 		{  NULL, 0 },
 	}
 };
@@ -80,7 +94,17 @@ static char *make_label(struct credential *c)
 					c->protocol, c->host, c->path ? c->path : "");
 }
 
-static GHashTable *make_attr_list(struct credential *c)
+static char *make_refresh_label(struct credential *c)
+{
+	if (c->port)
+		return g_strdup_printf("Git (OAuth refresh token): %s://%s:%hu/%s",
+					c->protocol, c->host, c->port, c->path ? c->path : "");
+	else
+		return g_strdup_printf("Git (OAuth refresh token): %s://%s/%s",
+					c->protocol, c->host, c->path ? c->path : "");
+}
+
+static GHashTable *make_attr_list(struct credential *c, bool include_expiry)
 {
 	GHashTable *al = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, g_free);
 
@@ -94,7 +118,7 @@ static GHashTable *make_attr_list(struct credential *c)
 		g_hash_table_insert(al, "port", g_strdup_printf("%hu", c->port));
 	if (c->path)
 		g_hash_table_insert(al, "object", g_strdup(c->path));
-	if (c->password_expiry_utc)
+	if (c->password_expiry_utc && include_expiry)
 		g_hash_table_insert(al, "password_expiry_utc",
 			g_strdup(c->password_expiry_utc));
 
@@ -105,8 +129,10 @@ static int keyring_get(struct credential *c)
 {
 	SecretService *service = NULL;
 	GHashTable *attributes = NULL;
+	GHashTable *refresh_attributes = NULL;
 	GError *error = NULL;
 	GList *items = NULL;
+	GList *refresh_items = NULL;
 
 	if (!c->protocol || !(c->host || c->path))
 		return EXIT_FAILURE;
@@ -118,13 +144,24 @@ static int keyring_get(struct credential *c)
 		return EXIT_FAILURE;
 	}
 
-	attributes = make_attr_list(c);
+	attributes = make_attr_list(c, true);
 	items = secret_service_search_sync(service,
 					   &schema,
 					   attributes,
 					   SECRET_SEARCH_LOAD_SECRETS | SECRET_SEARCH_UNLOCK,
 					   NULL,
 					   &error);
+
+	if (error == NULL) {
+		refresh_attributes = make_attr_list(c, false);
+		refresh_items = secret_service_search_sync(service,
+			&refresh_schema,
+			refresh_attributes,
+			SECRET_SEARCH_LOAD_SECRETS | SECRET_SEARCH_UNLOCK,
+			NULL,
+			&error);
+		g_hash_table_unref(refresh_attributes);
+	}
 	g_hash_table_unref(attributes);
 	if (error != NULL) {
 		g_critical("lookup failed: %s", error->message);
@@ -164,14 +201,35 @@ static int keyring_get(struct credential *c)
 		g_list_free_full(items, g_object_unref);
 	}
 
+	if (refresh_items != NULL) {
+		SecretValue *secret;
+		const char *s;
+		SecretItem *item;
+		
+		item = refresh_items->data;
+		secret = secret_item_get_secret(item);
+
+		s = secret_value_get_text(secret);
+		if (s) {
+			g_free(c->oauth_refresh_token);
+			c->oauth_refresh_token = g_strdup(s);
+		}
+
+		secret_value_unref(secret);
+		g_list_free_full(refresh_items, g_object_unref);
+	}
+
 	return EXIT_SUCCESS;
 }
 
+static int keyring_erase_inner(struct credential *c, bool erase_refresh);
 
 static int keyring_store(struct credential *c)
 {
 	char *label = NULL;
+	char *refresh_label = NULL;
 	GHashTable *attributes = NULL;
+	GHashTable *refresh_attributes = NULL;
 	GError *error = NULL;
 
 	/*
@@ -185,8 +243,13 @@ static int keyring_store(struct credential *c)
 	    !c->username || !c->password)
 		return EXIT_FAILURE;
 
+	if (c->password_expiry_utc) {
+		/* libsecret won't overwrite so erase manually to avoid pollution */
+		keyring_erase_inner(c, false);
+	}
+
 	label = make_label(c);
-	attributes = make_attr_list(c);
+	attributes = make_attr_list(c, true);
 	secret_password_storev_sync(&schema,
 				    attributes,
 				    NULL,
@@ -194,6 +257,20 @@ static int keyring_store(struct credential *c)
 				    c->password,
 				    NULL,
 				    &error);
+	if (error == NULL && c->oauth_refresh_token) {
+		refresh_label = make_refresh_label(c);
+		refresh_attributes = make_attr_list(c, false);
+		secret_password_storev_sync(&refresh_schema,
+			refresh_attributes,
+			NULL,
+			/* ought to use distinct label to avoid confusion */
+			refresh_label,
+			c->oauth_refresh_token,
+			NULL,
+			&error);
+		g_free(refresh_label);
+		g_hash_table_unref(refresh_attributes);
+	}
 	g_free(label);
 	g_hash_table_unref(attributes);
 
@@ -206,9 +283,10 @@ static int keyring_store(struct credential *c)
 	return EXIT_SUCCESS;
 }
 
-static int keyring_erase(struct credential *c)
+static int keyring_erase_inner(struct credential *c, bool erase_refresh)
 {
 	GHashTable *attributes = NULL;
+	GHashTable *refresh_attributes = NULL;
 	GError *error = NULL;
 
 	/*
@@ -222,12 +300,20 @@ static int keyring_erase(struct credential *c)
 	if (!c->protocol && !c->host && !c->path && !c->username)
 		return EXIT_FAILURE;
 
-	attributes = make_attr_list(c);
+	attributes = make_attr_list(c, true);
 	secret_password_clearv_sync(&schema,
 				    attributes,
 				    NULL,
 				    &error);
 	g_hash_table_unref(attributes);
+	if (error == NULL && erase_refresh) {
+		refresh_attributes = make_attr_list(c, false);
+		secret_password_clearv_sync(&refresh_schema,
+			refresh_attributes,
+			NULL,
+			&error);
+		g_hash_table_unref(refresh_attributes);
+	}
 
 	if (error != NULL) {
 		g_critical("erase failed: %s", error->message);
@@ -236,6 +322,10 @@ static int keyring_erase(struct credential *c)
 	}
 
 	return EXIT_SUCCESS;
+}
+
+static int keyring_erase(struct credential *c) {
+	return keyring_erase_inner(c, c->password_expiry_utc == NULL);
 }
 
 /*
@@ -264,6 +354,7 @@ static void credential_clear(struct credential *c)
 	g_free(c->username);
 	g_free(c->password);
 	g_free(c->password_expiry_utc);
+	g_free(c->oauth_refresh_token);
 
 	credential_init(c);
 }
@@ -318,6 +409,11 @@ static int credential_read(struct credential *c)
 			c->password = g_strdup(value);
 			while (*value)
 				*value++ = '\0';
+		} else if (!strcmp(key, "oauth_refresh_token")) {
+			g_free(c->oauth_refresh_token);
+			c->oauth_refresh_token = g_strdup(value);
+			while (*value)
+				*value++ = '\0';
 		}
 		/*
 		 * Ignore other lines; we don't know what they mean, but
@@ -345,6 +441,8 @@ static void credential_write(const struct credential *c)
 	credential_write_item(stdout, "password", c->password);
 	credential_write_item(stdout, "password_expiry_utc",
 		c->password_expiry_utc);
+	credential_write_item(stdout, "oauth_refresh_token",
+		c->oauth_refresh_token);
 }
 
 static void usage(const char *name)
