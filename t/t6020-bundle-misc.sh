@@ -11,6 +11,13 @@ export GIT_TEST_DEFAULT_INITIAL_BRANCH_NAME
 . ./test-lib.sh
 . "$TEST_DIRECTORY"/lib-bundle.sh
 
+for cmd in create verify list-heads unbundle
+do
+	test_expect_success "usage: git bundle $cmd needs an argument" '
+		test_expect_code 129 git bundle $cmd
+	'
+done
+
 # Create a commit or tag and set the variable with the object ID.
 test_commit_setvar () {
 	notick=
@@ -557,6 +564,46 @@ test_expect_success 'cloning from filtered bundle has useful error' '
 		--filter=blob:none &&
 	test_must_fail git clone --bare partial.bdl partial 2>err &&
 	grep "cannot clone from filtered bundle" err
+'
+
+test_expect_success 'verify catches unreachable, broken prerequisites' '
+	test_when_finished rm -rf clone-from clone-to &&
+	git init clone-from &&
+	(
+		cd clone-from &&
+		git checkout -b base &&
+		test_commit A &&
+		git checkout -b tip &&
+		git commit --allow-empty -m "will drop by shallow" &&
+		git commit --allow-empty -m "will keep by shallow" &&
+		git commit --allow-empty -m "for bundle, not clone" &&
+		git bundle create tip.bundle tip~1..tip &&
+		git reset --hard HEAD~1 &&
+		git checkout base
+	) &&
+	BAD_OID=$(git -C clone-from rev-parse tip~1) &&
+	TIP_OID=$(git -C clone-from rev-parse tip) &&
+	git clone --depth=1 --no-single-branch \
+		"file://$(pwd)/clone-from" clone-to &&
+	(
+		cd clone-to &&
+
+		# Set up broken history by removing shallow markers
+		git update-ref -d refs/remotes/origin/tip &&
+		rm .git/shallow &&
+
+		# Verify should fail
+		test_must_fail git bundle verify \
+			../clone-from/tip.bundle 2>err &&
+		grep "some prerequisite commits .* are not connected" err &&
+		test_line_count = 1 err &&
+
+		# Unbundling should fail
+		test_must_fail git bundle unbundle \
+			../clone-from/tip.bundle 2>err &&
+		grep "some prerequisite commits .* are not connected" err &&
+		test_line_count = 1 err
+	)
 '
 
 test_done

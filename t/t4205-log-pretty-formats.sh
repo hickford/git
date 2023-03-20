@@ -156,7 +156,7 @@ test_expect_success 'NUL termination with --reflog --pretty=oneline' '
 	for r in $revs
 	do
 		git show -s --pretty=oneline "$r" >raw &&
-		cat raw | lf_to_nul || exit 1
+		cat raw | lf_to_nul || return 1
 	done >expect &&
 	# the trailing NUL is already produced so we do not need to
 	# output another one
@@ -1092,6 +1092,33 @@ test_expect_success EXPENSIVE,SIZE_T_IS_64BIT 'log --pretty with huge commit mes
 	fatal: number too large to represent as int on this platform: 2147483649
 	EOF
 	test_cmp expect error
+'
+
+# pretty-formats note wide char limitations, and add tests
+test_expect_failure 'wide and decomposed characters column counting' '
+
+# from t/lib-unicode-nfc-nfd.sh hex values converted to octal
+	utf8_nfc=$(printf "\303\251") && # e acute combined.
+	utf8_nfd=$(printf "\145\314\201") && # e with a combining acute (i.e. decomposed)
+	utf8_emoji=$(printf "\360\237\221\250") &&
+
+# replacement character when requesting a wide char fits in a single display colum.
+# "half wide" alternative could be a plain ASCII dot `.`
+	utf8_vert_ell=$(printf "\342\213\256") &&
+
+# use ${xxx} here!
+	nfc10="${utf8_nfc}${utf8_nfc}${utf8_nfc}${utf8_nfc}${utf8_nfc}${utf8_nfc}${utf8_nfc}${utf8_nfc}${utf8_nfc}${utf8_nfc}" &&
+	nfd10="${utf8_nfd}${utf8_nfd}${utf8_nfd}${utf8_nfd}${utf8_nfd}${utf8_nfd}${utf8_nfd}${utf8_nfd}${utf8_nfd}${utf8_nfd}" &&
+	emoji5="${utf8_emoji}${utf8_emoji}${utf8_emoji}${utf8_emoji}${utf8_emoji}" &&
+# emoji5 uses 10 display columns
+
+	test_commit "abcdefghij" &&
+	test_commit --no-tag "${nfc10}" &&
+	test_commit --no-tag "${nfd10}" &&
+	test_commit --no-tag "${emoji5}" &&
+	printf "${utf8_emoji}..${utf8_emoji}${utf8_vert_ell}\n${utf8_nfd}..${utf8_nfd}${utf8_nfd}\n${utf8_nfc}..${utf8_nfc}${utf8_nfc}\na..ij\n" >expected &&
+	git log --format="%<(5,mtrunc)%s" -4 >actual &&
+	test_cmp expected actual
 '
 
 test_done
