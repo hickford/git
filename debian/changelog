@@ -1,10 +1,11 @@
-git (1:2.39.2-1.2) unstable; urgency=low
+git (1:2.40.0-1) unstable; urgency=low
 
+  * new upstream release (see RelNotes/2.40.0.txt).
   * debian/git-doc.doc-base.{git-index-format,git-pack-format,git-protocol}:
     remove from documentation index, as the main git(1) reference
     manual is the main entry point to find these.
 
- -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 20 Mar 2023 16:43:57 -0700
+ -- Jonathan Nieder <jrnieder@gmail.com>  Mon, 20 Mar 2023 16:50:00 -0700
 
 git (1:2.39.2-1.1) unstable; urgency=medium
 

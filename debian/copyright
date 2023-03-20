@@ -3,7 +3,7 @@ Upstream-Contact: git@vger.kernel.org
 Source: https://www.kernel.org/pub/software/scm/git/
 
 Files: *
-Copyright: © 2005-2022, Linus Torvalds and others.
+Copyright: © 2005-2023, Linus Torvalds and others.
 License: GPL-2
 
 Files: reftable/* t/t0032-reftable-unittest.sh
