@@ -816,7 +816,7 @@ static int git_tcp_connect_sock(char *host, int flags)
 
 	gai = getaddrinfo(host, port, &hints, &ai);
 	if (gai)
-		die(_("unable to look up %s (port %s) (%s)"), host, port, gai_strerror(gai));
+		die(_("unable to look up %s (port %s) (%s)"), host, port, "gai_strerror NOT IMPLEMENTED");
 
 	if (flags & CONNECT_VERBOSE)
 		/* TRANSLATORS: this is the end of "Looking up %s ... " */

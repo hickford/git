@@ -995,7 +995,7 @@ static struct imap_store *imap_open_store(struct imap_server_conf *srvc, const c
 		imap_info("Resolving %s... ", srvc->host);
 		gai = getaddrinfo(srvc->host, portstr, &hints, &ai);
 		if (gai) {
-			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(gai));
+			fprintf(stderr, "getaddrinfo: %s\n", "gai_strerror NOT IMPLEMENTED");
 			goto bail;
 		}
 		imap_info("ok\n");

@@ -996,7 +996,7 @@ static int setup_named_sock(char *listen_addr, int listen_port, struct socketlis
 
 	gai = getaddrinfo(listen_addr, pbuf, &hints, &ai0);
 	if (gai) {
-		logerror("getaddrinfo() for %s failed: %s", listen_addr, gai_strerror(gai));
+		logerror("getaddrinfo() for %s failed: %s", listen_addr, "gai_strerror NOT IMPLEMENTED");
 		return 0;
 	}
 
