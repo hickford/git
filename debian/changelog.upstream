@@ -1,3 +1,59 @@
+Version v2.40.1; changes since v2.40.0:
+---------------------------------------
+
+Derrick Stolee (1):
+      ci: update 'static-analysis' to Ubuntu 22.04
+
+Jeff King (7):
+      http-push: prefer CURLOPT_UPLOAD to CURLOPT_PUT
+      http: prefer CURLOPT_SEEKFUNCTION to CURLOPT_IOCTLFUNCTION
+      range-diff: drop useless "offset" variable from read_patches()
+      http: support CURLOPT_PROTOCOLS_STR
+      range-diff: handle unterminated lines in read_patches()
+      range-diff: use ssize_t for parsed "len" in read_patches()
+      Makefile: force -O0 when compiling with SANITIZE=leak
+
+Jiang Xin (4):
+      github-actions: run gcc-8 on ubuntu-20.04 image
+      ci: remove the pipe after "p4 -V" to catch errors
+      ci: use the same version of p4 on both Linux and macOS
+      ci: install python on ubuntu
+
+Johannes Schindelin (22):
+      compat/win32/syslog: fix use-after-realloc
+      nedmalloc: avoid new compile error
+      t0033: GETTEXT_POISON fix
+      t0003: GETTEXT_POISON fix, part 1
+      t0003: GETTEXT_POISON fix, conclusion
+      t5619: GETTEXT_POISON fix
+      t5604: GETTEXT_POISON fix, part 1
+      t5604: GETTEXT_POISON fix, conclusion
+      clone.c: avoid "exceeds maximum object size" error with GCC v12.x
+      apply --reject: overwrite existing `.rej` symlink if it exists
+      gettext: avoid using gettext if the locale dir is not present
+      tests: avoid using `test_i18ncmp`
+      Git 2.31.8
+      Git 2.32.7
+      Git 2.33.8
+      Git 2.34.8
+      Git 2.35.8
+      Git 2.36.6
+      Git 2.37.7
+      Git 2.38.5
+      Git 2.39.3
+      Git 2.40.1
+
+Junio C Hamano (1):
+      http.c: clear the 'finished' member once we are done with it
+
+Taylor Blau (5):
+      t1300: demonstrate failure when renaming sections with long lines
+      config: avoid fixed-sized buffer when renaming/deleting a section
+      config.c: avoid integer truncation in `copy_or_rename_section_in_file()`
+      config.c: disallow overly-long lines in `copy_or_rename_section_in_file()`
+      Git 2.30.9
+
+
 Version v2.40.0; changes since v2.40.0-rc2:
 -------------------------------------------
 
@@ -117,7 +173,7 @@ idriss fekir (1):
       trace.c, git.c: remove unnecessary parameter to trace_repo_setup()
 
 
-Version v2.40.0-rc0; changes since v2.39.2:
+Version v2.40.0-rc0; changes since v2.39.3:
 -------------------------------------------
 
 Adam Szkoda (1):
@@ -146,11 +202,6 @@ Calvin Wan (2):
 
 Carlo Marcelo Arenas Belón (1):
       grep: correctly identify utf-8 characters with \{b,w} in -P
-
-Chris. Webster (3):
-      ci (check-whitespace): suggest fixes for errors
-      ci (check-whitespace): add links to job output
-      ci (check-whitespace): move to actions/checkout@v3
 
 Daniël Haazen (1):
       mingw: fix typo in an error message from ownership check
@@ -206,11 +257,10 @@ Emily Shaffer (4):
       sequencer: use the new hook API for the simpler "post-rewrite" call
       hook: support a --to-stdin=<path> option
 
-Eric Sunshine (4):
+Eric Sunshine (3):
       t1509: fix failing "root work tree" test due to owner-check
       t1509: make "setup" test more robust
       t1509: facilitate repeated script invocations
-      githooks: discuss Git operations in foreign repositories
 
 Eric Wong (2):
       format-patch: support format.mboxrd with --stdout
@@ -231,31 +281,16 @@ Jeff Hostetler (2):
       fsmonitor: fix race seen in t7527
       fsmonitor: eliminate call to deprecated FSEventStream function
 
-Jeff King (50):
+Jeff King (32):
       git-jump: move valid-mode check earlier
       pack-bitmap.c: break out of the bitmap loop early if not tracing
       pack-bitmap.c: trace bitmap ignore logs when midx-bitmap is found
-      git-compat-util: avoid redefining system function names
-      git-compat-util: undefine system names before redeclaring them
-      server_supports_v2(): use a separate function for die_on_error
-      ls-refs: use repository parameter to iterate refs
-      blob: drop unused parts of parse_blob_buffer()
-      list-objects: drop process_gitlink() function
-      ws: drop unused parameter from ws_blank_line()
-      xdiff: drop unused parameter in def_ff()
-      xdiff: mark unused parameter in xdl_call_hunk_func()
-      diff: mark unused parameters in callbacks
-      list-objects-filter: mark unused parameters in virtual functions
-      userdiff: mark unused parameter in internal callback
       ref-filter: reject arguments to %(HEAD)
       ref-filter: factor out "%(foo) does not take arguments" errors
       ref-filter: factor out "unrecognized %(foo) arg" errors
       ref-filter: truncate atom names in error messages
       ref-filter: convert email atom parser to use err_bad_arg()
       test-bundle-uri: drop unused variables
-      diff: use filespec path to set up tempfiles for ext-diff
-      diff: clean up external-diff argv setup
-      diff: drop "name" parameter from prepare_temp_file()
       convert trivial uses of strncmp() to starts_with()
       convert trivial uses of strncmp() to skip_prefix()
       object-file: inline calls to read_object()
@@ -265,9 +300,6 @@ Jeff King (50):
       packfile: inline custom read_object()
       object-file: fix indent-with-space
       t/interop: report which vanilla git command failed
-      http-push: prefer CURLOPT_UPLOAD to CURLOPT_PUT
-      http: prefer CURLOPT_SEEKFUNCTION to CURLOPT_IOCTLFUNCTION
-      http: support CURLOPT_PROTOCOLS_STR
       t1007: modernize malformed object tests
       t1006: stop using 0-padded timestamps
       t7030: stop using invalid tag name
@@ -288,12 +320,11 @@ Jiang Xin (3):
       t1301: use test_when_finished for cleanup
       t1301: do not change $CWD in "shared=all" test case
 
-Johannes Schindelin (12):
+Johannes Schindelin (11):
       bisect--helper: handle states directly
       Turn `git bisect` into a full built-in
       t0021: use Windows-friendly `pwd`
       tests(mingw): avoid very slow `mingw_test_cmp`
-      ci: only run win+VS build & tests in Git for Windows' fork
       bisect--helper: simplify exit code computation
       bisect: verify that a bogus option won't try to start a bisection
       bisect run: fix the error message
@@ -301,9 +332,6 @@ Johannes Schindelin (12):
       bisect: no longer try to clean up left-over `.git/head-name` files
       t7510: add a test case that does not need gpg
       gpg: do show gpg's error message upon failure
-
-Johannes Sixt (1):
-      t3920: don't ignore errors of more than one command with `|| true`
 
 John Cai (2):
       docs: link generating patch sections
@@ -316,7 +344,7 @@ Jonathan Tan (5):
       object-file: emit corruption errors when detected
       commit: don't lazy-fetch commits
 
-Junio C Hamano (25):
+Junio C Hamano (22):
       Start the 2.40 cycle
       The first batch for 2.40
       The second batch
@@ -326,8 +354,6 @@ Junio C Hamano (25):
       The sixth batch
       format-patch: unleak "-v <num>"
       The seventh batch
-      branch: document `-f` and linked worktree behaviour
-      checkout: document -b/-B to highlight the differences from "git branch"
       The eighth batch
       The ninth batch
       The tenth batch
@@ -336,7 +362,6 @@ Junio C Hamano (25):
       The thirteenth batch
       The fourteenth batch
       The fifteenth batch
-      Prepare for 2.39.3 just in case
       The sixteenth batch
       rev-list: clarify git-log default date format
       test-genzeros: avoid raw write(2)
@@ -359,9 +384,6 @@ Kyle Zhao (3):
       merge-tree.c: allow specifying the merge-base when --stdin is passed
       docs: fix description of the `--merge-base` option
 
-Lars Kellogg-Stedman (1):
-      line-range: fix infinite loop bug with '$' regex
-
 M Hickford (1):
       Documentation: clarify that cache forgets credentials if the system restarts
 
@@ -370,9 +392,6 @@ Martin Ågren (1):
 
 Mathias Krause (1):
       grep: fall back to interpreter if JIT memory allocation fails
-
-Patrick Steinhardt (1):
-      refs: fix corruption by not correctly syncing packed-refs to disk
 
 Peter Grayson (1):
       diff: fix regression with --stat and unmerged file
@@ -385,51 +404,33 @@ Philip Oakley (6):
       doc: pretty-formats note wide char limitations, and add tests
       .gitattributes: include `text` attribute for eol attributes
 
-Philippe Blain (6):
-      git-cherry-pick.txt: do not use 'ORIG_HEAD' in example
-      git-reset.txt: mention 'ORIG_HEAD' in the Description
-      git-merge.txt: mention 'ORIG_HEAD' in the Description
-      revisions.txt: be explicit about commands writing 'ORIG_HEAD'
-      git-rebase.txt: add a note about 'ORIG_HEAD' being overwritten
+Philippe Blain (1):
       branch: improve advice when --recurse-submodules fails
 
 Phillip Wood (2):
       ci(github): restore "print test failures" step name
       rebase: cleanup "--exec" option handling
 
-René Scharfe (29):
+René Scharfe (19):
       t5317: stop losing return codes of git ls-files
       t5317: demonstrate failure to handle multiple --filter options
       pack-objects: fix handling of multiple --filter options
       pack-objects: simplify --filter handling
       list-objects-filter: remove OPT_PARSE_LIST_OBJECTS_FILTER_INIT()
-      t4205: don't exit test script on failure
       diff: factor out add_diff_options()
       diff: use add_diff_options() in diff_opt_parse()
       diff: remove parseopts member from struct diff_options
-      list-objects-filter: plug pattern_list leak
-      t3920: support CR-eating grep
-      reflog: clear leftovers in reflog_expiry_cleanup()
-      commit: skip already cleared parents in clear_commit_marks_1()
-      am: don't pass strvec to apply_parse_options()
-      object-file: inline write_buffer()
-      use enhanced basic regular expressions on macOS
       mingw: make argv2 in try_shell_exec() non-const
       factor out BARF_UNLESS_COPYABLE
       do full type check in BARF_UNLESS_COPYABLE
       add DUP_ARRAY
       use DUP_ARRAY
-      ls-tree: fix expansion of repeated %(path)
-      ls-tree: remove dead store and strbuf for quote_c_style()
       read-cache: use size_t for {base,df}_name_compare()
       pack-objects: use strcspn(3) in name_cmp_len()
       cache-tree: fix strbuf growth in prime_cache_tree_rec()
       test-ctype: test isascii
       test-ctype: test islower and isupper
       test-ctype: test iscntrl, ispunct, isxdigit and isprint
-
-Rubén Justo (1):
-      branch: force-copy a branch to itself via @{-1} is a no-op
 
 Rudy Rigot (1):
       status: modernize git-status "slow untracked files" advice
@@ -445,8 +446,7 @@ Sean Allred (3):
 Seija (1):
       maintenance: compare output of pthread functions for inequality with 0
 
-Seija Kijin (6):
-      git: remove duplicate includes
+Seija Kijin (5):
       win32: use _endthreadex to terminate threads, not ExitThread
       win32: prepare pthread.c for change by formatting
       win32: close handles of threads that have been joined
@@ -463,9 +463,6 @@ Simon Gerber (1):
 Sven Strickroth (1):
       submodule: accept -v for the update command
 
-Taylor Blau (1):
-      ci: avoid unnecessary builds
-
 Teng Long (4):
       pack-bitmap.c: remove unnecessary "open_pack_index()" calls
       pack-bitmap.c: avoid exposing absolute paths
@@ -481,9 +478,6 @@ Torsten Bögershausen (1):
 Wes Lord (1):
       new-command.txt: update reference to builtin docs
 
-William Sprent (1):
-      dir: check for single file cone patterns
-
 Yoichi Nakayama (2):
       git-jump: add an optional argument '--stdout'
       git-jump: invoke emacs/emacsclient
@@ -497,7 +491,7 @@ Yutaro Ohno (1):
 ZheNing Hu (1):
       scalar: show progress if stderr refers to a terminal
 
-Ævar Arnfjörð Bjarmason (90):
+Ævar Arnfjörð Bjarmason (84):
       bisect tests: test for v2.30.0 "bisect run" regressions
       bisect: refactor bisect_run() to match CodingGuidelines
       bisect test: test exit codes on bad usage
@@ -518,11 +512,7 @@ ZheNing Hu (1):
       cherry-pick: free "struct replay_opts" members
       revert: fix parse_options_concat() leak
       built-ins: use free() not UNLEAK() if trivial, rm dead code
-      t5314: check exit code of "git"
-      t7600: don't ignore "rev-parse" exit code in helper
-      t4023: fix ignored exit codes of git
       Makefile: use sha1collisiondetection by default on OSX and Darwin
-      bundle: don't segfault on "git bundle <subcmd>"
       protocol v2: add server-side "bundle-uri" skeleton
       t: create test harness for 'bundle-uri' command
       clone: request the 'bundle-uri' command when available
@@ -536,8 +526,6 @@ ZheNing Hu (1):
       submodule--helper: convert "status" to its own "--super-prefix"
       submodule--helper: convert "{update,clone}" to their own "--super-prefix"
       read-tree: add "--super-prefix" option, eliminate global
-      builtin/bundle.c: remove superfluous "newargc" variable
-      bundle <cmd>: have usage_msg_opt() note the missing "<file>"
       builtin/difftool.c: { 0 }-initialize rather than using memset()
       sparse-index.c: expand_to_path() can assume non-NULL "istate"
       sparse-index API: BUG() out on NULL ensure_full_index()
@@ -596,6 +584,137 @@ ZheNing Hu (1):
       bisect--helper: identify as bisect when report error
       bisect--helper: log: allow arbitrary number of arguments
       date.c: allow ISO 8601 reduced precision times
+
+
+Version v2.39.3; changes since v2.39.2:
+---------------------------------------
+
+Chris. Webster (3):
+      ci (check-whitespace): suggest fixes for errors
+      ci (check-whitespace): add links to job output
+      ci (check-whitespace): move to actions/checkout@v3
+
+Derrick Stolee (1):
+      ci: update 'static-analysis' to Ubuntu 22.04
+
+Eric Sunshine (1):
+      githooks: discuss Git operations in foreign repositories
+
+Jeff King (25):
+      git-compat-util: avoid redefining system function names
+      git-compat-util: undefine system names before redeclaring them
+      server_supports_v2(): use a separate function for die_on_error
+      ls-refs: use repository parameter to iterate refs
+      blob: drop unused parts of parse_blob_buffer()
+      list-objects: drop process_gitlink() function
+      ws: drop unused parameter from ws_blank_line()
+      xdiff: drop unused parameter in def_ff()
+      xdiff: mark unused parameter in xdl_call_hunk_func()
+      diff: mark unused parameters in callbacks
+      list-objects-filter: mark unused parameters in virtual functions
+      userdiff: mark unused parameter in internal callback
+      diff: use filespec path to set up tempfiles for ext-diff
+      diff: clean up external-diff argv setup
+      diff: drop "name" parameter from prepare_temp_file()
+      http-push: prefer CURLOPT_UPLOAD to CURLOPT_PUT
+      http: prefer CURLOPT_SEEKFUNCTION to CURLOPT_IOCTLFUNCTION
+      http: support CURLOPT_PROTOCOLS_STR
+      http-push: prefer CURLOPT_UPLOAD to CURLOPT_PUT
+      http: prefer CURLOPT_SEEKFUNCTION to CURLOPT_IOCTLFUNCTION
+      range-diff: drop useless "offset" variable from read_patches()
+      http: support CURLOPT_PROTOCOLS_STR
+      range-diff: handle unterminated lines in read_patches()
+      range-diff: use ssize_t for parsed "len" in read_patches()
+      Makefile: force -O0 when compiling with SANITIZE=leak
+
+Jiang Xin (4):
+      github-actions: run gcc-8 on ubuntu-20.04 image
+      ci: remove the pipe after "p4 -V" to catch errors
+      ci: use the same version of p4 on both Linux and macOS
+      ci: install python on ubuntu
+
+Johannes Schindelin (22):
+      ci: only run win+VS build & tests in Git for Windows' fork
+      compat/win32/syslog: fix use-after-realloc
+      nedmalloc: avoid new compile error
+      t0033: GETTEXT_POISON fix
+      t0003: GETTEXT_POISON fix, part 1
+      t0003: GETTEXT_POISON fix, conclusion
+      t5619: GETTEXT_POISON fix
+      t5604: GETTEXT_POISON fix, part 1
+      t5604: GETTEXT_POISON fix, conclusion
+      clone.c: avoid "exceeds maximum object size" error with GCC v12.x
+      apply --reject: overwrite existing `.rej` symlink if it exists
+      gettext: avoid using gettext if the locale dir is not present
+      tests: avoid using `test_i18ncmp`
+      Git 2.31.8
+      Git 2.32.7
+      Git 2.33.8
+      Git 2.34.8
+      Git 2.35.8
+      Git 2.36.6
+      Git 2.37.7
+      Git 2.38.5
+      Git 2.39.3
+
+Johannes Sixt (1):
+      t3920: don't ignore errors of more than one command with `|| true`
+
+Junio C Hamano (4):
+      branch: document `-f` and linked worktree behaviour
+      checkout: document -b/-B to highlight the differences from "git branch"
+      Prepare for 2.39.3 just in case
+      http.c: clear the 'finished' member once we are done with it
+
+Lars Kellogg-Stedman (1):
+      line-range: fix infinite loop bug with '$' regex
+
+Patrick Steinhardt (1):
+      refs: fix corruption by not correctly syncing packed-refs to disk
+
+Philippe Blain (5):
+      git-cherry-pick.txt: do not use 'ORIG_HEAD' in example
+      git-reset.txt: mention 'ORIG_HEAD' in the Description
+      git-merge.txt: mention 'ORIG_HEAD' in the Description
+      revisions.txt: be explicit about commands writing 'ORIG_HEAD'
+      git-rebase.txt: add a note about 'ORIG_HEAD' being overwritten
+
+René Scharfe (10):
+      t4205: don't exit test script on failure
+      list-objects-filter: plug pattern_list leak
+      t3920: support CR-eating grep
+      reflog: clear leftovers in reflog_expiry_cleanup()
+      commit: skip already cleared parents in clear_commit_marks_1()
+      am: don't pass strvec to apply_parse_options()
+      object-file: inline write_buffer()
+      use enhanced basic regular expressions on macOS
+      ls-tree: fix expansion of repeated %(path)
+      ls-tree: remove dead store and strbuf for quote_c_style()
+
+Rubén Justo (1):
+      branch: force-copy a branch to itself via @{-1} is a no-op
+
+Seija Kijin (1):
+      git: remove duplicate includes
+
+Taylor Blau (6):
+      ci: avoid unnecessary builds
+      t1300: demonstrate failure when renaming sections with long lines
+      config: avoid fixed-sized buffer when renaming/deleting a section
+      config.c: avoid integer truncation in `copy_or_rename_section_in_file()`
+      config.c: disallow overly-long lines in `copy_or_rename_section_in_file()`
+      Git 2.30.9
+
+William Sprent (1):
+      dir: check for single file cone patterns
+
+Ævar Arnfjörð Bjarmason (6):
+      t5314: check exit code of "git"
+      t7600: don't ignore "rev-parse" exit code in helper
+      t4023: fix ignored exit codes of git
+      bundle: don't segfault on "git bundle <subcmd>"
+      builtin/bundle.c: remove superfluous "newargc" variable
+      bundle <cmd>: have usage_msg_opt() note the missing "<file>"
 
 
 Version v2.39.2; changes since v2.39.1:
@@ -812,7 +931,7 @@ SZEDER Gábor (3):
       trace2 tests: guard pthread test with "PTHREAD"
 
 
-Version v2.39.0-rc0; changes since v2.38.4:
+Version v2.39.0-rc0; changes since v2.38.5:
 -------------------------------------------
 
 Alex Henrie (1):
@@ -1242,6 +1361,60 @@ srz_zumix (1):
       bisect--helper: parse subcommand with OPT_SUBCOMMAND
 
 
+Version v2.38.5; changes since v2.38.4:
+---------------------------------------
+
+Derrick Stolee (1):
+      ci: update 'static-analysis' to Ubuntu 22.04
+
+Jeff King (7):
+      http-push: prefer CURLOPT_UPLOAD to CURLOPT_PUT
+      http: prefer CURLOPT_SEEKFUNCTION to CURLOPT_IOCTLFUNCTION
+      range-diff: drop useless "offset" variable from read_patches()
+      http: support CURLOPT_PROTOCOLS_STR
+      range-diff: handle unterminated lines in read_patches()
+      range-diff: use ssize_t for parsed "len" in read_patches()
+      Makefile: force -O0 when compiling with SANITIZE=leak
+
+Jiang Xin (4):
+      github-actions: run gcc-8 on ubuntu-20.04 image
+      ci: remove the pipe after "p4 -V" to catch errors
+      ci: use the same version of p4 on both Linux and macOS
+      ci: install python on ubuntu
+
+Johannes Schindelin (20):
+      compat/win32/syslog: fix use-after-realloc
+      nedmalloc: avoid new compile error
+      t0033: GETTEXT_POISON fix
+      t0003: GETTEXT_POISON fix, part 1
+      t0003: GETTEXT_POISON fix, conclusion
+      t5619: GETTEXT_POISON fix
+      t5604: GETTEXT_POISON fix, part 1
+      t5604: GETTEXT_POISON fix, conclusion
+      clone.c: avoid "exceeds maximum object size" error with GCC v12.x
+      apply --reject: overwrite existing `.rej` symlink if it exists
+      gettext: avoid using gettext if the locale dir is not present
+      tests: avoid using `test_i18ncmp`
+      Git 2.31.8
+      Git 2.32.7
+      Git 2.33.8
+      Git 2.34.8
+      Git 2.35.8
+      Git 2.36.6
+      Git 2.37.7
+      Git 2.38.5
+
+Junio C Hamano (1):
+      http.c: clear the 'finished' member once we are done with it
+
+Taylor Blau (5):
+      t1300: demonstrate failure when renaming sections with long lines
+      config: avoid fixed-sized buffer when renaming/deleting a section
+      config.c: avoid integer truncation in `copy_or_rename_section_in_file()`
+      config.c: disallow overly-long lines in `copy_or_rename_section_in_file()`
+      Git 2.30.9
+
+
 Version v2.38.4; changes since v2.38.3:
 ---------------------------------------
 
@@ -1643,7 +1816,7 @@ ZheNing Hu (1):
       ls-files: fix black space in error message
 
 
-Version v2.38.0-rc0; changes since v2.37.6:
+Version v2.38.0-rc0; changes since v2.37.7:
 -------------------------------------------
 
 Abhradeep Chakraborty (6):
@@ -2207,6 +2380,59 @@ brian m. carlson (2):
       rev-parse --parseopt: detect missing opt-spec
 
 
+Version v2.37.7; changes since v2.37.6:
+---------------------------------------
+
+Derrick Stolee (1):
+      ci: update 'static-analysis' to Ubuntu 22.04
+
+Jeff King (7):
+      http-push: prefer CURLOPT_UPLOAD to CURLOPT_PUT
+      http: prefer CURLOPT_SEEKFUNCTION to CURLOPT_IOCTLFUNCTION
+      range-diff: drop useless "offset" variable from read_patches()
+      http: support CURLOPT_PROTOCOLS_STR
+      range-diff: handle unterminated lines in read_patches()
+      range-diff: use ssize_t for parsed "len" in read_patches()
+      Makefile: force -O0 when compiling with SANITIZE=leak
+
+Jiang Xin (4):
+      github-actions: run gcc-8 on ubuntu-20.04 image
+      ci: remove the pipe after "p4 -V" to catch errors
+      ci: use the same version of p4 on both Linux and macOS
+      ci: install python on ubuntu
+
+Johannes Schindelin (19):
+      compat/win32/syslog: fix use-after-realloc
+      nedmalloc: avoid new compile error
+      t0033: GETTEXT_POISON fix
+      t0003: GETTEXT_POISON fix, part 1
+      t0003: GETTEXT_POISON fix, conclusion
+      t5619: GETTEXT_POISON fix
+      t5604: GETTEXT_POISON fix, part 1
+      t5604: GETTEXT_POISON fix, conclusion
+      clone.c: avoid "exceeds maximum object size" error with GCC v12.x
+      apply --reject: overwrite existing `.rej` symlink if it exists
+      gettext: avoid using gettext if the locale dir is not present
+      tests: avoid using `test_i18ncmp`
+      Git 2.31.8
+      Git 2.32.7
+      Git 2.33.8
+      Git 2.34.8
+      Git 2.35.8
+      Git 2.36.6
+      Git 2.37.7
+
+Junio C Hamano (1):
+      http.c: clear the 'finished' member once we are done with it
+
+Taylor Blau (5):
+      t1300: demonstrate failure when renaming sections with long lines
+      config: avoid fixed-sized buffer when renaming/deleting a section
+      config.c: avoid integer truncation in `copy_or_rename_section_in_file()`
+      config.c: disallow overly-long lines in `copy_or_rename_section_in_file()`
+      Git 2.30.9
+
+
 Version v2.37.6; changes since v2.37.5:
 ---------------------------------------
 
@@ -2679,7 +2905,7 @@ Philip Oakley (4):
       tests: add LIBCURL prerequisite to tests needing libcurl
 
 
-Version v2.37.0-rc0; changes since v2.36.5:
+Version v2.37.0-rc0; changes since v2.36.6:
 -------------------------------------------
 
 Abhradeep Chakraborty (1):
@@ -3070,6 +3296,58 @@ halilsen (2):
       hook API: fix v2.36.0 regression: hooks should be connected to a TTY
 
 
+Version v2.36.6; changes since v2.36.5:
+---------------------------------------
+
+Derrick Stolee (1):
+      ci: update 'static-analysis' to Ubuntu 22.04
+
+Jeff King (7):
+      http-push: prefer CURLOPT_UPLOAD to CURLOPT_PUT
+      http: prefer CURLOPT_SEEKFUNCTION to CURLOPT_IOCTLFUNCTION
+      range-diff: drop useless "offset" variable from read_patches()
+      http: support CURLOPT_PROTOCOLS_STR
+      range-diff: handle unterminated lines in read_patches()
+      range-diff: use ssize_t for parsed "len" in read_patches()
+      Makefile: force -O0 when compiling with SANITIZE=leak
+
+Jiang Xin (4):
+      github-actions: run gcc-8 on ubuntu-20.04 image
+      ci: remove the pipe after "p4 -V" to catch errors
+      ci: use the same version of p4 on both Linux and macOS
+      ci: install python on ubuntu
+
+Johannes Schindelin (18):
+      compat/win32/syslog: fix use-after-realloc
+      nedmalloc: avoid new compile error
+      t0033: GETTEXT_POISON fix
+      t0003: GETTEXT_POISON fix, part 1
+      t0003: GETTEXT_POISON fix, conclusion
+      t5619: GETTEXT_POISON fix
+      t5604: GETTEXT_POISON fix, part 1
+      t5604: GETTEXT_POISON fix, conclusion
+      clone.c: avoid "exceeds maximum object size" error with GCC v12.x
+      apply --reject: overwrite existing `.rej` symlink if it exists
+      gettext: avoid using gettext if the locale dir is not present
+      tests: avoid using `test_i18ncmp`
+      Git 2.31.8
+      Git 2.32.7
+      Git 2.33.8
+      Git 2.34.8
+      Git 2.35.8
+      Git 2.36.6
+
+Junio C Hamano (1):
+      http.c: clear the 'finished' member once we are done with it
+
+Taylor Blau (5):
+      t1300: demonstrate failure when renaming sections with long lines
+      config: avoid fixed-sized buffer when renaming/deleting a section
+      config.c: avoid integer truncation in `copy_or_rename_section_in_file()`
+      config.c: disallow overly-long lines in `copy_or_rename_section_in_file()`
+      Git 2.30.9
+
+
 Version v2.36.5; changes since v2.36.4:
 ---------------------------------------
 
@@ -3384,7 +3662,7 @@ Victoria Dye (1):
       ls-tree doc: document interaction with submodules
 
 
-Version v2.36.0-rc0; changes since v2.35.7:
+Version v2.36.0-rc0; changes since v2.35.8:
 -------------------------------------------
 
 Abhradeep Chakraborty (2):
@@ -4163,6 +4441,57 @@ brian m. carlson (6):
       reftable: make assignments portable to AIX xlc v12.01
 
 
+Version v2.35.8; changes since v2.35.7:
+---------------------------------------
+
+Derrick Stolee (1):
+      ci: update 'static-analysis' to Ubuntu 22.04
+
+Jeff King (7):
+      http-push: prefer CURLOPT_UPLOAD to CURLOPT_PUT
+      http: prefer CURLOPT_SEEKFUNCTION to CURLOPT_IOCTLFUNCTION
+      range-diff: drop useless "offset" variable from read_patches()
+      http: support CURLOPT_PROTOCOLS_STR
+      range-diff: handle unterminated lines in read_patches()
+      range-diff: use ssize_t for parsed "len" in read_patches()
+      Makefile: force -O0 when compiling with SANITIZE=leak
+
+Jiang Xin (4):
+      github-actions: run gcc-8 on ubuntu-20.04 image
+      ci: remove the pipe after "p4 -V" to catch errors
+      ci: use the same version of p4 on both Linux and macOS
+      ci: install python on ubuntu
+
+Johannes Schindelin (17):
+      compat/win32/syslog: fix use-after-realloc
+      nedmalloc: avoid new compile error
+      t0033: GETTEXT_POISON fix
+      t0003: GETTEXT_POISON fix, part 1
+      t0003: GETTEXT_POISON fix, conclusion
+      t5619: GETTEXT_POISON fix
+      t5604: GETTEXT_POISON fix, part 1
+      t5604: GETTEXT_POISON fix, conclusion
+      clone.c: avoid "exceeds maximum object size" error with GCC v12.x
+      apply --reject: overwrite existing `.rej` symlink if it exists
+      gettext: avoid using gettext if the locale dir is not present
+      tests: avoid using `test_i18ncmp`
+      Git 2.31.8
+      Git 2.32.7
+      Git 2.33.8
+      Git 2.34.8
+      Git 2.35.8
+
+Junio C Hamano (1):
+      http.c: clear the 'finished' member once we are done with it
+
+Taylor Blau (5):
+      t1300: demonstrate failure when renaming sections with long lines
+      config: avoid fixed-sized buffer when renaming/deleting a section
+      config.c: avoid integer truncation in `copy_or_rename_section_in_file()`
+      config.c: disallow overly-long lines in `copy_or_rename_section_in_file()`
+      Git 2.30.9
+
+
 Version v2.35.7; changes since v2.35.6:
 ---------------------------------------
 
@@ -4440,7 +4769,7 @@ Taylor Blau (1):
       reftable tests: avoid "int" overflow, use "uint64_t"
 
 
-Version v2.35.0-rc0; changes since v2.34.7:
+Version v2.35.0-rc0; changes since v2.34.8:
 -------------------------------------------
 
 Alex Henrie (1):
@@ -4999,6 +5328,55 @@ brian m. carlson (1):
       am: support --allow-empty to record specific empty patches
 
 
+Version v2.34.8; changes since v2.34.7:
+---------------------------------------
+
+Derrick Stolee (1):
+      ci: update 'static-analysis' to Ubuntu 22.04
+
+Jeff King (6):
+      http-push: prefer CURLOPT_UPLOAD to CURLOPT_PUT
+      http: prefer CURLOPT_SEEKFUNCTION to CURLOPT_IOCTLFUNCTION
+      range-diff: drop useless "offset" variable from read_patches()
+      http: support CURLOPT_PROTOCOLS_STR
+      range-diff: handle unterminated lines in read_patches()
+      range-diff: use ssize_t for parsed "len" in read_patches()
+
+Jiang Xin (4):
+      github-actions: run gcc-8 on ubuntu-20.04 image
+      ci: remove the pipe after "p4 -V" to catch errors
+      ci: use the same version of p4 on both Linux and macOS
+      ci: install python on ubuntu
+
+Johannes Schindelin (16):
+      compat/win32/syslog: fix use-after-realloc
+      nedmalloc: avoid new compile error
+      t0033: GETTEXT_POISON fix
+      t0003: GETTEXT_POISON fix, part 1
+      t0003: GETTEXT_POISON fix, conclusion
+      t5619: GETTEXT_POISON fix
+      t5604: GETTEXT_POISON fix, part 1
+      t5604: GETTEXT_POISON fix, conclusion
+      clone.c: avoid "exceeds maximum object size" error with GCC v12.x
+      apply --reject: overwrite existing `.rej` symlink if it exists
+      gettext: avoid using gettext if the locale dir is not present
+      tests: avoid using `test_i18ncmp`
+      Git 2.31.8
+      Git 2.32.7
+      Git 2.33.8
+      Git 2.34.8
+
+Junio C Hamano (1):
+      http.c: clear the 'finished' member once we are done with it
+
+Taylor Blau (5):
+      t1300: demonstrate failure when renaming sections with long lines
+      config: avoid fixed-sized buffer when renaming/deleting a section
+      config.c: avoid integer truncation in `copy_or_rename_section_in_file()`
+      config.c: disallow overly-long lines in `copy_or_rename_section_in_file()`
+      Git 2.30.9
+
+
 Version v2.34.7; changes since v2.34.6:
 ---------------------------------------
 
@@ -5322,7 +5700,7 @@ René Scharfe (2):
       commit-graph: don't consider "replace" objects with "verify"
 
 
-Version v2.34.0-rc0; changes since v2.33.7:
+Version v2.34.0-rc0; changes since v2.33.8:
 -------------------------------------------
 
 Atharva Raykar (11):
@@ -6050,6 +6428,54 @@ brian m. carlson (1):
       reflog: free() ref given to us by dwim_log()
 
 
+Version v2.33.8; changes since v2.33.7:
+---------------------------------------
+
+Derrick Stolee (1):
+      ci: update 'static-analysis' to Ubuntu 22.04
+
+Jeff King (6):
+      http-push: prefer CURLOPT_UPLOAD to CURLOPT_PUT
+      http: prefer CURLOPT_SEEKFUNCTION to CURLOPT_IOCTLFUNCTION
+      range-diff: drop useless "offset" variable from read_patches()
+      http: support CURLOPT_PROTOCOLS_STR
+      range-diff: handle unterminated lines in read_patches()
+      range-diff: use ssize_t for parsed "len" in read_patches()
+
+Jiang Xin (4):
+      github-actions: run gcc-8 on ubuntu-20.04 image
+      ci: remove the pipe after "p4 -V" to catch errors
+      ci: use the same version of p4 on both Linux and macOS
+      ci: install python on ubuntu
+
+Johannes Schindelin (15):
+      compat/win32/syslog: fix use-after-realloc
+      nedmalloc: avoid new compile error
+      t0033: GETTEXT_POISON fix
+      t0003: GETTEXT_POISON fix, part 1
+      t0003: GETTEXT_POISON fix, conclusion
+      t5619: GETTEXT_POISON fix
+      t5604: GETTEXT_POISON fix, part 1
+      t5604: GETTEXT_POISON fix, conclusion
+      clone.c: avoid "exceeds maximum object size" error with GCC v12.x
+      apply --reject: overwrite existing `.rej` symlink if it exists
+      gettext: avoid using gettext if the locale dir is not present
+      tests: avoid using `test_i18ncmp`
+      Git 2.31.8
+      Git 2.32.7
+      Git 2.33.8
+
+Junio C Hamano (1):
+      http.c: clear the 'finished' member once we are done with it
+
+Taylor Blau (5):
+      t1300: demonstrate failure when renaming sections with long lines
+      config: avoid fixed-sized buffer when renaming/deleting a section
+      config.c: avoid integer truncation in `copy_or_rename_section_in_file()`
+      config.c: disallow overly-long lines in `copy_or_rename_section_in_file()`
+      Git 2.30.9
+
+
 Version v2.33.7; changes since v2.33.6:
 ---------------------------------------
 
@@ -6590,7 +7016,7 @@ Thomas Bétous (1):
       t0001: fix broken not-quite getcwd(3) test in bed67874e2
 
 
-Version v2.33.0-rc0; changes since v2.32.6:
+Version v2.33.0-rc0; changes since v2.32.7:
 -------------------------------------------
 
 Alex Henrie (6):
@@ -7040,6 +7466,53 @@ edef (1):
       t6402: preserve git exit status code
 
 
+Version v2.32.7; changes since v2.32.6:
+---------------------------------------
+
+Derrick Stolee (1):
+      ci: update 'static-analysis' to Ubuntu 22.04
+
+Jeff King (6):
+      http-push: prefer CURLOPT_UPLOAD to CURLOPT_PUT
+      http: prefer CURLOPT_SEEKFUNCTION to CURLOPT_IOCTLFUNCTION
+      range-diff: drop useless "offset" variable from read_patches()
+      http: support CURLOPT_PROTOCOLS_STR
+      range-diff: handle unterminated lines in read_patches()
+      range-diff: use ssize_t for parsed "len" in read_patches()
+
+Jiang Xin (4):
+      github-actions: run gcc-8 on ubuntu-20.04 image
+      ci: remove the pipe after "p4 -V" to catch errors
+      ci: use the same version of p4 on both Linux and macOS
+      ci: install python on ubuntu
+
+Johannes Schindelin (14):
+      compat/win32/syslog: fix use-after-realloc
+      nedmalloc: avoid new compile error
+      t0033: GETTEXT_POISON fix
+      t0003: GETTEXT_POISON fix, part 1
+      t0003: GETTEXT_POISON fix, conclusion
+      t5619: GETTEXT_POISON fix
+      t5604: GETTEXT_POISON fix, part 1
+      t5604: GETTEXT_POISON fix, conclusion
+      clone.c: avoid "exceeds maximum object size" error with GCC v12.x
+      apply --reject: overwrite existing `.rej` symlink if it exists
+      gettext: avoid using gettext if the locale dir is not present
+      tests: avoid using `test_i18ncmp`
+      Git 2.31.8
+      Git 2.32.7
+
+Junio C Hamano (1):
+      http.c: clear the 'finished' member once we are done with it
+
+Taylor Blau (5):
+      t1300: demonstrate failure when renaming sections with long lines
+      config: avoid fixed-sized buffer when renaming/deleting a section
+      config.c: avoid integer truncation in `copy_or_rename_section_in_file()`
+      config.c: disallow overly-long lines in `copy_or_rename_section_in_file()`
+      Git 2.30.9
+
+
 Version v2.32.6; changes since v2.32.5:
 ---------------------------------------
 
@@ -7337,7 +7810,7 @@ ZheNing Hu (1):
       Makefile: make PERL_DEFINES recursively expanded
 
 
-Version v2.32.0-rc0; changes since v2.31.7:
+Version v2.32.0-rc0; changes since v2.31.8:
 -------------------------------------------
 
 Adam Dinwoodie (1):
@@ -7987,6 +8460,52 @@ brian m. carlson (14):
       am: learn to process quoted lines that ends with CRLF
 
 
+Version v2.31.8; changes since v2.31.7:
+---------------------------------------
+
+Derrick Stolee (1):
+      ci: update 'static-analysis' to Ubuntu 22.04
+
+Jeff King (6):
+      http-push: prefer CURLOPT_UPLOAD to CURLOPT_PUT
+      http: prefer CURLOPT_SEEKFUNCTION to CURLOPT_IOCTLFUNCTION
+      range-diff: drop useless "offset" variable from read_patches()
+      http: support CURLOPT_PROTOCOLS_STR
+      range-diff: handle unterminated lines in read_patches()
+      range-diff: use ssize_t for parsed "len" in read_patches()
+
+Jiang Xin (4):
+      github-actions: run gcc-8 on ubuntu-20.04 image
+      ci: remove the pipe after "p4 -V" to catch errors
+      ci: use the same version of p4 on both Linux and macOS
+      ci: install python on ubuntu
+
+Johannes Schindelin (13):
+      compat/win32/syslog: fix use-after-realloc
+      nedmalloc: avoid new compile error
+      t0033: GETTEXT_POISON fix
+      t0003: GETTEXT_POISON fix, part 1
+      t0003: GETTEXT_POISON fix, conclusion
+      t5619: GETTEXT_POISON fix
+      t5604: GETTEXT_POISON fix, part 1
+      t5604: GETTEXT_POISON fix, conclusion
+      clone.c: avoid "exceeds maximum object size" error with GCC v12.x
+      apply --reject: overwrite existing `.rej` symlink if it exists
+      gettext: avoid using gettext if the locale dir is not present
+      tests: avoid using `test_i18ncmp`
+      Git 2.31.8
+
+Junio C Hamano (1):
+      http.c: clear the 'finished' member once we are done with it
+
+Taylor Blau (5):
+      t1300: demonstrate failure when renaming sections with long lines
+      config: avoid fixed-sized buffer when renaming/deleting a section
+      config.c: avoid integer truncation in `copy_or_rename_section_in_file()`
+      config.c: disallow overly-long lines in `copy_or_rename_section_in_file()`
+      Git 2.30.9
+
+
 Version v2.31.7; changes since v2.31.6:
 ---------------------------------------
 
@@ -8343,7 +8862,7 @@ Taylor Blau (1):
       commit-graph.c: display correct number of chunks when writing
 
 
-Version v2.31.0-rc0; changes since v2.30.8:
+Version v2.31.0-rc0; changes since v2.30.9:
 -------------------------------------------
 
 Abhishek Kumar (11):
@@ -8937,6 +9456,50 @@ brian m. carlson (8):
       test libs: rename "diff-lib" to "lib-diff"
       test-lib-functions: remove bug-inducing "diagnostics" helper param
       test-lib-functions: assert correct parameter count
+
+
+Version v2.30.9; changes since v2.30.8:
+---------------------------------------
+
+Derrick Stolee (1):
+      ci: update 'static-analysis' to Ubuntu 22.04
+
+Jeff King (6):
+      http-push: prefer CURLOPT_UPLOAD to CURLOPT_PUT
+      http: prefer CURLOPT_SEEKFUNCTION to CURLOPT_IOCTLFUNCTION
+      range-diff: drop useless "offset" variable from read_patches()
+      http: support CURLOPT_PROTOCOLS_STR
+      range-diff: handle unterminated lines in read_patches()
+      range-diff: use ssize_t for parsed "len" in read_patches()
+
+Jiang Xin (4):
+      github-actions: run gcc-8 on ubuntu-20.04 image
+      ci: remove the pipe after "p4 -V" to catch errors
+      ci: use the same version of p4 on both Linux and macOS
+      ci: install python on ubuntu
+
+Johannes Schindelin (11):
+      compat/win32/syslog: fix use-after-realloc
+      nedmalloc: avoid new compile error
+      t0033: GETTEXT_POISON fix
+      t0003: GETTEXT_POISON fix, part 1
+      t0003: GETTEXT_POISON fix, conclusion
+      t5619: GETTEXT_POISON fix
+      t5604: GETTEXT_POISON fix, part 1
+      t5604: GETTEXT_POISON fix, conclusion
+      clone.c: avoid "exceeds maximum object size" error with GCC v12.x
+      apply --reject: overwrite existing `.rej` symlink if it exists
+      gettext: avoid using gettext if the locale dir is not present
+
+Junio C Hamano (1):
+      http.c: clear the 'finished' member once we are done with it
+
+Taylor Blau (5):
+      t1300: demonstrate failure when renaming sections with long lines
+      config: avoid fixed-sized buffer when renaming/deleting a section
+      config.c: avoid integer truncation in `copy_or_rename_section_in_file()`
+      config.c: disallow overly-long lines in `copy_or_rename_section_in_file()`
+      Git 2.30.9
 
 
 Version v2.30.8; changes since v2.30.7:
