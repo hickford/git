@@ -54,7 +54,7 @@ TMP = $(CURDIR)/debian/tmp
 GIT = $(CURDIR)/debian/git
 
 %:
-	dh $@ --with apache2 --without autoreconf
+	dh $@ --without autoreconf
 
 override_dh_auto_configure:
 
@@ -154,17 +154,6 @@ override_dh_install-indep:
 override_dh_installdocs-arch:
 	dh_installdocs --arch -X.gitignore
 	# These licenses are replaced with symlinks in git.links.
-	diff -q '$(GIT)'/usr/share/doc/git/contrib/persistent-https/LICENSE /usr/share/common-licenses/Apache-2.0
-	diff -bq '$(GIT)'/usr/share/doc/git/contrib/subtree/COPYING /usr/share/common-licenses/GPL-2
-	rm -rf '$(GIT)'/usr/share/doc/git/contrib/completion
-	rm -rf '$(GIT)'/usr/share/doc/git/contrib/emacs
-	rm -rf '$(GIT)'/usr/share/doc/git/contrib/hooks
-	rm -rf '$(GIT)'/usr/share/doc/git/contrib/mw-to-git
-	rm -f '$(GIT)'/usr/share/doc/git/contrib/subtree/git-subtree.1
-	rm -f '$(GIT)'/usr/share/doc/git/contrib/subtree/git-subtree.html
-	rm -f '$(GIT)'/usr/share/doc/git/contrib/subtree/git-subtree.xml
-	find '$(GIT)'/usr/share/doc/git/ -name .gitattributes | xargs rm -f
-	find '$(GIT)'/usr/share/doc/git/ -name .gitignore | xargs rm -f
 
 override_dh_installdocs-indep:
 	dh_installdocs --indep -X.gitignore

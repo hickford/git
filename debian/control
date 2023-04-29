@@ -17,7 +17,6 @@ Build-Depends: libz-dev, gettext,
  unzip, libio-pty-perl,
  debhelper-compat (= 10),
  dh-exec (>= 0.7),
- dh-apache2,
  dpkg-dev (>= 1.16.2~)
 Build-Depends-Indep: asciidoc (>= 8.6.10), xmlto, docbook-xsl
 Standards-Version: 4.3.0.1
