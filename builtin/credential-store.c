@@ -13,7 +13,8 @@ static struct lock_file credential_lock;
 static int parse_credential_file(const char *fn,
 				  struct credential *c,
 				  void (*match_cb)(struct credential *),
-				  void (*other_cb)(struct strbuf *))
+				  void (*other_cb)(struct strbuf *),
+				  const char* op)
 {
 	FILE *fh;
 	struct strbuf line = STRBUF_INIT;
@@ -30,11 +31,13 @@ static int parse_credential_file(const char *fn,
 	while (strbuf_getline_lf(&line, fh) != EOF) {
 		if (!credential_from_url_gently(&entry, line.buf, 1) &&
 		    entry.username && entry.password &&
-		    credential_match(c, &entry)) {
+		    credential_match(c, &entry, !strcmp(op, "erase") && c->password != NULL)) {
 			found_credential = 1;
 			if (match_cb) {
 				match_cb(&entry);
-				break;
+				if (strcmp(op, "erase")) {
+					break;
+				}
 			}
 		}
 		else if (other_cb)
@@ -60,7 +63,7 @@ static void print_line(struct strbuf *buf)
 }
 
 static void rewrite_credential_file(const char *fn, struct credential *c,
-				    struct strbuf *extra)
+				    struct strbuf *extra, const char *op)
 {
 	int timeout_ms = 1000;
 
@@ -69,7 +72,7 @@ static void rewrite_credential_file(const char *fn, struct credential *c,
 		die_errno(_("unable to get credential storage lock in %d ms"), timeout_ms);
 	if (extra)
 		print_line(extra);
-	parse_credential_file(fn, c, NULL, print_line);
+	parse_credential_file(fn, c, NULL, print_line, op);
 	if (commit_lock_file(&credential_lock) < 0)
 		die_errno("unable to write credential store");
 }
@@ -91,7 +94,7 @@ static void store_credential_file(const char *fn, struct credential *c)
 					is_rfc3986_reserved_or_unreserved);
 	}
 
-	rewrite_credential_file(fn, c, &buf);
+	rewrite_credential_file(fn, c, &buf, "store");
 	strbuf_release(&buf);
 }
 
@@ -138,7 +141,7 @@ static void remove_credential(const struct string_list *fns, struct credential *
 		return;
 	for_each_string_list_item(fn, fns)
 		if (!access(fn->string, F_OK))
-			rewrite_credential_file(fn->string, c, NULL);
+			rewrite_credential_file(fn->string, c, NULL, "erase");
 }
 
 static void lookup_credential(const struct string_list *fns, struct credential *c)
@@ -146,7 +149,7 @@ static void lookup_credential(const struct string_list *fns, struct credential *
 	struct string_list_item *fn;
 
 	for_each_string_list_item(fn, fns)
-		if (parse_credential_file(fn->string, c, print_entry, NULL))
+		if (parse_credential_file(fn->string, c, print_entry, NULL, "get"))
 			return; /* Found credential */
 }
 
