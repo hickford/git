@@ -300,6 +300,37 @@ helper_test() {
 		EOF
 	'
 
+	test_expect_success "helper ($HELPER) erases all matching credentials" '
+		check approve $HELPER <<-\EOF &&
+		protocol=https
+		host=example.com
+		username=user6
+		password=pass1
+		EOF
+		check approve $HELPER <<-\EOF &&
+		protocol=https
+		host=example.com
+		username=user7
+		password=pass1
+		EOF
+		check reject $HELPER <<-\EOF &&
+		protocol=https
+		host=example.com
+		EOF
+		check fill $HELPER <<-\EOF
+		protocol=https
+		host=example.com
+		--
+		protocol=https
+		host=example.com
+		username=askpass-username
+		password=askpass-password
+		--
+		askpass: Username for '\''https://example.com'\'':
+		askpass: Password for '\''https://askpass-username@example.com'\'':
+		EOF
+	'
+
 	: ${GIT_TEST_LONG_CRED_BUFFER:=1024}
 	# 23 bytes accounts for "wwwauth[]=basic realm=" plus NUL
 	LONG_VALUE_LEN=$((GIT_TEST_LONG_CRED_BUFFER - 23))
