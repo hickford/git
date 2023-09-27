@@ -1,3 +1,9 @@
+git (1:2.42.0-1) unstable; urgency=low
+
+  * new upstream release (see RelNotes/2.41.0.txt, RelNotes/2.42.0.txt).
+
+ -- Jonathan Nieder <jrnieder@gmail.com>  Wed, 27 Sep 2023 09:55:42 -0700
+
 git (1:2.40.1-1) unstable; urgency=medium
 
   * new upstream point release (see RelNotes/2.40.1.txt; addresses
