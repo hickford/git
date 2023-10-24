@@ -50,9 +50,9 @@ helper_test_clean() {
 	reject $1 https example.com user-overwrite
 	reject $1 https example.com user-erase1
 	reject $1 https example.com user-erase2
-	reject $1 http path.tld user
-	reject $1 https timeout.tld user
-	reject $1 https sso.tld
+	reject $1 http path.example.com user
+	reject $1 https timeout.example.com user
+	reject $1 https sso.example.com
 }
 
 reject() {
@@ -152,24 +152,24 @@ helper_test() {
 		test_config credential.usehttppath true &&
 		check approve $HELPER <<-\EOF &&
 		protocol=http
-		host=path.tld
+		host=path.example.com
 		path=foo.git
 		username=user
 		password=pass
 		EOF
 		check fill $HELPER <<-\EOF
 		protocol=http
-		host=path.tld
+		host=path.example.com
 		path=bar.git
 		--
 		protocol=http
-		host=path.tld
+		host=path.example.com
 		path=bar.git
 		username=askpass-username
 		password=askpass-password
 		--
-		askpass: Username for '\''http://path.tld/bar.git'\'':
-		askpass: Password for '\''http://askpass-username@path.tld/bar.git'\'':
+		askpass: Username for '\''http://path.example.com/bar.git'\'':
+		askpass: Password for '\''http://askpass-username@path.example.com/bar.git'\'':
 		EOF
 	'
 
@@ -331,16 +331,16 @@ helper_test() {
 	test_expect_success "helper ($HELPER) can store empty username" '
 		check approve $HELPER <<-\EOF &&
 		protocol=https
-		host=sso.tld
+		host=sso.example.com
 		username=
 		password=
 		EOF
 		check fill $HELPER <<-\EOF
 		protocol=https
-		host=sso.tld
+		host=sso.example.com
 		--
 		protocol=https
-		host=sso.tld
+		host=sso.example.com
 		username=
 		password=
 		EOF
@@ -413,22 +413,22 @@ helper_test_timeout() {
 	test_expect_success "helper ($HELPER) times out" '
 		check approve "$HELPER" <<-\EOF &&
 		protocol=https
-		host=timeout.tld
+		host=timeout.example.com
 		username=user
 		password=pass
 		EOF
 		sleep 2 &&
 		check fill "$HELPER" <<-\EOF
 		protocol=https
-		host=timeout.tld
+		host=timeout.example.com
 		--
 		protocol=https
-		host=timeout.tld
+		host=timeout.example.com
 		username=askpass-username
 		password=askpass-password
 		--
-		askpass: Username for '\''https://timeout.tld'\'':
-		askpass: Password for '\''https://askpass-username@timeout.tld'\'':
+		askpass: Username for '\''https://timeout.example.com'\'':
+		askpass: Password for '\''https://askpass-username@timeout.example.com'\'':
 		EOF
 	'
 }
