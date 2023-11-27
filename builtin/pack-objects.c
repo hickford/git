@@ -3603,7 +3603,6 @@ static void read_cruft_objects(void)
 			string_list_append(&discard_packs, buf.buf + 1);
 		else
 			string_list_append(&fresh_packs, buf.buf);
-		strbuf_reset(&buf);
 	}
 
 	string_list_sort(&discard_packs);
@@ -3739,7 +3738,7 @@ static void show_object__ma_allow_promisor(struct object *obj, const char *name,
 	show_object(obj, name, data);
 }
 
-static int option_parse_missing_action(const struct option *opt,
+static int option_parse_missing_action(const struct option *opt UNUSED,
 				       const char *arg, int unset)
 {
 	assert(arg);
@@ -4120,34 +4119,37 @@ static void add_extra_kept_packs(const struct string_list *names)
 static int option_parse_quiet(const struct option *opt, const char *arg,
 			      int unset)
 {
+	int *val = opt->value;
+
 	BUG_ON_OPT_ARG(arg);
 
 	if (!unset)
-		progress = 0;
-	else if (!progress)
-		progress = 1;
+		*val = 0;
+	else if (!*val)
+		*val = 1;
 	return 0;
 }
 
 static int option_parse_index_version(const struct option *opt,
 				      const char *arg, int unset)
 {
+	struct pack_idx_option *popts = opt->value;
 	char *c;
 	const char *val = arg;
 
 	BUG_ON_OPT_NEG(unset);
 
-	pack_idx_opts.version = strtoul(val, &c, 10);
-	if (pack_idx_opts.version > 2)
+	popts->version = strtoul(val, &c, 10);
+	if (popts->version > 2)
 		die(_("unsupported index version %s"), val);
 	if (*c == ',' && c[1])
-		pack_idx_opts.off32_limit = strtoul(c+1, &c, 0);
-	if (*c || pack_idx_opts.off32_limit & 0x80000000)
+		popts->off32_limit = strtoul(c+1, &c, 0);
+	if (*c || popts->off32_limit & 0x80000000)
 		die(_("bad index version '%s'"), val);
 	return 0;
 }
 
-static int option_parse_unpack_unreachable(const struct option *opt,
+static int option_parse_unpack_unreachable(const struct option *opt UNUSED,
 					   const char *arg, int unset)
 {
 	if (unset) {
@@ -4162,7 +4164,7 @@ static int option_parse_unpack_unreachable(const struct option *opt,
 	return 0;
 }
 
-static int option_parse_cruft_expiration(const struct option *opt,
+static int option_parse_cruft_expiration(const struct option *opt UNUSED,
 					 const char *arg, int unset)
 {
 	if (unset) {
@@ -4190,7 +4192,7 @@ int cmd_pack_objects(int argc, const char **argv, const char *prefix)
 		LIST_OBJECTS_FILTER_INIT;
 
 	struct option pack_objects_options[] = {
-		OPT_CALLBACK_F('q', "quiet", NULL, NULL,
+		OPT_CALLBACK_F('q', "quiet", &progress, NULL,
 			       N_("do not show progress meter"),
 			       PARSE_OPT_NOARG, option_parse_quiet),
 		OPT_SET_INT(0, "progress", &progress,
@@ -4200,7 +4202,7 @@ int cmd_pack_objects(int argc, const char **argv, const char *prefix)
 		OPT_BOOL(0, "all-progress-implied",
 			 &all_progress_implied,
 			 N_("similar to --all-progress when progress meter is shown")),
-		OPT_CALLBACK_F(0, "index-version", NULL, N_("<version>[,<offset>]"),
+		OPT_CALLBACK_F(0, "index-version", &pack_idx_opts, N_("<version>[,<offset>]"),
 		  N_("write the pack index file in the specified idx format version"),
 		  PARSE_OPT_NONEG, option_parse_index_version),
 		OPT_MAGNITUDE(0, "max-pack-size", &pack_size_limit,
@@ -4383,7 +4385,7 @@ int cmd_pack_objects(int argc, const char **argv, const char *prefix)
 
 	if (!HAVE_THREADS && delta_search_threads != 1)
 		warning(_("no threads support, ignoring --threads"));
-	if (!pack_to_stdout && !pack_size_limit && !cruft)
+	if (!pack_to_stdout && !pack_size_limit)
 		pack_size_limit = pack_size_limit_cfg;
 	if (pack_to_stdout && pack_size_limit)
 		die(_("--max-pack-size cannot be used to build a pack for transfer"));
@@ -4400,12 +4402,8 @@ int cmd_pack_objects(int argc, const char **argv, const char *prefix)
 	if (!rev_list_all || !rev_list_reflog || !rev_list_index)
 		unpack_unreachable_expiration = 0;
 
-	if (filter_options.choice) {
-		if (!pack_to_stdout)
-			die(_("cannot use --filter without --stdout"));
-		if (stdin_packs)
-			die(_("cannot use --filter with --stdin-packs"));
-	}
+	if (stdin_packs && filter_options.choice)
+		die(_("cannot use --filter with --stdin-packs"));
 
 	if (stdin_packs && use_internal_rev_list)
 		die(_("cannot use internal rev list with --stdin-packs"));
@@ -4415,8 +4413,6 @@ int cmd_pack_objects(int argc, const char **argv, const char *prefix)
 			die(_("cannot use internal rev list with --cruft"));
 		if (stdin_packs)
 			die(_("cannot use --stdin-packs with --cruft"));
-		if (pack_size_limit)
-			die(_("cannot use --max-pack-size with --cruft"));
 	}
 
 	/*

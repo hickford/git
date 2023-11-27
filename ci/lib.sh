@@ -253,11 +253,9 @@ ubuntu-*)
 	export PATH="$GIT_LFS_PATH:$P4_PATH:$PATH"
 	;;
 macos-*)
-	if [ "$jobname" = osx-gcc ]
+	MAKEFLAGS="$MAKEFLAGS PYTHON_PATH=$(which python3)"
+	if [ "$jobname" != osx-gcc ]
 	then
-		MAKEFLAGS="$MAKEFLAGS PYTHON_PATH=$(which python3)"
-	else
-		MAKEFLAGS="$MAKEFLAGS PYTHON_PATH=$(which python2)"
 		MAKEFLAGS="$MAKEFLAGS APPLE_COMMON_CRYPTO_SHA1=Yes"
 	fi
 	;;
@@ -280,6 +278,8 @@ linux-leaks)
 	;;
 linux-asan-ubsan)
 	export SANITIZE=address,undefined
+	export NO_SVN_TESTS=LetsSaveSomeTime
+	MAKEFLAGS="$MAKEFLAGS NO_PYTHON=YepBecauseP4FlakesTooOften"
 	;;
 esac
 

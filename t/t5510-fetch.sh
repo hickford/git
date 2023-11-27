@@ -415,9 +415,9 @@ test_expect_success 'fetch uses remote ref names to describe new refs' '
 	(
 		cd descriptive &&
 		git fetch o 2>actual &&
-		test_i18ngrep "new branch.* -> refs/crazyheads/descriptive-branch$" actual &&
-		test_i18ngrep "new tag.* -> descriptive-tag$" actual &&
-		test_i18ngrep "new ref.* -> crazy$" actual
+		test_grep "new branch.* -> refs/crazyheads/descriptive-branch$" actual &&
+		test_grep "new tag.* -> descriptive-tag$" actual &&
+		test_grep "new ref.* -> crazy$" actual
 	) &&
 	git checkout main
 '
@@ -1113,7 +1113,7 @@ test_expect_success 'fetching with auto-gc does not lock up' '
 		git config gc.autoPackLimit 1 &&
 		git config gc.autoDetach false &&
 		GIT_ASK_YESNO="$D/askyesno" git fetch --verbose >fetch.out 2>&1 &&
-		test_i18ngrep "Auto packing the repository" fetch.out &&
+		test_grep "Auto packing the repository" fetch.out &&
 		! grep "Should I try again" fetch.out
 	)
 '
@@ -1126,6 +1126,52 @@ do
 		grep "git rev-list .*--exclude-hidden=fetch" trace
 	'
 done
+
+test_expect_success 'prepare source branch' '
+	echo one >onebranch &&
+	git checkout --orphan onebranch &&
+	git rm --cached -r . &&
+	git add onebranch &&
+	git commit -m onebranch &&
+	git rev-list --objects onebranch -- >actual &&
+	# 3 objects should be created, at least ...
+	test 3 -le $(wc -l <actual)
+'
+
+validate_store_type () {
+	git -C dest count-objects -v >actual &&
+	case "$store_type" in
+	packed)
+		grep "^count: 0$" actual ;;
+	loose)
+		grep "^packs: 0$" actual ;;
+	esac || {
+		echo "store_type is $store_type"
+		cat actual
+		false
+	}
+}
+
+test_unpack_limit () {
+	store_type=$1
+
+	case "$store_type" in
+	packed) fetch_limit=1 transfer_limit=10000 ;;
+	loose) fetch_limit=10000 transfer_limit=1 ;;
+	esac
+
+	test_expect_success "fetch trumps transfer limit" '
+		rm -fr dest &&
+		git --bare init dest &&
+		git -C dest config fetch.unpacklimit $fetch_limit &&
+		git -C dest config transfer.unpacklimit $transfer_limit &&
+		git -C dest fetch .. onebranch &&
+		validate_store_type
+	'
+}
+
+test_unpack_limit packed
+test_unpack_limit loose
 
 setup_negotiation_tip () {
 	SERVER="$1"

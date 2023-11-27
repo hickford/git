@@ -473,6 +473,14 @@ test_expect_success 'log --diff-merges=on matches --diff-merges=separate' '
 	test_cmp expected actual
 '
 
+test_expect_success 'log --dd matches --diff-merges=1 -p' '
+	git log --diff-merges=1 -p master >result &&
+	process_diffs result >expected &&
+	git log --dd master >result &&
+	process_diffs result >actual &&
+	test_cmp expected actual
+'
+
 test_expect_success 'deny wrong log.diffMerges config' '
 	test_config log.diffMerges wrong-value &&
 	test_expect_code 128 git log
@@ -613,7 +621,7 @@ test_expect_success 'diff -I<regex> --stat' '
 
 test_expect_success 'diff -I<regex>: detect malformed regex' '
 	test_expect_code 129 git diff --ignore-matching-lines="^[124-9" 2>error &&
-	test_i18ngrep "invalid regex given to -I: " error
+	test_grep "invalid regex given to -I: " error
 '
 
 # check_prefix <patch> <src> <dst>

@@ -176,7 +176,7 @@ static int parse_refmap_arg(const struct option *opt, const char *arg, int unset
 	 * "git fetch --refmap='' origin foo"
 	 * can be used to tell the command not to store anywhere
 	 */
-	refspec_append(&refmap, arg);
+	refspec_append(opt->value, arg);
 
 	return 0;
 }
@@ -308,7 +308,7 @@ static void clear_item(struct refname_hash_entry *item)
 
 
 static void add_already_queued_tags(const char *refname,
-				    const struct object_id *old_oid,
+				    const struct object_id *old_oid UNUSED,
 				    const struct object_id *new_oid,
 				    void *cb_data)
 {
@@ -2204,7 +2204,7 @@ int cmd_fetch(int argc, const char **argv, const char *prefix)
 			   PARSE_OPT_HIDDEN, option_fetch_parse_recurse_submodules),
 		OPT_BOOL(0, "update-shallow", &update_shallow,
 			 N_("accept refs that update .git/shallow")),
-		OPT_CALLBACK_F(0, "refmap", NULL, N_("refmap"),
+		OPT_CALLBACK_F(0, "refmap", &refmap, N_("refmap"),
 			       N_("specify fetch refmap"), PARSE_OPT_NONEG, parse_refmap_arg),
 		OPT_STRING_LIST('o', "server-option", &server_options, N_("server-specific"), N_("option to transmit")),
 		OPT_IPVERSION(&family),

@@ -5,6 +5,7 @@
 
 test_description='Test commit notes with stripspace behavior'
 
+TEST_PASSES_SANITIZE_LEAK=true
 . ./test-lib.sh
 
 MULTI_LF="$LF$LF$LF"
@@ -428,7 +429,7 @@ test_expect_success 'add notes with empty messages' '
 	git notes add -m "${LF}" \
 		      -m "${MULTI_LF}" \
 		      -m "${LF}" >actual 2>&1 &&
-	test_i18ngrep "Removing note for object" actual
+	test_grep "Removing note for object" actual
 '
 
 test_expect_success 'add note by specifying "-C", "--no-stripspace" is the default behavior' '

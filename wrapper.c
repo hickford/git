@@ -3,9 +3,8 @@
  */
 #include "git-compat-util.h"
 #include "abspath.h"
-#include "config.h"
+#include "parse.h"
 #include "gettext.h"
-#include "object.h"
 #include "repository.h"
 #include "strbuf.h"
 #include "trace2.h"
@@ -632,11 +631,6 @@ int rmdir_or_warn(const char *file)
 	return warn_if_unremovable("rmdir", file, rmdir(file));
 }
 
-int remove_or_warn(unsigned int mode, const char *file)
-{
-	return S_ISGITLINK(mode) ? rmdir_or_warn(file) : unlink_or_warn(file);
-}
-
 static int access_error_is_ok(int err, unsigned flag)
 {
 	return (is_missing_file_error(err) ||
@@ -818,4 +812,14 @@ int csprng_bytes(void *buf, size_t len)
 	close(fd);
 	return 0;
 #endif
+}
+
+uint32_t git_rand(void)
+{
+	uint32_t result;
+
+	if (csprng_bytes(&result, sizeof(result)) < 0)
+		die(_("unable to get random bytes"));
+
+	return result;
 }

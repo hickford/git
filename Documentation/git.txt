@@ -96,9 +96,9 @@ foo.bar= ...`) sets `foo.bar` to the empty string which `git config
 	to avoid ambiguity with `<name>` containing one.
 +
 This is useful for cases where you want to pass transitory
-configuration options to git, but are doing so on OS's where
-other processes might be able to read your cmdline
-(e.g. `/proc/self/cmdline`), but not your environ
+configuration options to git, but are doing so on operating systems
+where other processes might be able to read your command line
+(e.g. `/proc/self/cmdline`), but not your environment
 (e.g. `/proc/self/environ`). That behavior is the default on
 Linux, but may not be on your system.
 +
@@ -910,6 +910,16 @@ for full details.
 	be paranoid about detecting and aborting all operations). You
 	should not normally need to set this to `0`, but it may be
 	useful when trying to salvage data from a corrupted repository.
+
+`GIT_COMMIT_GRAPH_PARANOIA`::
+	When loading a commit object from the commit-graph, Git performs an
+	existence check on the object in the object database. This is done to
+	avoid issues with stale commit-graphs that contain references to
+	already-deleted commits, but comes with a performance penalty.
++
+The default is "true", which enables the aforementioned behavior.
+Setting this to "false" disables the existence check. This can lead to
+a performance improvement at the cost of consistency.
 
 `GIT_ALLOW_PROTOCOL`::
 	If set to a colon-separated list of protocols, behave as if

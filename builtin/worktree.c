@@ -628,10 +628,10 @@ static void print_preparing_worktree_line(int detach,
  *
  * Returns 0 on failure and non-zero on success.
  */
-static int first_valid_ref(const char *refname,
-			   const struct object_id *oid,
-			   int flags,
-			   void *cb_data)
+static int first_valid_ref(const char *refname UNUSED,
+			   const struct object_id *oid UNUSED,
+			   int flags UNUSED,
+			   void *cb_data UNUSED)
 {
 	return 1;
 }
@@ -696,7 +696,7 @@ static int can_use_remote_refs(const struct add_opts *opts)
 		return 1;
 	} else if (!opts->force && remote_get(NULL)) {
 		die(_("No local or remote refs exist despite at least one remote\n"
-		      "present, stopping; use 'add -f' to overide or fetch a remote first"));
+		      "present, stopping; use 'add -f' to override or fetch a remote first"));
 	}
 	return 0;
 }

@@ -33,13 +33,13 @@ test_systemd_analyze_verify () {
 
 test_expect_success 'help text' '
 	test_expect_code 129 git maintenance -h >actual &&
-	test_i18ngrep "usage: git maintenance <subcommand>" actual &&
+	test_grep "usage: git maintenance <subcommand>" actual &&
 	test_expect_code 129 git maintenance barf 2>err &&
-	test_i18ngrep "unknown subcommand: \`barf'\''" err &&
-	test_i18ngrep "usage: git maintenance" err &&
+	test_grep "unknown subcommand: \`barf'\''" err &&
+	test_grep "usage: git maintenance" err &&
 	test_expect_code 129 git maintenance 2>err &&
-	test_i18ngrep "error: need a subcommand" err &&
-	test_i18ngrep "usage: git maintenance" err
+	test_grep "error: need a subcommand" err &&
+	test_grep "usage: git maintenance" err
 '
 
 test_expect_success 'run [--auto|--quiet]' '
@@ -131,12 +131,12 @@ test_expect_success 'commit-graph auto condition' '
 
 test_expect_success 'run --task=bogus' '
 	test_must_fail git maintenance run --task=bogus 2>err &&
-	test_i18ngrep "is not a valid task" err
+	test_grep "is not a valid task" err
 '
 
 test_expect_success 'run --task duplicate' '
 	test_must_fail git maintenance run --task=gc --task=gc 2>err &&
-	test_i18ngrep "cannot be selected multiple times" err
+	test_grep "cannot be selected multiple times" err
 '
 
 test_expect_success 'run --task=prefetch with no remotes' '
@@ -377,12 +377,12 @@ test_expect_success 'pack-refs task' '
 
 test_expect_success '--auto and --schedule incompatible' '
 	test_must_fail git maintenance run --auto --schedule=daily 2>err &&
-	test_i18ngrep "at most one" err
+	test_grep "at most one" err
 '
 
 test_expect_success 'invalid --schedule value' '
 	test_must_fail git maintenance run --schedule=annually 2>err &&
-	test_i18ngrep "unrecognized --schedule" err
+	test_grep "unrecognized --schedule" err
 '
 
 test_expect_success '--schedule inheritance weekly -> daily -> hourly' '
@@ -576,15 +576,15 @@ test_expect_success !MINGW 'register and unregister with regex metacharacters' '
 
 test_expect_success 'start --scheduler=<scheduler>' '
 	test_expect_code 129 git maintenance start --scheduler=foo 2>err &&
-	test_i18ngrep "unrecognized --scheduler argument" err &&
+	test_grep "unrecognized --scheduler argument" err &&
 
 	test_expect_code 129 git maintenance start --no-scheduler 2>err &&
-	test_i18ngrep "unknown option" err &&
+	test_grep "unknown option" err &&
 
 	test_expect_code 128 \
 		env GIT_TEST_MAINT_SCHEDULER="launchctl:true,schtasks:true" \
 		git maintenance start --scheduler=crontab 2>err &&
-	test_i18ngrep "fatal: crontab scheduler is not available" err
+	test_grep "fatal: crontab scheduler is not available" err
 '
 
 test_expect_success 'start from empty cron table' '
@@ -744,7 +744,15 @@ test_expect_success 'start and stop Linux/systemd maintenance' '
 	# start registers the repo
 	git config --get --global --fixed-value maintenance.repo "$(pwd)" &&
 
-	test_systemd_analyze_verify "systemd/user/git-maintenance@.service" &&
+	for schedule in hourly daily weekly
+	do
+		test_path_is_file "systemd/user/git-maintenance@$schedule.timer" || return 1
+	done &&
+	test_path_is_file "systemd/user/git-maintenance@.service" &&
+
+	test_systemd_analyze_verify "systemd/user/git-maintenance@hourly.service" &&
+	test_systemd_analyze_verify "systemd/user/git-maintenance@daily.service" &&
+	test_systemd_analyze_verify "systemd/user/git-maintenance@weekly.service" &&
 
 	printf -- "--user enable --now git-maintenance@%s.timer\n" hourly daily weekly >expect &&
 	test_cmp expect args &&
@@ -755,7 +763,10 @@ test_expect_success 'start and stop Linux/systemd maintenance' '
 	# stop does not unregister the repo
 	git config --get --global --fixed-value maintenance.repo "$(pwd)" &&
 
-	test_path_is_missing "systemd/user/git-maintenance@.timer" &&
+	for schedule in hourly daily weekly
+	do
+		test_path_is_missing "systemd/user/git-maintenance@$schedule.timer" || return 1
+	done &&
 	test_path_is_missing "systemd/user/git-maintenance@.service" &&
 
 	printf -- "--user disable --now git-maintenance@%s.timer\n" hourly daily weekly >expect &&
@@ -836,6 +847,19 @@ test_expect_success 'register and unregister bare repo' '
 		git maintenance unregister &&
 		test_must_fail git config --global --get-all maintenance.repo
 	)
+'
+
+test_expect_success 'failed schedule prevents config change' '
+	git init --bare failcase &&
+
+	for scheduler in crontab launchctl schtasks systemctl
+	do
+		GIT_TEST_MAINT_SCHEDULER="$scheduler:false" &&
+		export GIT_TEST_MAINT_SCHEDULER &&
+		test_must_fail \
+			git -C failcase maintenance start &&
+		test_must_fail git -C failcase config maintenance.auto || return 1
+	done
 '
 
 test_done

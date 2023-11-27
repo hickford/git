@@ -569,7 +569,7 @@ static int get_modified_files(struct repository *r,
 			copy_pathspec(&rev.prune_data, ps);
 
 		if (s.mode == FROM_INDEX)
-			run_diff_index(&rev, 1);
+			run_diff_index(&rev, DIFF_INDEX_CACHED);
 		else {
 			rev.diffopt.flags.ignore_dirty_submodules = 1;
 			run_diff_files(&rev, 0);
@@ -1021,9 +1021,9 @@ static int run_diff(struct add_i_state *s, const struct pathspec *ps,
 	return res;
 }
 
-static int run_help(struct add_i_state *s, const struct pathspec *unused_ps,
-		    struct prefix_item_list *unused_files,
-		    struct list_and_choose_options *unused_opts)
+static int run_help(struct add_i_state *s, const struct pathspec *ps UNUSED,
+		    struct prefix_item_list *files UNUSED,
+		    struct list_and_choose_options *opts UNUSED)
 {
 	color_fprintf_ln(stdout, s->help_color, "status        - %s",
 			 _("show paths with changes"));
@@ -1074,7 +1074,7 @@ struct print_command_item_data {
 	const char *color, *reset;
 };
 
-static void print_command_item(int i, int selected,
+static void print_command_item(int i, int selected UNUSED,
 			       struct string_list_item *item,
 			       void *print_command_item_data)
 {

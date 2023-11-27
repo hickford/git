@@ -291,9 +291,9 @@ test_expect_success 'abort with error when new base cannot be checked out' '
 	git rm --cached file1 &&
 	git commit -m "remove file in base" &&
 	test_must_fail git rebase -i primary > output 2>&1 &&
-	test_i18ngrep "The following untracked working tree files would be overwritten by checkout:" \
+	test_grep "The following untracked working tree files would be overwritten by checkout:" \
 		output &&
-	test_i18ngrep "file1" output &&
+	test_grep "file1" output &&
 	test_path_is_missing .git/rebase-merge &&
 	rm file1 &&
 	git reset --hard HEAD^
@@ -604,7 +604,8 @@ test_expect_success 'clean error after failed "exec"' '
 	echo "edited again" > file7 &&
 	git add file7 &&
 	test_must_fail git rebase --continue 2>error &&
-	test_i18ngrep "you have staged changes in your working tree" error
+	test_grep "you have staged changes in your working tree" error &&
+	test_grep ! "could not open.*for reading" error
 '
 
 test_expect_success 'rebase a detached HEAD' '
@@ -758,7 +759,7 @@ test_expect_success 'reword' '
 	git show HEAD~2 | grep "C changed"
 '
 
-test_expect_success 'no uncommited changes when rewording the todo list is reloaded' '
+test_expect_success 'no uncommitted changes when rewording and the todo list is reloaded' '
 	git checkout E &&
 	test_when_finished "git checkout @{-1}" &&
 	(
@@ -955,7 +956,7 @@ test_expect_success 'rebase --exec works without -i ' '
 	git reset --hard execute &&
 	rm -rf exec_output &&
 	EDITOR="echo >invoked_editor" git rebase --exec "echo a line >>exec_output"  HEAD~2 2>actual &&
-	test_i18ngrep  "Successfully rebased and updated" actual &&
+	test_grep  "Successfully rebased and updated" actual &&
 	test_line_count = 2 exec_output &&
 	test_path_is_missing invoked_editor
 '
@@ -963,7 +964,7 @@ test_expect_success 'rebase --exec works without -i ' '
 test_expect_success 'rebase -i --exec without <CMD>' '
 	git reset --hard execute &&
 	test_must_fail git rebase -i --exec 2>actual &&
-	test_i18ngrep "requires a value" actual &&
+	test_grep "requires a value" actual &&
 	git checkout primary
 '
 
@@ -1272,24 +1273,38 @@ test_expect_success 'todo count' '
 		test_set_editor "$(pwd)/dump-raw.sh" &&
 		git rebase -i HEAD~4 >actual
 	) &&
-	test_i18ngrep "^# Rebase ..* onto ..* ([0-9]" actual
+	test_grep "^# Rebase ..* onto ..* ([0-9]" actual
 '
 
 test_expect_success 'rebase -i commits that overwrite untracked files (pick)' '
-	git checkout --force branch2 &&
+	git checkout --force A &&
 	git clean -f &&
+	cat >todo <<-EOF &&
+	exec >file2
+	pick $(git rev-parse B) B
+	pick $(git rev-parse C) C
+	pick $(git rev-parse D) D
+	exec cat .git/rebase-merge/done >actual
+	EOF
 	(
-		set_fake_editor &&
-		FAKE_LINES="edit 1 2" git rebase -i A
+		set_replace_editor todo &&
+		test_must_fail git rebase -i A
 	) &&
-	test_cmp_rev HEAD F &&
-	test_path_is_missing file6 &&
-	>file6 &&
-	test_must_fail git rebase --continue &&
-	test_cmp_rev HEAD F &&
-	rm file6 &&
+	test_cmp_rev HEAD B &&
+	test_cmp_rev REBASE_HEAD C &&
+	head -n3 todo >expect &&
+	test_cmp expect .git/rebase-merge/done &&
+	rm file2 &&
+	test_path_is_missing .git/rebase-merge/patch &&
+	echo changed >file1 &&
+	git add file1 &&
+	test_must_fail git rebase --continue 2>err &&
+	grep "error: you have staged changes in your working tree" err &&
+	git reset --hard HEAD &&
 	git rebase --continue &&
-	test_cmp_rev HEAD I
+	test_cmp_rev HEAD D &&
+	tail -n3 todo >>expect &&
+	test_cmp expect actual
 '
 
 test_expect_success 'rebase -i commits that overwrite untracked files (squash)' '
@@ -1305,7 +1320,14 @@ test_expect_success 'rebase -i commits that overwrite untracked files (squash)' 
 	>file6 &&
 	test_must_fail git rebase --continue &&
 	test_cmp_rev HEAD F &&
+	test_cmp_rev REBASE_HEAD I &&
 	rm file6 &&
+	test_path_is_missing .git/rebase-merge/patch &&
+	echo changed >file1 &&
+	git add file1 &&
+	test_must_fail git rebase --continue 2>err &&
+	grep "error: you have staged changes in your working tree" err &&
+	git reset --hard HEAD &&
 	git rebase --continue &&
 	test $(git cat-file commit HEAD | sed -ne \$p) = I &&
 	git reset --hard original-branch2
@@ -1323,7 +1345,14 @@ test_expect_success 'rebase -i commits that overwrite untracked files (no ff)' '
 	>file6 &&
 	test_must_fail git rebase --continue &&
 	test $(git cat-file commit HEAD | sed -ne \$p) = F &&
+	test_cmp_rev REBASE_HEAD I &&
 	rm file6 &&
+	test_path_is_missing .git/rebase-merge/patch &&
+	echo changed >file1 &&
+	git add file1 &&
+	test_must_fail git rebase --continue 2>err &&
+	grep "error: you have staged changes in your working tree" err &&
+	git reset --hard HEAD &&
 	git rebase --continue &&
 	test $(git cat-file commit HEAD | sed -ne \$p) = I
 '
@@ -1379,7 +1408,7 @@ test_expect_success 'rebase -i respects rebase.missingCommitsCheck = ignore' '
 		FAKE_LINES="1 2 3 4" git rebase -i --root 2>actual
 	) &&
 	test D = $(git cat-file commit HEAD | sed -ne \$p) &&
-	test_i18ngrep \
+	test_grep \
 		"Successfully rebased and updated refs/heads/missing-commit" \
 		actual
 '
@@ -1442,7 +1471,7 @@ test_expect_success 'rebase --edit-todo respects rebase.missingCommitsCheck = ig
 		git rebase --continue 2>actual
 	) &&
 	test D = $(git cat-file commit HEAD | sed -ne \$p) &&
-	test_i18ngrep \
+	test_grep \
 		"Successfully rebased and updated refs/heads/missing-commit" \
 		actual
 '
@@ -1477,7 +1506,7 @@ test_expect_success 'rebase --edit-todo respects rebase.missingCommitsCheck = wa
 		git rebase --continue 2>actual
 	) &&
 	test D = $(git cat-file commit HEAD | sed -ne \$p) &&
-	test_i18ngrep \
+	test_grep \
 		"Successfully rebased and updated refs/heads/missing-commit" \
 		actual
 '
@@ -1525,7 +1554,7 @@ test_expect_success 'rebase --edit-todo respects rebase.missingCommitsCheck = er
 		git rebase --continue 2>actual
 	) &&
 	test D = $(git cat-file commit HEAD | sed -ne \$p) &&
-	test_i18ngrep \
+	test_grep \
 		"Successfully rebased and updated refs/heads/missing-commit" \
 		actual
 '
@@ -1585,9 +1614,9 @@ test_expect_success 'static check of bad command' '
 		set_fake_editor &&
 		test_must_fail env FAKE_LINES="1 2 3 bad 4 5" \
 		git rebase -i --root 2>actual &&
-		test_i18ngrep "pickled $(git rev-list --oneline -1 primary~1)" \
+		test_grep "pickled $(git rev-list --oneline -1 primary~1)" \
 				actual &&
-		test_i18ngrep "You can fix this with .git rebase --edit-todo.." \
+		test_grep "You can fix this with .git rebase --edit-todo.." \
 				actual &&
 		FAKE_LINES="1 2 3 drop 4 5" git rebase --edit-todo
 	) &&
@@ -1645,8 +1674,8 @@ test_expect_success 'static check of bad SHA-1' '
 		set_fake_editor &&
 		test_must_fail env FAKE_LINES="1 2 edit fakesha 3 4 5 #" \
 			git rebase -i --root 2>actual &&
-			test_i18ngrep "edit XXXXXXX False commit" actual &&
-			test_i18ngrep "You can fix this with .git rebase --edit-todo.." \
+			test_grep "edit XXXXXXX False commit" actual &&
+			test_grep "You can fix this with .git rebase --edit-todo.." \
 					actual &&
 		FAKE_LINES="1 2 4 5 6" git rebase --edit-todo
 	) &&
@@ -1673,7 +1702,7 @@ test_expect_success 'rebase -i --gpg-sign=<key-id>' '
 		FAKE_LINES="edit 1" git rebase -i --gpg-sign="\"S I Gner\"" \
 			HEAD^ >out 2>err
 	) &&
-	test_i18ngrep "$SQ-S\"S I Gner\"$SQ" err
+	test_grep "$SQ-S\"S I Gner\"$SQ" err
 '
 
 test_expect_success 'rebase -i --gpg-sign=<key-id> overrides commit.gpgSign' '
@@ -1684,7 +1713,7 @@ test_expect_success 'rebase -i --gpg-sign=<key-id> overrides commit.gpgSign' '
 		FAKE_LINES="edit 1" git rebase -i --gpg-sign="\"S I Gner\"" \
 			HEAD^ >out 2>err
 	) &&
-	test_i18ngrep "$SQ-S\"S I Gner\"$SQ" err
+	test_grep "$SQ-S\"S I Gner\"$SQ" err
 '
 
 test_expect_success 'valid author header after --root swap' '
@@ -1738,7 +1767,7 @@ test_expect_success 'correct error message for partial commit after empty pick' 
 	) &&
 	echo x >file1 &&
 	test_must_fail git commit file1 2>err &&
-	test_i18ngrep "cannot do a partial commit during a rebase." err
+	test_grep "cannot do a partial commit during a rebase." err
 '
 
 test_expect_success 'correct error message for commit --amend after empty pick' '
@@ -1751,13 +1780,13 @@ test_expect_success 'correct error message for commit --amend after empty pick' 
 	) &&
 	echo x>file1 &&
 	test_must_fail git commit -a --amend 2>err &&
-	test_i18ngrep "middle of a rebase -- cannot amend." err
+	test_grep "middle of a rebase -- cannot amend." err
 '
 
 test_expect_success 'todo has correct onto hash' '
 	GIT_SEQUENCE_EDITOR=cat git rebase -i no-conflict-branch~4 no-conflict-branch >actual &&
 	onto=$(git rev-parse --short HEAD~4) &&
-	test_i18ngrep "^# Rebase ..* onto $onto" actual
+	test_grep "^# Rebase ..* onto $onto" actual
 '
 
 test_expect_success 'ORIG_HEAD is updated correctly' '

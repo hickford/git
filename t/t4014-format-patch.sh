@@ -1373,7 +1373,27 @@ test_expect_success '--rfc' '
 	Subject: [RFC PATCH 1/1] header with . in it
 	EOF
 	git format-patch -n -1 --stdout --rfc >patch &&
-	grep ^Subject: patch >actual &&
+	grep "^Subject:" patch >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success '--rfc does not overwrite prefix' '
+	cat >expect <<-\EOF &&
+	Subject: [RFC PATCH foobar 1/1] header with . in it
+	EOF
+	git -c format.subjectPrefix="PATCH foobar" \
+		format-patch -n -1 --stdout --rfc >patch &&
+	grep "^Subject:" patch >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success '--rfc is argument order independent' '
+	cat >expect <<-\EOF &&
+	Subject: [RFC PATCH foobar 1/1] header with . in it
+	EOF
+	git format-patch -n -1 --stdout --rfc \
+		--subject-prefix="PATCH foobar" >patch &&
+	grep "^Subject:" patch >actual &&
 	test_cmp expect actual
 '
 
@@ -1991,6 +2011,20 @@ test_expect_success 'cover letter using branch description (6)' '
 	grep hello actual
 '
 
+test_expect_success 'cover letter with --description-file' '
+	test_when_finished "rm -f description.txt" &&
+	cat >description.txt <<-\EOF &&
+	subject from file
+
+	body from file
+	EOF
+	git checkout rebuild-1 &&
+	git format-patch --stdout --cover-letter --cover-from-description auto \
+		--description-file description.txt main >actual &&
+	grep "^Subject: \[PATCH 0/2\] subject from file$" actual &&
+	grep "^body from file$" actual
+'
+
 test_expect_success 'cover letter with nothing' '
 	git format-patch --stdout --cover-letter >actual &&
 	test_line_count = 0 actual
@@ -2369,25 +2403,25 @@ test_expect_success 'interdiff: cover-letter' '
 	--q
 	EOF
 	git format-patch --cover-letter --interdiff=boop~2 -1 boop &&
-	test_i18ngrep "^Interdiff:$" 0000-cover-letter.patch &&
-	test_i18ngrep ! "^Interdiff:$" 0001-fleep.patch &&
+	test_grep "^Interdiff:$" 0000-cover-letter.patch &&
+	test_grep ! "^Interdiff:$" 0001-fleep.patch &&
 	sed "1,/^@@ /d; /^-- $/q" 0000-cover-letter.patch >actual &&
 	test_cmp expect actual
 '
 
 test_expect_success 'interdiff: reroll-count' '
 	git format-patch --cover-letter --interdiff=boop~2 -v2 -1 boop &&
-	test_i18ngrep "^Interdiff ..* v1:$" v2-0000-cover-letter.patch
+	test_grep "^Interdiff ..* v1:$" v2-0000-cover-letter.patch
 '
 
 test_expect_success 'interdiff: reroll-count with a non-integer' '
 	git format-patch --cover-letter --interdiff=boop~2 -v2.2 -1 boop &&
-	test_i18ngrep "^Interdiff:$" v2.2-0000-cover-letter.patch
+	test_grep "^Interdiff:$" v2.2-0000-cover-letter.patch
 '
 
 test_expect_success 'interdiff: reroll-count with a integer' '
 	git format-patch --cover-letter --interdiff=boop~2 -v2 -1 boop &&
-	test_i18ngrep "^Interdiff ..* v1:$" v2-0000-cover-letter.patch
+	test_grep "^Interdiff ..* v1:$" v2-0000-cover-letter.patch
 '
 
 test_expect_success 'interdiff: solo-patch' '
@@ -2396,7 +2430,7 @@ test_expect_success 'interdiff: solo-patch' '
 
 	EOF
 	git format-patch --interdiff=boop~2 -1 boop &&
-	test_i18ngrep "^Interdiff:$" 0001-fleep.patch &&
+	test_grep "^Interdiff:$" 0001-fleep.patch &&
 	sed "1,/^  @@ /d; /^$/q" 0001-fleep.patch >actual &&
 	test_cmp expect actual
 '

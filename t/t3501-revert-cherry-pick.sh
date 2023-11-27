@@ -43,7 +43,7 @@ test_expect_success 'cherry-pick --nonsense' '
 	git diff --exit-code HEAD &&
 	test_must_fail git cherry-pick --nonsense 2>msg &&
 	git diff --exit-code HEAD "$pos" &&
-	test_i18ngrep "[Uu]sage:" msg
+	test_grep "[Uu]sage:" msg
 '
 
 test_expect_success 'revert --nonsense' '
@@ -52,7 +52,7 @@ test_expect_success 'revert --nonsense' '
 	git diff --exit-code HEAD &&
 	test_must_fail git revert --nonsense 2>msg &&
 	git diff --exit-code HEAD "$pos" &&
-	test_i18ngrep "[Uu]sage:" msg
+	test_grep "[Uu]sage:" msg
 '
 
 # the following two test cherry-pick and revert with renames
@@ -99,7 +99,7 @@ test_expect_success 'revert forbidden on dirty working tree' '
 	echo content >extra_file &&
 	git add extra_file &&
 	test_must_fail git revert HEAD 2>errors &&
-	test_i18ngrep "your local changes would be overwritten by " errors
+	test_grep "your local changes would be overwritten by " errors
 
 '
 
@@ -174,6 +174,29 @@ test_expect_success 'advice from failed revert' '
 	test_commit --append --no-tag "double-add dream" dream dream &&
 	test_must_fail git revert HEAD^ 2>actual &&
 	test_cmp expected actual
+'
+
+test_expect_subject () {
+	echo "$1" >expect &&
+	git log -1 --pretty=%s >actual &&
+	test_cmp expect actual
+}
+
+test_expect_success 'titles of fresh reverts' '
+	test_commit --no-tag A file1 &&
+	test_commit --no-tag B file1 &&
+	git revert --no-edit HEAD &&
+	test_expect_subject "Revert \"B\"" &&
+	git revert --no-edit HEAD &&
+	test_expect_subject "Reapply \"B\"" &&
+	git revert --no-edit HEAD &&
+	test_expect_subject "Revert \"Reapply \"B\"\""
+'
+
+test_expect_success 'title of legacy double revert' '
+	test_commit --no-tag "Revert \"Revert \"B\"\"" file1 &&
+	git revert --no-edit HEAD &&
+	test_expect_subject "Revert \"Revert \"Revert \"B\"\"\""
 '
 
 test_expect_success 'identification of reverted commit (default)' '

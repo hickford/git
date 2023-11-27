@@ -106,11 +106,6 @@ int unlink_or_msg(const char *file, struct strbuf *err);
  * not exist.
  */
 int rmdir_or_warn(const char *path);
-/*
- * Calls the correct function out of {unlink,rmdir}_or_warn based on
- * the supplied file mode.
- */
-int remove_or_warn(unsigned int mode, const char *path);
 
 /*
  * Call access(2), but warn for any error except "missing file"
@@ -138,5 +133,11 @@ void sleep_millisec(int millisec);
  * satisfy the full request is an error.
  */
 int csprng_bytes(void *buf, size_t len);
+
+/*
+ * Returns a random uint32_t, uniformly distributed across all possible
+ * values.
+ */
+uint32_t git_rand(void);
 
 #endif /* WRAPPER_H */

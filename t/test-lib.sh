@@ -89,6 +89,9 @@ prepend_var LSAN_OPTIONS : $GIT_SAN_OPTIONS
 prepend_var LSAN_OPTIONS : fast_unwind_on_malloc=0
 export LSAN_OPTIONS
 
+prepend_var UBSAN_OPTIONS : $GIT_SAN_OPTIONS
+export UBSAN_OPTIONS
+
 if test ! -f "$GIT_BUILD_DIR"/GIT-BUILD-OPTIONS
 then
 	echo >&2 'error: GIT-BUILD-OPTIONS missing (has Git been built?).'
@@ -334,6 +337,7 @@ nr_san_dir_leaks_ () {
 	find "$TEST_RESULTS_SAN_DIR" \
 		-type f \
 		-name "$TEST_RESULTS_SAN_FILE_PFX.*" 2>/dev/null |
+	xargs grep -lv "Unable to get registers from thread" |
 	wc -l
 }
 

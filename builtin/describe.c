@@ -561,9 +561,11 @@ static void describe(const char *arg, int last_one)
 static int option_parse_exact_match(const struct option *opt, const char *arg,
 				    int unset)
 {
+	int *val = opt->value;
+
 	BUG_ON_OPT_ARG(arg);
 
-	max_candidates = unset ? DEFAULT_CANDIDATES : 0;
+	*val = unset ? DEFAULT_CANDIDATES : 0;
 	return 0;
 }
 
@@ -578,7 +580,7 @@ int cmd_describe(int argc, const char **argv, const char *prefix)
 		OPT_BOOL(0, "long",       &longformat, N_("always use long format")),
 		OPT_BOOL(0, "first-parent", &first_parent, N_("only follow first parent")),
 		OPT__ABBREV(&abbrev),
-		OPT_CALLBACK_F(0, "exact-match", NULL, NULL,
+		OPT_CALLBACK_F(0, "exact-match", &max_candidates, NULL,
 			       N_("only output exact matches"),
 			       PARSE_OPT_NOARG, option_parse_exact_match),
 		OPT_INTEGER(0, "candidates", &max_candidates,
@@ -668,7 +670,7 @@ int cmd_describe(int argc, const char **argv, const char *prefix)
 			struct lock_file index_lock = LOCK_INIT;
 			struct rev_info revs;
 			struct strvec args = STRVEC_INIT;
-			int fd, result;
+			int fd;
 
 			setup_work_tree();
 			prepare_repo_settings(the_repository);
@@ -685,9 +687,9 @@ int cmd_describe(int argc, const char **argv, const char *prefix)
 			strvec_pushv(&args, diff_index_args);
 			if (setup_revisions(args.nr, args.v, &revs, NULL) != 1)
 				BUG("malformed internal diff-index command line");
-			result = run_diff_index(&revs, 0);
+			run_diff_index(&revs, 0);
 
-			if (!diff_result_code(&revs.diffopt, result))
+			if (!diff_result_code(&revs.diffopt))
 				suffix = NULL;
 			else
 				suffix = dirty;
