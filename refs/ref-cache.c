@@ -1,5 +1,4 @@
 #include "../git-compat-util.h"
-#include "../alloc.h"
 #include "../hash.h"
 #include "../refs.h"
 #include "../repository.h"
@@ -487,7 +486,7 @@ struct ref_iterator *cache_ref_iterator_begin(struct ref_cache *cache,
 
 	CALLOC_ARRAY(iter, 1);
 	ref_iterator = &iter->base;
-	base_ref_iterator_init(ref_iterator, &cache_ref_iterator_vtable, 1);
+	base_ref_iterator_init(ref_iterator, &cache_ref_iterator_vtable);
 	ALLOC_GROW(iter->levels, 10, iter->levels_alloc);
 
 	iter->levels_nr = 1;

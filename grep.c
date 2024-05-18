@@ -9,7 +9,6 @@
 #include "xdiff-interface.h"
 #include "diff.h"
 #include "diffcore.h"
-#include "commit.h"
 #include "quote.h"
 #include "help.h"
 
@@ -622,7 +621,7 @@ static struct grep_expr *compile_pattern_atom(struct grep_pat **list)
 		*list = p->next;
 		x = compile_pattern_or(list);
 		if (!*list || (*list)->token != GREP_CLOSE_PAREN)
-			die("unmatched parenthesis");
+			die("unmatched ( for expression group");
 		*list = (*list)->next;
 		return x;
 	default:
@@ -793,7 +792,7 @@ void compile_grep_patterns(struct grep_opt *opt)
 	if (p)
 		opt->pattern_expression = compile_pattern_expr(&p);
 	if (p)
-		die("incomplete pattern expression: %s", p->pattern);
+		die("incomplete pattern expression group: %s", p->pattern);
 
 	if (opt->no_body_match && opt->pattern_expression)
 		opt->pattern_expression = grep_not_expr(opt->pattern_expression);

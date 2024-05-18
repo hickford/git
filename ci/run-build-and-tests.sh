@@ -37,6 +37,9 @@ linux-clang)
 linux-sha256)
 	export GIT_TEST_DEFAULT_HASH=sha256
 	;;
+linux-reftable|linux-reftable-leaks|osx-reftable)
+	export GIT_TEST_DEFAULT_REF_FORMAT=reftable
+	;;
 pedantic)
 	# Don't run the tests; we only care about whether Git can be
 	# built.
@@ -50,6 +53,8 @@ if test -n "$run_tests"
 then
 	group "Run tests" make test ||
 	handle_failed_tests
+	group "Run unit tests" \
+		make DEFAULT_UNIT_TEST_TARGET=unit-tests-prove unit-tests
 fi
 check_unignored_build_artifacts
 

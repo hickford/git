@@ -18,7 +18,6 @@
 #include "object-store-ll.h"
 #include "path.h"
 #include "tag.h"
-#include "run-command.h"
 #include "parse-options.h"
 #include "diff.h"
 #include "revision.h"
@@ -28,6 +27,7 @@
 #include "ref-filter.h"
 #include "date.h"
 #include "write-or-die.h"
+#include "object-file-convert.h"
 
 static const char * const git_tag_usage[] = {
 	N_("git tag [-a | -s | -u <key-id>] [-f] [-m <msg> | -F <file>] [-e]\n"
@@ -44,18 +44,11 @@ static const char * const git_tag_usage[] = {
 static unsigned int colopts;
 static int force_sign_annotate;
 static int config_sign_tag = -1; /* unspecified */
-static int omit_empty = 0;
 
 static int list_tags(struct ref_filter *filter, struct ref_sorting *sorting,
 		     struct ref_format *format)
 {
-	struct ref_array array;
-	struct strbuf output = STRBUF_INIT;
-	struct strbuf err = STRBUF_INIT;
 	char *to_free = NULL;
-	int i;
-
-	memset(&array, 0, sizeof(array));
 
 	if (filter->lines == -1)
 		filter->lines = 0;
@@ -73,23 +66,8 @@ static int list_tags(struct ref_filter *filter, struct ref_sorting *sorting,
 	if (verify_ref_format(format))
 		die(_("unable to parse format string"));
 	filter->with_commit_tag_algo = 1;
-	filter_refs(&array, filter, FILTER_REFS_TAGS);
-	filter_ahead_behind(the_repository, format, &array);
-	ref_array_sort(sorting, &array);
+	filter_and_format_refs(filter, FILTER_REFS_TAGS, sorting, format);
 
-	for (i = 0; i < array.nr; i++) {
-		strbuf_reset(&output);
-		strbuf_reset(&err);
-		if (format_ref_array_item(array.items[i], format, &output, &err))
-			die("%s", err.buf);
-		fwrite(output.buf, 1, output.len, stdout);
-		if (output.len || !omit_empty)
-			putchar('\n');
-	}
-
-	strbuf_release(&err);
-	strbuf_release(&output);
-	ref_array_clear(&array);
 	free(to_free);
 
 	return 0;
@@ -174,18 +152,52 @@ static int verify_tag(const char *name, const char *ref UNUSED,
 	return 0;
 }
 
-static int do_sign(struct strbuf *buffer)
+static int do_sign(struct strbuf *buffer, struct object_id **compat_oid,
+		   struct object_id *compat_oid_buf)
 {
-	return sign_buffer(buffer, buffer, get_signing_key());
+	const struct git_hash_algo *compat = the_repository->compat_hash_algo;
+	struct strbuf sig = STRBUF_INIT, compat_sig = STRBUF_INIT;
+	struct strbuf compat_buf = STRBUF_INIT;
+	const char *keyid = get_signing_key();
+	int ret = -1;
+
+	if (sign_buffer(buffer, &sig, keyid))
+		return -1;
+
+	if (compat) {
+		const struct git_hash_algo *algo = the_repository->hash_algo;
+
+		if (convert_object_file(&compat_buf, algo, compat,
+					buffer->buf, buffer->len, OBJ_TAG, 1))
+			goto out;
+		if (sign_buffer(&compat_buf, &compat_sig, keyid))
+			goto out;
+		add_header_signature(&compat_buf, &sig, algo);
+		strbuf_addbuf(&compat_buf, &compat_sig);
+		hash_object_file(compat, compat_buf.buf, compat_buf.len,
+				 OBJ_TAG, compat_oid_buf);
+		*compat_oid = compat_oid_buf;
+	}
+
+	if (compat_sig.len)
+		add_header_signature(buffer, &compat_sig, compat);
+
+	strbuf_addbuf(buffer, &sig);
+	ret = 0;
+out:
+	strbuf_release(&sig);
+	strbuf_release(&compat_sig);
+	strbuf_release(&compat_buf);
+	return ret;
 }
 
 static const char tag_template[] =
 	N_("\nWrite a message for tag:\n  %s\n"
-	"Lines starting with '%c' will be ignored.\n");
+	"Lines starting with '%s' will be ignored.\n");
 
 static const char tag_template_nocleanup[] =
 	N_("\nWrite a message for tag:\n  %s\n"
-	"Lines starting with '%c' will be kept; you may remove them"
+	"Lines starting with '%s' will be kept; you may remove them"
 	" yourself if you want to.\n");
 
 static int git_tag_config(const char *var, const char *value,
@@ -249,9 +261,11 @@ static void write_tag_body(int fd, const struct object_id *oid)
 
 static int build_tag_object(struct strbuf *buf, int sign, struct object_id *result)
 {
-	if (sign && do_sign(buf) < 0)
+	struct object_id *compat_oid = NULL, compat_oid_buf;
+	if (sign && do_sign(buf, &compat_oid, &compat_oid_buf) < 0)
 		return error(_("unable to sign the tag"));
-	if (write_object_file(buf->buf, buf->len, OBJ_TAG, result) < 0)
+	if (write_object_file_flags(buf->buf, buf->len, OBJ_TAG, result,
+				    compat_oid, 0) < 0)
 		return error(_("unable to write tag file"));
 	return 0;
 }
@@ -314,11 +328,11 @@ static void create_tag(const struct object_id *object, const char *object_ref,
 			struct strbuf buf = STRBUF_INIT;
 			strbuf_addch(&buf, '\n');
 			if (opt->cleanup_mode == CLEANUP_ALL)
-				strbuf_commented_addf(&buf, comment_line_char,
-				      _(tag_template), tag, comment_line_char);
+				strbuf_commented_addf(&buf, comment_line_str,
+				      _(tag_template), tag, comment_line_str);
 			else
-				strbuf_commented_addf(&buf, comment_line_char,
-				      _(tag_template_nocleanup), tag, comment_line_char);
+				strbuf_commented_addf(&buf, comment_line_str,
+				      _(tag_template_nocleanup), tag, comment_line_str);
 			write_or_die(fd, buf.buf, buf.len);
 			strbuf_release(&buf);
 		}
@@ -333,7 +347,7 @@ static void create_tag(const struct object_id *object, const char *object_ref,
 
 	if (opt->cleanup_mode != CLEANUP_NONE)
 		strbuf_stripspace(buf,
-		  opt->cleanup_mode == CLEANUP_ALL ? comment_line_char : '\0');
+		  opt->cleanup_mode == CLEANUP_ALL ? comment_line_str : NULL);
 
 	if (!opt->message_given && !buf->len)
 		die(_("no tag message?"));
@@ -481,7 +495,7 @@ int cmd_tag(int argc, const char **argv, const char *prefix)
 		OPT_WITHOUT(&filter.no_commit, N_("print only tags that don't contain the commit")),
 		OPT_MERGED(&filter, N_("print only tags that are merged")),
 		OPT_NO_MERGED(&filter, N_("print only tags that are not merged")),
-		OPT_BOOL(0, "omit-empty",  &omit_empty,
+		OPT_BOOL(0, "omit-empty",  &format.array_opts.omit_empty,
 			N_("do not output a newline after empty formatted refs")),
 		OPT_REF_SORT(&sorting_options),
 		{
@@ -501,7 +515,13 @@ int cmd_tag(int argc, const char **argv, const char *prefix)
 
 	setup_ref_filter_porcelain_msg();
 
+	/*
+	 * Try to set sort keys from config. If config does not set any,
+	 * fall back on default (refname) sorting.
+	 */
 	git_config(git_tag_config, &sorting_options);
+	if (!sorting_options.nr)
+		string_list_append(&sorting_options, "refname");
 
 	memset(&opt, 0, sizeof(opt));
 	filter.lines = -1;
@@ -547,7 +567,8 @@ int cmd_tag(int argc, const char **argv, const char *prefix)
 			struct column_options copts;
 			memset(&copts, 0, sizeof(copts));
 			copts.padding = 2;
-			run_column_filter(colopts, &copts);
+			if (run_column_filter(colopts, &copts))
+				die(_("could not start 'git column'"));
 		}
 		filter.name_patterns = argv;
 		ret = list_tags(&filter, sorting, &format);

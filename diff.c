@@ -16,12 +16,10 @@
 #include "hex.h"
 #include "xdiff-interface.h"
 #include "color.h"
-#include "attr.h"
 #include "run-command.h"
 #include "utf8.h"
 #include "object-store-ll.h"
 #include "userdiff.h"
-#include "submodule-config.h"
 #include "submodule.h"
 #include "hashmap.h"
 #include "mem-pool.h"
@@ -64,6 +62,8 @@ static const char *diff_order_file_cfg;
 int diff_auto_refresh_index = 1;
 static int diff_mnemonic_prefix;
 static int diff_no_prefix;
+static const char *diff_src_prefix = "a/";
+static const char *diff_dst_prefix = "b/";
 static int diff_relative;
 static int diff_stat_name_width;
 static int diff_stat_graph_width;
@@ -372,7 +372,10 @@ int git_diff_ui_config(const char *var, const char *value,
 		return 0;
 	}
 	if (!strcmp(var, "diff.colormovedws")) {
-		unsigned cm = parse_color_moved_ws(value);
+		unsigned cm;
+		if (!value)
+			return config_error_nonbool(var);
+		cm = parse_color_moved_ws(value);
 		if (cm & COLOR_MOVED_WS_ERROR)
 			return -1;
 		diff_color_moved_ws_default = cm;
@@ -407,6 +410,12 @@ int git_diff_ui_config(const char *var, const char *value,
 		diff_no_prefix = git_config_bool(var, value);
 		return 0;
 	}
+	if (!strcmp(var, "diff.srcprefix")) {
+		return git_config_string(&diff_src_prefix, var, value);
+	}
+	if (!strcmp(var, "diff.dstprefix")) {
+		return git_config_string(&diff_dst_prefix, var, value);
+	}
 	if (!strcmp(var, "diff.relative")) {
 		diff_relative = git_config_bool(var, value);
 		return 0;
@@ -426,10 +435,15 @@ int git_diff_ui_config(const char *var, const char *value,
 	if (!strcmp(var, "diff.orderfile"))
 		return git_config_pathname(&diff_order_file_cfg, var, value);
 
-	if (!strcmp(var, "diff.ignoresubmodules"))
+	if (!strcmp(var, "diff.ignoresubmodules")) {
+		if (!value)
+			return config_error_nonbool(var);
 		handle_ignore_submodules_arg(&default_diff_options, value);
+	}
 
 	if (!strcmp(var, "diff.submodule")) {
+		if (!value)
+			return config_error_nonbool(var);
 		if (parse_submodule_params(&default_diff_options, value))
 			warning(_("Unknown value for 'diff.submodule' config variable: '%s'"),
 				value);
@@ -437,9 +451,12 @@ int git_diff_ui_config(const char *var, const char *value,
 	}
 
 	if (!strcmp(var, "diff.algorithm")) {
+		if (!value)
+			return config_error_nonbool(var);
 		diff_algorithm = parse_algorithm_value(value);
 		if (diff_algorithm < 0)
-			return -1;
+			return error(_("unknown value for config '%s': %s"),
+				     var, value);
 		return 0;
 	}
 
@@ -473,9 +490,13 @@ int git_diff_basic_config(const char *var, const char *value,
 	}
 
 	if (!strcmp(var, "diff.wserrorhighlight")) {
-		int val = parse_ws_error_highlight(value);
+		int val;
+		if (!value)
+			return config_error_nonbool(var);
+		val = parse_ws_error_highlight(value);
 		if (val < 0)
-			return -1;
+			return error(_("unknown value for config '%s': %s"),
+				     var, value);
 		ws_error_highlight_default = val;
 		return 0;
 	}
@@ -490,6 +511,8 @@ int git_diff_basic_config(const char *var, const char *value,
 
 	if (!strcmp(var, "diff.dirstat")) {
 		struct strbuf errmsg = STRBUF_INIT;
+		if (!value)
+			return config_error_nonbool(var);
 		default_diff_options.dirstat_permille = diff_dirstat_permille_default;
 		if (parse_dirstat_params(&default_diff_options, value, &errmsg))
 			warning(_("Found errors in 'diff.dirstat' config variable:\n%s"),
@@ -3410,8 +3433,8 @@ void diff_set_noprefix(struct diff_options *options)
 
 void diff_set_default_prefix(struct diff_options *options)
 {
-	options->a_prefix = "a/";
-	options->b_prefix = "b/";
+	options->a_prefix = diff_src_prefix;
+	options->b_prefix = diff_dst_prefix;
 }
 
 struct userdiff_driver *get_textconv(struct repository *r,
@@ -4369,7 +4392,8 @@ static void run_external_diff(const char *pgm,
 		add_external_diff_name(o->repo, &cmd.args, two);
 		if (other) {
 			strvec_push(&cmd.args, other);
-			strvec_push(&cmd.args, xfrm_msg);
+			if (xfrm_msg)
+				strvec_push(&cmd.args, xfrm_msg);
 		}
 	}
 
@@ -5346,6 +5370,8 @@ static int diff_opt_default_prefix(const struct option *opt,
 
 	BUG_ON_OPT_NEG(unset);
 	BUG_ON_OPT_ARG(optarg);
+	diff_src_prefix = "a/";
+	diff_dst_prefix = "b/";
 	diff_set_default_prefix(options);
 	return 0;
 }
@@ -5574,7 +5600,7 @@ struct option *add_diff_options(const struct option *opts,
 		OPT_BITOP(0, "shortstat", &options->output_format,
 			  N_("output only the last line of --stat"),
 			  DIFF_FORMAT_SHORTSTAT, DIFF_FORMAT_NO_OUTPUT),
-		OPT_CALLBACK_F('X', "dirstat", options, N_("<param1,param2>..."),
+		OPT_CALLBACK_F('X', "dirstat", options, N_("<param1>,<param2>..."),
 			       N_("output the distribution of relative amount of changes for each sub-directory"),
 			       PARSE_OPT_NONEG | PARSE_OPT_OPTARG,
 			       diff_opt_dirstat),
@@ -5582,8 +5608,8 @@ struct option *add_diff_options(const struct option *opts,
 			       N_("synonym for --dirstat=cumulative"),
 			       PARSE_OPT_NONEG | PARSE_OPT_NOARG,
 			       diff_opt_dirstat),
-		OPT_CALLBACK_F(0, "dirstat-by-file", options, N_("<param1,param2>..."),
-			       N_("synonym for --dirstat=files,param1,param2..."),
+		OPT_CALLBACK_F(0, "dirstat-by-file", options, N_("<param1>,<param2>..."),
+			       N_("synonym for --dirstat=files,<param1>,<param2>..."),
 			       PARSE_OPT_NONEG | PARSE_OPT_OPTARG,
 			       diff_opt_dirstat),
 		OPT_BIT_F(0, "check", &options->output_format,

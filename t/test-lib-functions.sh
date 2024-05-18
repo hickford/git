@@ -14,7 +14,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see http://www.gnu.org/licenses/ .
+# along with this program.  If not, see https://www.gnu.org/licenses/ .
 
 # The semantics of the editor variables are that of invoking
 # sh -c "$EDITOR \"$@\"" files ...
@@ -385,7 +385,7 @@ test_commit () {
 		shift
 	done &&
 	indir=${indir:+"$indir"/} &&
-	local file=${2:-"$1.t"} &&
+	local file="${2:-"$1.t"}" &&
 	if test -n "$append"
 	then
 		$echo "${3-$1}" >>"$indir$file"
@@ -1263,9 +1263,8 @@ test_cmp_bin () {
 	cmp "$@"
 }
 
-# Deprecated - do not use this in new code
 test_i18ngrep () {
-	test_grep "$@"
+	BUG "do not use test_i18ngrep---use test_grep instead"
 }
 
 test_grep () {
@@ -1277,7 +1276,7 @@ test_grep () {
 	if test $# -lt 2 ||
 	   { test "x!" = "x$1" && test $# -lt 3 ; }
 	then
-		BUG "too few parameters to test_i18ngrep"
+		BUG "too few parameters to test_grep"
 	fi
 
 	if test "x!" = "x$1"
@@ -1656,7 +1655,21 @@ test_set_hash () {
 
 # Detect the hash algorithm in use.
 test_detect_hash () {
-	test_hash_algo="${GIT_TEST_DEFAULT_HASH:-sha1}"
+	case "$GIT_TEST_DEFAULT_HASH" in
+	"sha256")
+	    test_hash_algo=sha256
+	    test_compat_hash_algo=sha1
+	    ;;
+	*)
+	    test_hash_algo=sha1
+	    test_compat_hash_algo=sha256
+	    ;;
+	esac
+}
+
+# Detect the hash algorithm in use.
+test_detect_ref_format () {
+	echo "${GIT_TEST_DEFAULT_REF_FORMAT:-files}"
 }
 
 # Load common hash metadata and common placeholder object IDs for use with
@@ -1708,6 +1721,12 @@ test_oid () {
 	local algo="${test_hash_algo}" &&
 
 	case "$1" in
+	--hash=storage)
+		algo="$test_hash_algo" &&
+		shift;;
+	--hash=compat)
+		algo="$test_compat_hash_algo" &&
+		shift;;
 	--hash=*)
 		algo="${1#--hash=}" &&
 		shift;;
@@ -1729,7 +1748,7 @@ test_oid () {
 # Insert a slash into an object ID so it can be used to reference a location
 # under ".git/objects".  For example, "deadbeef..." becomes "de/adbeef..".
 test_oid_to_path () {
-	local basename=${1#??}
+	local basename="${1#??}"
 	echo "${1%$basename}/$basename"
 }
 
@@ -1746,7 +1765,7 @@ test_parse_ls_tree_oids () {
 # Choose a port number based on the test script's number and store it in
 # the given variable name, unless that variable already contains a number.
 test_set_port () {
-	local var=$1 port
+	local var="$1" port
 
 	if test $# -ne 1 || test -z "$var"
 	then
@@ -1821,7 +1840,7 @@ test_subcommand () {
 		shift
 	fi
 
-	local expr=$(printf '"%s",' "$@")
+	local expr="$(printf '"%s",' "$@")"
 	expr="${expr%,}"
 
 	if test -n "$negate"
@@ -1874,6 +1893,20 @@ test_region () {
 	return 0
 }
 
+# Check that the given data fragment was included as part of the
+# trace2-format trace on stdin.
+#
+#	test_trace2_data <category> <key> <value>
+#
+# For example, to look for trace2_data_intmax("pack-objects", repo,
+# "reused", N) in an invocation of "git pack-objects", run:
+#
+#	GIT_TRACE2_EVENT="$(pwd)/trace.txt" git pack-objects ... &&
+#	test_trace2_data pack-objects reused N <trace2.txt
+test_trace2_data () {
+	grep -e '"category":"'"$1"'","key":"'"$2"'","value":"'"$3"'"'
+}
+
 # Given a GIT_TRACE2_EVENT log over stdin, writes to stdout a list of URLs
 # sent to git-remote-https child processes.
 test_remote_https_urls() {
@@ -1897,7 +1930,7 @@ test_readlink () {
 # An optional increment to the magic timestamp may be specified as second
 # argument.
 test_set_magic_mtime () {
-	local inc=${2:-0} &&
+	local inc="${2:-0}" &&
 	local mtime=$((1234567890 + $inc)) &&
 	test-tool chmtime =$mtime "$1" &&
 	test_is_magic_mtime "$1" $inc
@@ -1910,7 +1943,7 @@ test_set_magic_mtime () {
 # argument.  Usually, this should be the same increment which was used for
 # the associated test_set_magic_mtime.
 test_is_magic_mtime () {
-	local inc=${2:-0} &&
+	local inc="${2:-0}" &&
 	local mtime=$((1234567890 + $inc)) &&
 	echo $mtime >.git/test-mtime-expect &&
 	test-tool chmtime --get "$1" >.git/test-mtime-actual &&

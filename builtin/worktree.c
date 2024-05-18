@@ -49,14 +49,14 @@
 	_("No possible source branch, inferring '--orphan'")
 
 #define WORKTREE_ADD_ORPHAN_WITH_DASH_B_HINT_TEXT \
-	_("If you meant to create a worktree containing a new orphan branch\n" \
+	_("If you meant to create a worktree containing a new unborn branch\n" \
 	"(branch with no commits) for this repository, you can do so\n" \
 	"using the --orphan flag:\n" \
 	"\n" \
 	"    git worktree add --orphan -b %s %s\n")
 
 #define WORKTREE_ADD_ORPHAN_NO_DASH_B_HINT_TEXT \
-	_("If you meant to create a worktree containing a new orphan branch\n" \
+	_("If you meant to create a worktree containing a new unborn branch\n" \
 	"(branch with no commits) for this repository, you can do so\n" \
 	"using the --orphan flag:\n" \
 	"\n" \
@@ -365,12 +365,12 @@ static void copy_filtered_worktree_config(const char *worktree_git_dir)
 		if (!git_configset_get_bool(&cs, "core.bare", &bare) &&
 			bare &&
 			git_config_set_multivar_in_file_gently(
-				to_file, "core.bare", NULL, "true", 0))
+				to_file, "core.bare", NULL, "true", NULL, 0))
 			error(_("failed to unset '%s' in '%s'"),
 				"core.bare", to_file);
 		if (!git_configset_get(&cs, "core.worktree") &&
 			git_config_set_in_file_gently(to_file,
-							"core.worktree", NULL))
+							"core.worktree", NULL, NULL))
 			error(_("failed to unset '%s' in '%s'"),
 				"core.worktree", to_file);
 
@@ -416,7 +416,6 @@ static int add_worktree(const char *path, const char *refname,
 	struct strbuf sb_git = STRBUF_INIT, sb_repo = STRBUF_INIT;
 	struct strbuf sb = STRBUF_INIT, realpath = STRBUF_INIT;
 	const char *name;
-	struct child_process cp = CHILD_PROCESS_INIT;
 	struct strvec child_env = STRVEC_INIT;
 	unsigned int counter = 0;
 	int len, ret;
@@ -424,7 +423,8 @@ static int add_worktree(const char *path, const char *refname,
 	struct commit *commit = NULL;
 	int is_branch = 0;
 	struct strbuf sb_name = STRBUF_INIT;
-	struct worktree **worktrees;
+	struct worktree **worktrees, *wt = NULL;
+	struct ref_store *wt_refs;
 
 	worktrees = get_worktrees();
 	check_candidate_path(path, opts->force, worktrees, "add");
@@ -495,19 +495,31 @@ static int add_worktree(const char *path, const char *refname,
 	strbuf_realpath(&realpath, get_git_common_dir(), 1);
 	write_file(sb_git.buf, "gitdir: %s/worktrees/%s",
 		   realpath.buf, name);
-	/*
-	 * This is to keep resolve_ref() happy. We need a valid HEAD
-	 * or is_git_directory() will reject the directory. Any value which
-	 * looks like an object ID will do since it will be immediately
-	 * replaced by the symbolic-ref or update-ref invocation in the new
-	 * worktree.
-	 */
-	strbuf_reset(&sb);
-	strbuf_addf(&sb, "%s/HEAD", sb_repo.buf);
-	write_file(sb.buf, "%s", oid_to_hex(null_oid()));
 	strbuf_reset(&sb);
 	strbuf_addf(&sb, "%s/commondir", sb_repo.buf);
 	write_file(sb.buf, "../..");
+
+	/*
+	 * Set up the ref store of the worktree and create the HEAD reference.
+	 */
+	wt = get_linked_worktree(name, 1);
+	if (!wt) {
+		ret = error(_("could not find created worktree '%s'"), name);
+		goto done;
+	}
+	wt_refs = get_worktree_ref_store(wt);
+
+	ret = refs_init_db(wt_refs, REFS_INIT_DB_IS_WORKTREE, &sb);
+	if (ret)
+		goto done;
+
+	if (!is_branch && commit)
+		ret = refs_update_ref(wt_refs, NULL, "HEAD", &commit->object.oid,
+				      NULL, 0, UPDATE_REFS_MSG_ON_ERR);
+	else
+		ret = refs_create_symref(wt_refs, "HEAD", symref.buf, NULL);
+	if (ret)
+		goto done;
 
 	/*
 	 * If the current worktree has sparse-checkout enabled, then copy
@@ -526,22 +538,6 @@ static int add_worktree(const char *path, const char *refname,
 
 	strvec_pushf(&child_env, "%s=%s", GIT_DIR_ENVIRONMENT, sb_git.buf);
 	strvec_pushf(&child_env, "%s=%s", GIT_WORK_TREE_ENVIRONMENT, path);
-	cp.git_cmd = 1;
-
-	if (!is_branch && commit) {
-		strvec_pushl(&cp.args, "update-ref", "HEAD",
-			     oid_to_hex(&commit->object.oid), NULL);
-	} else {
-		strvec_pushl(&cp.args, "symbolic-ref", "HEAD",
-			     symref.buf, NULL);
-		if (opts->quiet)
-			strvec_push(&cp.args, "--quiet");
-	}
-
-	strvec_pushv(&cp.env, child_env.v);
-	ret = run_command(&cp);
-	if (ret)
-		goto done;
 
 	if (opts->orphan &&
 	    (ret = make_worktree_orphan(refname, opts, &child_env)))
@@ -587,6 +583,7 @@ done:
 	strbuf_release(&sb_git);
 	strbuf_release(&sb_name);
 	strbuf_release(&realpath);
+	free_worktree(wt);
 	return ret;
 }
 
@@ -660,7 +657,7 @@ static int can_use_local_refs(const struct add_opts *opts)
 			strbuf_add_real_path(&path, get_worktree_git_dir(NULL));
 			strbuf_addstr(&path, "/HEAD");
 			strbuf_read_file(&contents, path.buf, 64);
-			strbuf_stripspace(&contents, 0);
+			strbuf_stripspace(&contents, NULL);
 			strbuf_strip_suffix(&contents, "\n");
 
 			warning(_("HEAD points to an invalid (or orphaned) reference.\n"
@@ -730,11 +727,11 @@ static int dwim_orphan(const struct add_opts *opts, int opt_track, int remote)
 	}
 
 	if (opt_track) {
-		die(_("'%s' and '%s' cannot be used together"), "--orphan",
-		    "--track");
+		die(_("options '%s' and '%s' cannot be used together"),
+		    "--orphan", "--track");
 	} else if (!opts->checkout) {
-		die(_("'%s' and '%s' cannot be used together"), "--orphan",
-		    "--no-checkout");
+		die(_("options '%s' and '%s' cannot be used together"),
+		    "--orphan", "--no-checkout");
 	}
 	return 1;
 }
@@ -784,7 +781,7 @@ static int add(int ac, const char **av, const char *prefix)
 			   N_("create a new branch")),
 		OPT_STRING('B', NULL, &new_branch_force, N_("branch"),
 			   N_("create or reset a branch")),
-		OPT_BOOL(0, "orphan", &opts.orphan, N_("create unborn/orphaned branch")),
+		OPT_BOOL(0, "orphan", &opts.orphan, N_("create unborn branch")),
 		OPT_BOOL('d', "detach", &opts.detach, N_("detach HEAD at named commit")),
 		OPT_BOOL(0, "checkout", &opts.checkout, N_("populate the new working tree")),
 		OPT_BOOL(0, "lock", &keep_locked, N_("keep the new working tree locked")),
@@ -806,16 +803,17 @@ static int add(int ac, const char **av, const char *prefix)
 	if (!!opts.detach + !!new_branch + !!new_branch_force > 1)
 		die(_("options '%s', '%s', and '%s' cannot be used together"), "-b", "-B", "--detach");
 	if (opts.detach && opts.orphan)
-		die(_("options '%s', and '%s' cannot be used together"),
+		die(_("options '%s' and '%s' cannot be used together"),
 		    "--orphan", "--detach");
 	if (opts.orphan && opt_track)
-		die(_("'%s' and '%s' cannot be used together"), "--orphan", "--track");
+		die(_("options '%s' and '%s' cannot be used together"),
+		    "--orphan", "--track");
 	if (opts.orphan && !opts.checkout)
-		die(_("'%s' and '%s' cannot be used together"), "--orphan",
-		    "--no-checkout");
+		die(_("options '%s' and '%s' cannot be used together"),
+		    "--orphan", "--no-checkout");
 	if (opts.orphan && ac == 2)
-		die(_("'%s' and '%s' cannot be used together"), "--orphan",
-		    _("<commit-ish>"));
+		die(_("option '%s' and commit-ish cannot be used together"),
+		    "--orphan");
 	if (lock_reason && !keep_locked)
 		die(_("the option '%s' requires '%s'"), "--reason", "--lock");
 	if (lock_reason)
@@ -850,21 +848,21 @@ static int add(int ac, const char **av, const char *prefix)
 		const char *s = worktree_basename(path, &n);
 		new_branch = xstrndup(s, n);
 	} else if (opts.orphan) {
-		// No-op
+		; /* no-op */
 	} else if (opts.detach) {
-		// Check HEAD
+		/* Check HEAD */
 		if (!strcmp(branch, "HEAD"))
 			can_use_local_refs(&opts);
 	} else if (ac < 2 && new_branch) {
-		// DWIM: Infer --orphan when repo has no refs.
+		/* DWIM: Infer --orphan when repo has no refs. */
 		opts.orphan = dwim_orphan(&opts, !!opt_track, 0);
 	} else if (ac < 2) {
-		// DWIM: Guess branch name from path.
+		/* DWIM: Guess branch name from path. */
 		const char *s = dwim_branch(path, &new_branch);
 		if (s)
 			branch = s;
 
-		// DWIM: Infer --orphan when repo has no refs.
+		/* DWIM: Infer --orphan when repo has no refs. */
 		opts.orphan = (!s) && dwim_orphan(&opts, !!opt_track, 1);
 	} else if (ac == 2) {
 		struct object_id oid;

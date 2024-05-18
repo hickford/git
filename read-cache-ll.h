@@ -436,6 +436,14 @@ int match_stat_data_racy(const struct index_state *istate,
 
 void fill_stat_cache_info(struct index_state *istate, struct cache_entry *ce, struct stat *st);
 
+/*
+ * Fill members of st by members of sd enough to convince match_stat()
+ * to consider that they match.  It should be usable as a replacement
+ * for lstat() for a tracked path that is known to be up-to-date via
+ * some out-of-line means (like fsmonitor).
+ */
+int fake_lstat(const struct cache_entry *ce, struct stat *st);
+
 #define REFRESH_REALLY                   (1 << 0) /* ignore_valid */
 #define REFRESH_UNMERGED                 (1 << 1) /* allow unmerged */
 #define REFRESH_QUIET                    (1 << 2) /* be quiet about it */
@@ -472,8 +480,8 @@ extern int verify_ce_order;
 int cmp_cache_name_compare(const void *a_, const void *b_);
 
 int add_files_to_cache(struct repository *repo, const char *prefix,
-		       const struct pathspec *pathspec, int include_sparse,
-		       int flags);
+		       const struct pathspec *pathspec, char *ps_matched,
+		       int include_sparse, int flags);
 
 void overlay_tree_on_index(struct index_state *istate,
 			   const char *tree_name, const char *prefix);

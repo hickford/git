@@ -28,7 +28,7 @@ test_expect_success 'git branch --help should not have created a bogus branch' '
 	test_ref_missing refs/heads/--help
 '
 
-test_expect_success 'branch -h in broken repository' '
+test_expect_success REFFILES 'branch -h in broken repository' '
 	mkdir broken &&
 	(
 		cd broken &&
@@ -75,15 +75,15 @@ test_expect_success 'git branch HEAD should fail' '
 	test_must_fail git branch HEAD
 '
 
-cat >expect <<EOF
-$ZERO_OID $HEAD $GIT_COMMITTER_NAME <$GIT_COMMITTER_EMAIL> 1117150200 +0000	branch: Created from main
-EOF
 test_expect_success 'git branch --create-reflog d/e/f should create a branch and a log' '
 	GIT_COMMITTER_DATE="2005-05-26 23:30" \
 	git -c core.logallrefupdates=false branch --create-reflog d/e/f &&
 	test_ref_exists refs/heads/d/e/f &&
-	test_path_is_file .git/logs/refs/heads/d/e/f &&
-	test_cmp expect .git/logs/refs/heads/d/e/f
+	cat >expect <<-EOF &&
+	$HEAD refs/heads/d/e/f@{0}: branch: Created from main
+	EOF
+	git reflog show --no-abbrev-commit refs/heads/d/e/f >actual &&
+	test_cmp expect actual
 '
 
 test_expect_success 'git branch -d d/e/f should delete a branch and a log' '
@@ -203,10 +203,9 @@ test_expect_success 'git branch -M baz bam should succeed when baz is checked ou
 	test $(git rev-parse --abbrev-ref HEAD) = bam
 '
 
-test_expect_success 'git branch -M baz bam should add entries to .git/logs/HEAD' '
-	msg="Branch: renamed refs/heads/baz to refs/heads/bam" &&
-	grep " $ZERO_OID.*$msg$" .git/logs/HEAD &&
-	grep "^$ZERO_OID.*$msg$" .git/logs/HEAD
+test_expect_success 'git branch -M baz bam should add entries to HEAD reflog' '
+	git reflog show HEAD >actual &&
+	grep "HEAD@{0}: Branch: renamed refs/heads/baz to refs/heads/bam" actual
 '
 
 test_expect_success 'git branch -M should leave orphaned HEAD alone' '
@@ -215,17 +214,20 @@ test_expect_success 'git branch -M should leave orphaned HEAD alone' '
 		cd orphan &&
 		test_commit initial &&
 		git checkout --orphan lonely &&
-		grep lonely .git/HEAD &&
+		git symbolic-ref HEAD >expect &&
+		echo refs/heads/lonely >actual &&
+		test_cmp expect actual &&
 		test_ref_missing refs/head/lonely &&
 		git branch -M main mistress &&
-		grep lonely .git/HEAD
+		git symbolic-ref HEAD >expect &&
+		test_cmp expect actual
 	)
 '
 
 test_expect_success 'resulting reflog can be shown by log -g' '
 	oid=$(git rev-parse HEAD) &&
 	cat >expect <<-EOF &&
-	HEAD@{0} $oid $msg
+	HEAD@{0} $oid Branch: renamed refs/heads/baz to refs/heads/bam
 	HEAD@{2} $oid checkout: moving from foo to baz
 	EOF
 	git log -g --format="%gd %H %gs" -2 HEAD >actual &&
@@ -243,7 +245,7 @@ test_expect_success 'git branch -M baz bam should succeed when baz is checked ou
 	git worktree prune
 '
 
-test_expect_success 'git branch -M fails if updating any linked working tree fails' '
+test_expect_success REFFILES 'git branch -M fails if updating any linked working tree fails' '
 	git worktree add -b baz bazdir1 &&
 	git worktree add -f bazdir2 baz &&
 	touch .git/worktrees/bazdir1/HEAD.lock &&
@@ -438,10 +440,10 @@ test_expect_success 'git branch --list -v with --abbrev' '
 
 test_expect_success 'git branch --column' '
 	COLUMNS=81 git branch --column=column >actual &&
-	cat >expect <<\EOF &&
-  a/b/c   bam     foo     l     * main    n       o/p     r
-  abc     bar     j/k     m/m     mb      o/o     q       topic
-EOF
+	cat >expect <<-\EOF &&
+	  a/b/c   bam     foo     l     * main    n       o/p     r
+	  abc     bar     j/k     m/m     mb      o/o     q       topic
+	EOF
 	test_cmp expect actual
 '
 
@@ -451,25 +453,25 @@ test_expect_success 'git branch --column with an extremely long branch name' '
 	test_when_finished "git branch -d $long" &&
 	git branch $long &&
 	COLUMNS=80 git branch --column=column >actual &&
-	cat >expect <<EOF &&
-  a/b/c
-  abc
-  bam
-  bar
-  foo
-  j/k
-  l
-  m/m
-* main
-  mb
-  n
-  o/o
-  o/p
-  q
-  r
-  topic
-  $long
-EOF
+	cat >expect <<-EOF &&
+	  a/b/c
+	  abc
+	  bam
+	  bar
+	  foo
+	  j/k
+	  l
+	  m/m
+	* main
+	  mb
+	  n
+	  o/o
+	  o/p
+	  q
+	  r
+	  topic
+	  $long
+	EOF
 	test_cmp expect actual
 '
 
@@ -479,10 +481,10 @@ test_expect_success 'git branch with column.*' '
 	COLUMNS=80 git branch >actual &&
 	git config --unset column.branch &&
 	git config --unset column.ui &&
-	cat >expect <<\EOF &&
-  a/b/c   bam   foo   l   * main   n     o/p   r
-  abc     bar   j/k   m/m   mb     o/o   q     topic
-EOF
+	cat >expect <<-\EOF &&
+	  a/b/c   bam   foo   l   * main   n     o/p   r
+	  abc     bar   j/k   m/m   mb     o/o   q     topic
+	EOF
 	test_cmp expect actual
 '
 
@@ -494,39 +496,36 @@ test_expect_success 'git branch -v with column.ui ignored' '
 	git config column.ui column &&
 	COLUMNS=80 git branch -v | cut -c -8 | sed "s/ *$//" >actual &&
 	git config --unset column.ui &&
-	cat >expect <<\EOF &&
-  a/b/c
-  abc
-  bam
-  bar
-  foo
-  j/k
-  l
-  m/m
-* main
-  mb
-  n
-  o/o
-  o/p
-  q
-  r
-  topic
-EOF
+	cat >expect <<-\EOF &&
+	  a/b/c
+	  abc
+	  bam
+	  bar
+	  foo
+	  j/k
+	  l
+	  m/m
+	* main
+	  mb
+	  n
+	  o/o
+	  o/p
+	  q
+	  r
+	  topic
+	EOF
 	test_cmp expect actual
 '
 
-mv .git/config .git/config-saved
-
-test_expect_success SHA1 'git branch -m q q2 without config should succeed' '
+test_expect_success DEFAULT_REPO_FORMAT 'git branch -m q q2 without config should succeed' '
+	test_when_finished mv .git/config-saved .git/config &&
+	mv .git/config .git/config-saved &&
 	git branch -m q q2 &&
 	git branch -m q2 q
 '
 
-mv .git/config-saved .git/config
-
-git config branch.s/s.dummy Hello
-
 test_expect_success 'git branch -m s/s s should work when s/t is deleted' '
+	git config branch.s/s.dummy Hello &&
 	git branch --create-reflog s/s &&
 	git reflog exists refs/heads/s/s &&
 	git branch --create-reflog s/t &&
@@ -577,7 +576,7 @@ EOF
 
 	# ...and that the comments for those sections are also
 	# preserved.
-	cat config.branch | sed "s/\"source\"/\"dest\"/" >expect &&
+	sed "s/\"source\"/\"dest\"/" config.branch >expect &&
 	sed -n -e "/Note the lack/,\$p" .git/config >actual &&
 	test_cmp expect actual
 '
@@ -699,7 +698,8 @@ test_expect_success 'git branch -C c1 c2 should succeed when c1 is checked out' 
 
 test_expect_success 'git branch -C c1 c2 should never touch HEAD' '
 	msg="Branch: copied refs/heads/c1 to refs/heads/c2" &&
-	! grep "$msg$" .git/logs/HEAD
+	git reflog HEAD >actual &&
+	! grep "$msg$" actual
 '
 
 test_expect_success 'git branch -C main should work when main is checked out' '
@@ -809,7 +809,7 @@ test_expect_success 'deleting a symref' '
 
 test_expect_success 'deleting a dangling symref' '
 	git symbolic-ref refs/heads/dangling-symref nowhere &&
-	test_path_is_file .git/refs/heads/dangling-symref &&
+	git symbolic-ref --no-recurse refs/heads/dangling-symref &&
 	echo "Deleted branch dangling-symref (was nowhere)." >expect &&
 	git branch -d dangling-symref >actual &&
 	test_ref_missing refs/heads/dangling-symref &&
@@ -831,35 +831,6 @@ test_expect_success 'renaming a symref is not allowed' '
 	git symbolic-ref refs/heads/topic &&
 	test_ref_exists refs/heads/main &&
 	test_ref_missing refs/heads/new-topic
-'
-
-test_expect_success SYMLINKS 'git branch -m u v should fail when the reflog for u is a symlink' '
-	git branch --create-reflog u &&
-	mv .git/logs/refs/heads/u real-u &&
-	ln -s real-u .git/logs/refs/heads/u &&
-	test_must_fail git branch -m u v
-'
-
-test_expect_success SYMLINKS 'git branch -m with symlinked .git/refs' '
-	test_when_finished "rm -rf subdir" &&
-	git init --bare subdir &&
-
-	rm -rfv subdir/refs subdir/objects subdir/packed-refs &&
-	ln -s ../.git/refs subdir/refs &&
-	ln -s ../.git/objects subdir/objects &&
-	ln -s ../.git/packed-refs subdir/packed-refs &&
-
-	git -C subdir rev-parse --absolute-git-dir >subdir.dir &&
-	git rev-parse --absolute-git-dir >our.dir &&
-	! test_cmp subdir.dir our.dir &&
-
-	git -C subdir log &&
-	git -C subdir branch rename-src &&
-	git rev-parse rename-src >expect &&
-	git -C subdir branch -m rename-src rename-dest &&
-	git rev-parse rename-dest >actual &&
-	test_cmp expect actual &&
-	git branch -D rename-dest
 '
 
 test_expect_success 'test tracking setup via --track' '
@@ -1138,16 +1109,16 @@ test_expect_success '--set-upstream-to notices an error to set branch as own ups
 	test_cmp expect actual
 "
 
-# Keep this test last, as it changes the current branch
-cat >expect <<EOF
-$ZERO_OID $HEAD $GIT_COMMITTER_NAME <$GIT_COMMITTER_EMAIL> 1117150200 +0000	branch: Created from main
-EOF
 test_expect_success 'git checkout -b g/h/i -l should create a branch and a log' '
+	test_when_finished git checkout main &&
 	GIT_COMMITTER_DATE="2005-05-26 23:30" \
 	git checkout -b g/h/i -l main &&
 	test_ref_exists refs/heads/g/h/i &&
-	test_path_is_file .git/logs/refs/heads/g/h/i &&
-	test_cmp expect .git/logs/refs/heads/g/h/i
+	cat >expect <<-EOF &&
+	$HEAD refs/heads/g/h/i@{0}: branch: Created from main
+	EOF
+	git reflog show --no-abbrev-commit refs/heads/g/h/i >actual &&
+	test_cmp expect actual
 '
 
 test_expect_success 'checkout -b makes reflog by default' '
@@ -1183,9 +1154,9 @@ test_expect_success 'avoid ambiguous track and advise' '
 	hint: tracking ref '\''refs/heads/main'\'':
 	hint:   ambi1
 	hint:   ambi2
-	hint: ''
+	hint:
 	hint: This is typically a configuration error.
-	hint: ''
+	hint:
 	hint: To support setting up tracking branches, ensure that
 	hint: different remotes'\'' fetch refspecs map into different
 	hint: tracking namespaces.
@@ -1573,9 +1544,10 @@ test_expect_success 'tracking with unexpected .fetch refspec' '
 
 test_expect_success 'configured committerdate sort' '
 	git init -b main sort &&
+	test_config -C sort branch.sort "committerdate" &&
+
 	(
 		cd sort &&
-		git config branch.sort committerdate &&
 		test_commit initial &&
 		git checkout -b a &&
 		test_commit a &&
@@ -1595,9 +1567,10 @@ test_expect_success 'configured committerdate sort' '
 '
 
 test_expect_success 'option override configured sort' '
+	test_config -C sort branch.sort "committerdate" &&
+
 	(
 		cd sort &&
-		git config branch.sort committerdate &&
 		git branch --sort=refname >actual &&
 		cat >expect <<-\EOF &&
 		  a
@@ -1609,10 +1582,70 @@ test_expect_success 'option override configured sort' '
 	)
 '
 
-test_expect_success 'invalid sort parameter in configuration' '
+test_expect_success '--no-sort cancels config sort keys' '
+	test_config -C sort branch.sort "-refname" &&
+
 	(
 		cd sort &&
-		git config branch.sort "v:notvalid" &&
+
+		# objecttype is identical for all of them, so sort falls back on
+		# default (ascending refname)
+		git branch \
+			--no-sort \
+			--sort="objecttype" >actual &&
+		cat >expect <<-\EOF &&
+		  a
+		* b
+		  c
+		  main
+		EOF
+		test_cmp expect actual
+	)
+
+'
+
+test_expect_success '--no-sort cancels command line sort keys' '
+	(
+		cd sort &&
+
+		# objecttype is identical for all of them, so sort falls back on
+		# default (ascending refname)
+		git branch \
+			--sort="-refname" \
+			--no-sort \
+			--sort="objecttype" >actual &&
+		cat >expect <<-\EOF &&
+		  a
+		* b
+		  c
+		  main
+		EOF
+		test_cmp expect actual
+	)
+'
+
+test_expect_success '--no-sort without subsequent --sort prints expected branches' '
+	(
+		cd sort &&
+
+		# Sort the results with `sort` for a consistent comparison
+		# against expected
+		git branch --no-sort | sort >actual &&
+		cat >expect <<-\EOF &&
+		  a
+		  c
+		  main
+		* b
+		EOF
+		test_cmp expect actual
+	)
+'
+
+test_expect_success 'invalid sort parameter in configuration' '
+	test_config -C sort branch.sort "v:notvalid" &&
+
+	(
+		cd sort &&
 
 		# this works in the "listing" mode, so bad sort key
 		# is a dying offence.
@@ -1658,6 +1691,16 @@ test_expect_success '--track overrides branch.autoSetupMerge' '
 	git branch --no-track foo5 my1 &&
 	test_cmp_config "" --default "" branch.foo5.remote &&
 	test_cmp_config "" --default "" branch.foo5.merge
+'
+
+test_expect_success 'errors if given a bad branch name' '
+	cat <<-\EOF >expect &&
+	fatal: '\''foo..bar'\'' is not a valid branch name
+	hint: See `man git check-ref-format`
+	hint: Disable this message with "git config advice.refSyntax false"
+	EOF
+	test_must_fail git branch foo..bar >actual 2>&1 &&
+	test_cmp expect actual
 '
 
 test_done

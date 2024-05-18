@@ -153,6 +153,18 @@ test_expect_success 'rebase -i with the exec command checks tree cleanness' '
 	git rebase --continue
 '
 
+test_expect_success 'cherry-pick works with rebase --exec' '
+	test_when_finished "git cherry-pick --abort; \
+			    git rebase --abort; \
+			    git checkout primary" &&
+	echo "exec git cherry-pick G" >todo &&
+	(
+		set_replace_editor todo &&
+		test_must_fail git rebase -i D D
+	) &&
+	test_cmp_rev G CHERRY_PICK_HEAD
+'
+
 test_expect_success 'rebase -x with empty command fails' '
 	test_when_finished "git rebase --abort ||:" &&
 	test_must_fail env git rebase -x "" @ 2>actual &&
@@ -2160,7 +2172,7 @@ test_expect_success '--update-refs: check failed ref update' '
 	# recorded in the update-refs file. We will force-update the
 	# "second" ref, but "git branch -f" will not work because of
 	# the lock in the update-refs file.
-	git rev-parse third >.git/refs/heads/second &&
+	git update-ref refs/heads/second third &&
 
 	test_must_fail git rebase --continue 2>err &&
 	grep "update_ref failed for ref '\''refs/heads/second'\''" err &&

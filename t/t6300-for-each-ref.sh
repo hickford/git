@@ -20,12 +20,13 @@ setdate_and_increment () {
     export GIT_COMMITTER_DATE GIT_AUTHOR_DATE
 }
 
-test_expect_success setup '
-	test_oid_cache <<-EOF &&
-	disklen sha1:138
-	disklen sha256:154
-	EOF
+test_object_file_size () {
+	oid=$(git rev-parse "$1")
+	path=".git/objects/$(test_oid_to_path $oid)"
+	test_file_size "$path"
+}
 
+test_expect_success setup '
 	# setup .mailmap
 	cat >.mailmap <<-EOF &&
 	A Thor <athor@example.com> A U Thor <author@example.com>
@@ -94,7 +95,6 @@ test_atom () {
 }
 
 hexlen=$(test_oid hexsz)
-disklen=$(test_oid disklen)
 
 test_atom head refname refs/heads/main
 test_atom head refname: refs/heads/main
@@ -129,7 +129,7 @@ test_atom head push:strip=1 remotes/myfork/main
 test_atom head push:strip=-1 main
 test_atom head objecttype commit
 test_atom head objectsize $((131 + hexlen))
-test_atom head objectsize:disk $disklen
+test_atom head objectsize:disk $(test_object_file_size refs/heads/main)
 test_atom head deltabase $ZERO_OID
 test_atom head objectname $(git rev-parse refs/heads/main)
 test_atom head objectname:short $(git rev-parse --short refs/heads/main)
@@ -203,8 +203,8 @@ test_atom tag upstream ''
 test_atom tag push ''
 test_atom tag objecttype tag
 test_atom tag objectsize $((114 + hexlen))
-test_atom tag objectsize:disk $disklen
-test_atom tag '*objectsize:disk' $disklen
+test_atom tag objectsize:disk $(test_object_file_size refs/tags/testtag)
+test_atom tag '*objectsize:disk' $(test_object_file_size refs/heads/main)
 test_atom tag deltabase $ZERO_OID
 test_atom tag '*deltabase' $ZERO_OID
 test_atom tag objectname $(git rev-parse refs/tags/testtag)
@@ -1335,6 +1335,73 @@ test_expect_success '--no-sort cancels the previous sort keys' '
 	test_cmp expected actual
 '
 
+test_expect_success '--no-sort without subsequent --sort prints expected refs' '
+	cat >expected <<-\EOF &&
+	refs/tags/multi-ref1-100000-user1
+	refs/tags/multi-ref1-100000-user2
+	refs/tags/multi-ref1-200000-user1
+	refs/tags/multi-ref1-200000-user2
+	refs/tags/multi-ref2-100000-user1
+	refs/tags/multi-ref2-100000-user2
+	refs/tags/multi-ref2-200000-user1
+	refs/tags/multi-ref2-200000-user2
+	EOF
+
+	# Sort the results with `sort` for a consistent comparison against
+	# expected
+	git for-each-ref \
+		--format="%(refname)" \
+		--no-sort \
+		"refs/tags/multi-*" | sort >actual &&
+	test_cmp expected actual
+'
+
+test_expect_success 'set up custom date sorting' '
+	# Dates:
+	# - Wed Feb 07 2024 21:34:20 +0000
+	# - Tue Dec 14 1999 00:05:22 +0000
+	# - Fri Jun 04 2021 11:26:51 +0000
+	# - Mon Jan 22 2007 16:44:01 GMT+0000
+	i=1 &&
+	for when in 1707341660 945129922 1622806011 1169484241
+	do
+		GIT_COMMITTER_DATE="@$when +0000" \
+		GIT_COMMITTER_EMAIL="user@example.com" \
+		git tag -m "tag $when" custom-dates-$i &&
+		i=$(($i+1)) || return 1
+	done
+'
+
+test_expect_success 'sort by date defaults to full timestamp' '
+	cat >expected <<-\EOF &&
+	945129922 refs/tags/custom-dates-2
+	1169484241 refs/tags/custom-dates-4
+	1622806011 refs/tags/custom-dates-3
+	1707341660 refs/tags/custom-dates-1
+	EOF
+
+	git for-each-ref \
+		--format="%(creatordate:unix) %(refname)" \
+		--sort=creatordate \
+		"refs/tags/custom-dates-*" >actual &&
+	test_cmp expected actual
+'
+
+test_expect_success 'sort by custom date format' '
+	cat >expected <<-\EOF &&
+	00:05:22 refs/tags/custom-dates-2
+	11:26:51 refs/tags/custom-dates-3
+	16:44:01 refs/tags/custom-dates-4
+	21:34:20 refs/tags/custom-dates-1
+	EOF
+
+	git for-each-ref \
+		--format="%(creatordate:format:%H:%M:%S) %(refname)" \
+		--sort="creatordate:format:%H:%M:%S" \
+		"refs/tags/custom-dates-*" >actual &&
+	test_cmp expected actual
+'
+
 test_expect_success 'do not dereference NULL upon %(HEAD) on unborn branch' '
 	test_when_finished "git checkout main" &&
 	git for-each-ref --format="%(HEAD) %(refname:short)" refs/heads/ >actual &&
@@ -1816,6 +1883,28 @@ test_expect_success 'git for-each-ref with non-existing refs' '
 
 	xargs git for-each-ref --format="%(refname)" <in >actual &&
 	test_must_be_empty actual
+'
+
+test_expect_success 'git for-each-ref with nested tags' '
+	git tag -am "Normal tag" nested/base HEAD &&
+	git tag -am "Nested tag" nested/nest1 refs/tags/nested/base &&
+	git tag -am "Double nested tag" nested/nest2 refs/tags/nested/nest1 &&
+
+	head_oid="$(git rev-parse HEAD)" &&
+	base_tag_oid="$(git rev-parse refs/tags/nested/base)" &&
+	nest1_tag_oid="$(git rev-parse refs/tags/nested/nest1)" &&
+	nest2_tag_oid="$(git rev-parse refs/tags/nested/nest2)" &&
+
+	cat >expect <<-EOF &&
+	refs/tags/nested/base $base_tag_oid tag $head_oid commit
+	refs/tags/nested/nest1 $nest1_tag_oid tag $head_oid commit
+	refs/tags/nested/nest2 $nest2_tag_oid tag $head_oid commit
+	EOF
+
+	git for-each-ref \
+		--format="%(refname) %(objectname) %(objecttype) %(*objectname) %(*objecttype)" \
+		refs/tags/nested/ >actual &&
+	test_cmp expect actual
 '
 
 GRADE_FORMAT="%(signature:grade)%0a%(signature:key)%0a%(signature:signer)%0a%(signature:fingerprint)%0a%(signature:primarykeyfingerprint)"

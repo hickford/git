@@ -1236,20 +1236,6 @@ static void *gfi_unpack_entry(
 	return unpack_entry(the_repository, p, oe->idx.offset, &type, sizep);
 }
 
-static const char *get_mode(const char *str, uint16_t *modep)
-{
-	unsigned char c;
-	uint16_t mode = 0;
-
-	while ((c = *str++) != ' ') {
-		if (c < '0' || c > '7')
-			return NULL;
-		mode = (mode << 3) + (c - '0');
-	}
-	*modep = mode;
-	return str;
-}
-
 static void load_tree(struct tree_entry *root)
 {
 	struct object_id *oid = &root->versions[1].oid;
@@ -1287,7 +1273,7 @@ static void load_tree(struct tree_entry *root)
 		t->entries[t->entry_count++] = e;
 
 		e->tree = NULL;
-		c = get_mode(c, &e->versions[1].mode);
+		c = parse_mode(c, &e->versions[1].mode);
 		if (!c)
 			die("Corrupt mode in %s", oid_to_hex(oid));
 		e->versions[0].mode = e->versions[1].mode;
@@ -1625,6 +1611,7 @@ static int update_branch(struct branch *b)
 		oidclr(&old_oid);
 	if (!force_update && !is_null_oid(&old_oid)) {
 		struct commit *old_cmit, *new_cmit;
+		int ret;
 
 		old_cmit = lookup_commit_reference_gently(the_repository,
 							  &old_oid, 0);
@@ -1633,7 +1620,10 @@ static int update_branch(struct branch *b)
 		if (!old_cmit || !new_cmit)
 			return error("Branch %s is missing commits.", b->name);
 
-		if (!repo_in_merge_bases(the_repository, old_cmit, new_cmit)) {
+		ret = repo_in_merge_bases(the_repository, old_cmit, new_cmit);
+		if (ret < 0)
+			exit(128);
+		if (!ret) {
 			warning("Not updating %s"
 				" (new tip %s does not contain %s)",
 				b->name, oid_to_hex(&b->oid),
@@ -2220,7 +2210,7 @@ static int parse_mapped_oid_hex(const char *hex, struct object_id *oid, const ch
  *
  *   idnum ::= ':' bigint;
  *
- * Return the first character after the value in *endptr.
+ * Update *endptr to point to the first character after the value.
  *
  * Complain if the following character is not what is expected,
  * either a space or end of the string.
@@ -2253,8 +2243,8 @@ static uintmax_t parse_mark_ref_eol(const char *p)
 }
 
 /*
- * Parse the mark reference, demanding a trailing space.  Return a
- * pointer to the space.
+ * Parse the mark reference, demanding a trailing space. Update *p to
+ * point to the first character after the space.
  */
 static uintmax_t parse_mark_ref_space(const char **p)
 {
@@ -2268,15 +2258,67 @@ static uintmax_t parse_mark_ref_space(const char **p)
 	return mark;
 }
 
+/*
+ * Parse the path string into the strbuf. The path can either be quoted with
+ * escape sequences or unquoted without escape sequences. Unquoted strings may
+ * contain spaces only if `is_last_field` is nonzero; otherwise, it stops
+ * parsing at the first space.
+ */
+static void parse_path(struct strbuf *sb, const char *p, const char **endp,
+		int is_last_field, const char *field)
+{
+	if (*p == '"') {
+		if (unquote_c_style(sb, p, endp))
+			die("Invalid %s: %s", field, command_buf.buf);
+		if (strlen(sb->buf) != sb->len)
+			die("NUL in %s: %s", field, command_buf.buf);
+	} else {
+		/*
+		 * Unless we are parsing the last field of a line,
+		 * SP is the end of this field.
+		 */
+		*endp = is_last_field
+			? p + strlen(p)
+			: strchrnul(p, ' ');
+		strbuf_add(sb, p, *endp - p);
+	}
+}
+
+/*
+ * Parse the path string into the strbuf, and complain if this is not the end of
+ * the string. Unquoted strings may contain spaces.
+ */
+static void parse_path_eol(struct strbuf *sb, const char *p, const char *field)
+{
+	const char *end;
+
+	parse_path(sb, p, &end, 1, field);
+	if (*end)
+		die("Garbage after %s: %s", field, command_buf.buf);
+}
+
+/*
+ * Parse the path string into the strbuf, and ensure it is followed by a space.
+ * Unquoted strings may not contain spaces. Update *endp to point to the first
+ * character after the space.
+ */
+static void parse_path_space(struct strbuf *sb, const char *p,
+		const char **endp, const char *field)
+{
+	parse_path(sb, p, endp, 0, field);
+	if (**endp != ' ')
+		die("Missing space after %s: %s", field, command_buf.buf);
+	(*endp)++;
+}
+
 static void file_change_m(const char *p, struct branch *b)
 {
-	static struct strbuf uq = STRBUF_INIT;
-	const char *endp;
+	static struct strbuf path = STRBUF_INIT;
 	struct object_entry *oe;
 	struct object_id oid;
 	uint16_t mode, inline_data = 0;
 
-	p = get_mode(p, &mode);
+	p = parse_mode(p, &mode);
 	if (!p)
 		die("Corrupt mode: %s", command_buf.buf);
 	switch (mode) {
@@ -2308,16 +2350,12 @@ static void file_change_m(const char *p, struct branch *b)
 			die("Missing space after SHA1: %s", command_buf.buf);
 	}
 
-	strbuf_reset(&uq);
-	if (!unquote_c_style(&uq, p, &endp)) {
-		if (*endp)
-			die("Garbage after path in: %s", command_buf.buf);
-		p = uq.buf;
-	}
+	strbuf_reset(&path);
+	parse_path_eol(&path, p, "path");
 
 	/* Git does not track empty, non-toplevel directories. */
-	if (S_ISDIR(mode) && is_empty_tree_oid(&oid) && *p) {
-		tree_content_remove(&b->branch_tree, p, NULL, 0);
+	if (S_ISDIR(mode) && is_empty_tree_oid(&oid) && *path.buf) {
+		tree_content_remove(&b->branch_tree, path.buf, NULL, 0);
 		return;
 	}
 
@@ -2338,10 +2376,6 @@ static void file_change_m(const char *p, struct branch *b)
 		if (S_ISDIR(mode))
 			die("Directories cannot be specified 'inline': %s",
 				command_buf.buf);
-		if (p != uq.buf) {
-			strbuf_addstr(&uq, p);
-			p = uq.buf;
-		}
 		while (read_next_command() != EOF) {
 			const char *v;
 			if (skip_prefix(command_buf.buf, "cat-blob ", &v))
@@ -2367,74 +2401,48 @@ static void file_change_m(const char *p, struct branch *b)
 				command_buf.buf);
 	}
 
-	if (!*p) {
+	if (!*path.buf) {
 		tree_content_replace(&b->branch_tree, &oid, mode, NULL);
 		return;
 	}
-	tree_content_set(&b->branch_tree, p, &oid, mode, NULL);
+	tree_content_set(&b->branch_tree, path.buf, &oid, mode, NULL);
 }
 
 static void file_change_d(const char *p, struct branch *b)
 {
-	static struct strbuf uq = STRBUF_INIT;
-	const char *endp;
+	static struct strbuf path = STRBUF_INIT;
 
-	strbuf_reset(&uq);
-	if (!unquote_c_style(&uq, p, &endp)) {
-		if (*endp)
-			die("Garbage after path in: %s", command_buf.buf);
-		p = uq.buf;
-	}
-	tree_content_remove(&b->branch_tree, p, NULL, 1);
+	strbuf_reset(&path);
+	parse_path_eol(&path, p, "path");
+	tree_content_remove(&b->branch_tree, path.buf, NULL, 1);
 }
 
-static void file_change_cr(const char *s, struct branch *b, int rename)
+static void file_change_cr(const char *p, struct branch *b, int rename)
 {
-	const char *d;
-	static struct strbuf s_uq = STRBUF_INIT;
-	static struct strbuf d_uq = STRBUF_INIT;
-	const char *endp;
+	static struct strbuf source = STRBUF_INIT;
+	static struct strbuf dest = STRBUF_INIT;
 	struct tree_entry leaf;
 
-	strbuf_reset(&s_uq);
-	if (!unquote_c_style(&s_uq, s, &endp)) {
-		if (*endp != ' ')
-			die("Missing space after source: %s", command_buf.buf);
-	} else {
-		endp = strchr(s, ' ');
-		if (!endp)
-			die("Missing space after source: %s", command_buf.buf);
-		strbuf_add(&s_uq, s, endp - s);
-	}
-	s = s_uq.buf;
-
-	endp++;
-	if (!*endp)
-		die("Missing dest: %s", command_buf.buf);
-
-	d = endp;
-	strbuf_reset(&d_uq);
-	if (!unquote_c_style(&d_uq, d, &endp)) {
-		if (*endp)
-			die("Garbage after dest in: %s", command_buf.buf);
-		d = d_uq.buf;
-	}
+	strbuf_reset(&source);
+	parse_path_space(&source, p, &p, "source");
+	strbuf_reset(&dest);
+	parse_path_eol(&dest, p, "dest");
 
 	memset(&leaf, 0, sizeof(leaf));
 	if (rename)
-		tree_content_remove(&b->branch_tree, s, &leaf, 1);
+		tree_content_remove(&b->branch_tree, source.buf, &leaf, 1);
 	else
-		tree_content_get(&b->branch_tree, s, &leaf, 1);
+		tree_content_get(&b->branch_tree, source.buf, &leaf, 1);
 	if (!leaf.versions[1].mode)
-		die("Path %s not in branch", s);
-	if (!*d) {	/* C "path/to/subdir" "" */
+		die("Path %s not in branch", source.buf);
+	if (!*dest.buf) {	/* C "path/to/subdir" "" */
 		tree_content_replace(&b->branch_tree,
 			&leaf.versions[1].oid,
 			leaf.versions[1].mode,
 			leaf.tree);
 		return;
 	}
-	tree_content_set(&b->branch_tree, d,
+	tree_content_set(&b->branch_tree, dest.buf,
 		&leaf.versions[1].oid,
 		leaf.versions[1].mode,
 		leaf.tree);
@@ -2442,7 +2450,6 @@ static void file_change_cr(const char *s, struct branch *b, int rename)
 
 static void note_change_n(const char *p, struct branch *b, unsigned char *old_fanout)
 {
-	static struct strbuf uq = STRBUF_INIT;
 	struct object_entry *oe;
 	struct branch *s;
 	struct object_id oid, commit_oid;
@@ -2507,10 +2514,6 @@ static void note_change_n(const char *p, struct branch *b, unsigned char *old_fa
 		die("Invalid ref name or SHA1 expression: %s", p);
 
 	if (inline_data) {
-		if (p != uq.buf) {
-			strbuf_addstr(&uq, p);
-			p = uq.buf;
-		}
 		read_next_command();
 		parse_and_store_blob(&last_blob, &oid, 0);
 	} else if (oe) {
@@ -2809,8 +2812,7 @@ static void parse_new_tag(const char *arg)
 	enum object_type type;
 	const char *v;
 
-	t = mem_pool_alloc(&fi_mem_pool, sizeof(struct tag));
-	memset(t, 0, sizeof(struct tag));
+	t = mem_pool_calloc(&fi_mem_pool, 1, sizeof(struct tag));
 	t->name = mem_pool_strdup(&fi_mem_pool, arg);
 	if (last_tag)
 		last_tag->next_tag = t;
@@ -3163,6 +3165,7 @@ static void print_ls(int mode, const unsigned char *hash, const char *path)
 
 static void parse_ls(const char *p, struct branch *b)
 {
+	static struct strbuf path = STRBUF_INIT;
 	struct tree_entry *root = NULL;
 	struct tree_entry leaf = {NULL};
 
@@ -3179,17 +3182,9 @@ static void parse_ls(const char *p, struct branch *b)
 			root->versions[1].mode = S_IFDIR;
 		load_tree(root);
 	}
-	if (*p == '"') {
-		static struct strbuf uq = STRBUF_INIT;
-		const char *endp;
-		strbuf_reset(&uq);
-		if (unquote_c_style(&uq, p, &endp))
-			die("Invalid path: %s", command_buf.buf);
-		if (*endp)
-			die("Garbage after path in: %s", command_buf.buf);
-		p = uq.buf;
-	}
-	tree_content_get(root, p, &leaf, 1);
+	strbuf_reset(&path);
+	parse_path_eol(&path, p, "path");
+	tree_content_get(root, path.buf, &leaf, 1);
 	/*
 	 * A directory in preparation would have a sha1 of zero
 	 * until it is saved.  Save, for simplicity.
@@ -3197,7 +3192,7 @@ static void parse_ls(const char *p, struct branch *b)
 	if (S_ISDIR(leaf.versions[1].mode))
 		store_tree(&leaf);
 
-	print_ls(leaf.versions[1].mode, leaf.versions[1].oid.hash, p);
+	print_ls(leaf.versions[1].mode, leaf.versions[1].oid.hash, path.buf);
 	if (leaf.tree)
 		release_tree_content_recursive(leaf.tree);
 	if (!b || root != &b->branch_tree)

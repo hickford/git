@@ -25,7 +25,6 @@
 #include "quote.h"
 #include "remote.h"
 #include "blob.h"
-#include "commit-slab.h"
 
 static const char *fast_export_usage[] = {
 	N_("git fast-export [<rev-list-opts>]"),
@@ -137,8 +136,7 @@ static int anonymized_entry_cmp(const void *cmp_data UNUSED,
 	a = container_of(eptr, const struct anonymized_entry, hash);
 	if (keydata) {
 		const struct anonymized_entry_key *key = keydata;
-		int equal = !strncmp(a->orig, key->orig, key->orig_len) &&
-			    !a->orig[key->orig_len];
+		int equal = !xstrncmpz(a->orig, key->orig, key->orig_len);
 		return !equal;
 	}
 

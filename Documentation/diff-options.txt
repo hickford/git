@@ -299,7 +299,7 @@ and accumulating child directory counts in the parent directories:
 	Synonym for --dirstat=cumulative
 
 --dirstat-by-file[=<param1,param2>...]::
-	Synonym for --dirstat=files,param1,param2...
+	Synonym for --dirstat=files,<param1>,<param2>...
 
 --summary::
 	Output a condensed summary of extended header information
@@ -865,8 +865,9 @@ endif::git-format-patch[]
 
 --default-prefix::
 	Use the default source and destination prefixes ("a/" and "b/").
-	This is usually the default already, but may be used to override
-	config such as `diff.noprefix`.
+	This overrides configuration variables such as `diff.noprefix`,
+	`diff.srcPrefix`, `diff.dstPrefix`, and `diff.mnemonicPrefix`
+	(see `git-config`(1)).
 
 --line-prefix=<prefix>::
 	Prepend an additional prefix to every line of output.

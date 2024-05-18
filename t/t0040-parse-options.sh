@@ -210,6 +210,22 @@ test_expect_success 'superfluous value provided: boolean' '
 	test_cmp expect actual
 '
 
+test_expect_success 'superfluous value provided: boolean, abbreviated' '
+	cat >expect <<-\EOF &&
+	error: option `yes'\'' takes no value
+	EOF
+	test_expect_code 129 env GIT_TEST_DISALLOW_ABBREVIATED_OPTIONS=false \
+	test-tool parse-options --ye=hi 2>actual &&
+	test_cmp expect actual &&
+
+	cat >expect <<-\EOF &&
+	error: option `no-yes'\'' takes no value
+	EOF
+	test_expect_code 129 env GIT_TEST_DISALLOW_ABBREVIATED_OPTIONS=false \
+	test-tool parse-options --no-ye=hi 2>actual &&
+	test_cmp expect actual
+'
+
 test_expect_success 'superfluous value provided: cmdmode' '
 	cat >expect <<-\EOF &&
 	error: option `mode1'\'' takes no value
@@ -376,7 +392,7 @@ test_expect_success 'OPT_CMDMODE() detects incompatibility (1)' '
 	test_must_be_empty output &&
 	test_grep "mode1" output.err &&
 	test_grep "mode2" output.err &&
-	test_grep "is incompatible with" output.err
+	test_grep "cannot be used together" output.err
 '
 
 test_expect_success 'OPT_CMDMODE() detects incompatibility (2)' '
@@ -384,7 +400,7 @@ test_expect_success 'OPT_CMDMODE() detects incompatibility (2)' '
 	test_must_be_empty output &&
 	test_grep "mode2" output.err &&
 	test_grep "set23" output.err &&
-	test_grep "is incompatible with" output.err
+	test_grep "cannot be used together" output.err
 '
 
 test_expect_success 'OPT_CMDMODE() detects incompatibility (3)' '
@@ -392,7 +408,7 @@ test_expect_success 'OPT_CMDMODE() detects incompatibility (3)' '
 	test_must_be_empty output &&
 	test_grep "mode2" output.err &&
 	test_grep "set23" output.err &&
-	test_grep "is incompatible with" output.err
+	test_grep "cannot be used together" output.err
 '
 
 test_expect_success 'OPT_CMDMODE() detects incompatibility (4)' '
@@ -401,7 +417,7 @@ test_expect_success 'OPT_CMDMODE() detects incompatibility (4)' '
 	test_must_be_empty output &&
 	test_grep "mode2" output.err &&
 	test_grep "mode34.3" output.err &&
-	test_grep "is incompatible with" output.err
+	test_grep "cannot be used together" output.err
 '
 
 test_expect_success 'OPT_COUNTUP() with PARSE_OPT_NODASH works' '

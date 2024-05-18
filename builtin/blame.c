@@ -25,7 +25,6 @@
 #include "userdiff.h"
 #include "line-range.h"
 #include "line-log.h"
-#include "dir.h"
 #include "progress.h"
 #include "object-name.h"
 #include "object-store-ll.h"
@@ -317,7 +316,7 @@ static const char *format_time(timestamp_t time, const char *tz_str,
 		size_t time_width;
 		int tz;
 		tz = atoi(tz_str);
-		time_str = show_date(time, tz, &blame_date_mode);
+		time_str = show_date(time, tz, blame_date_mode);
 		strbuf_addstr(&time_buf, time_str);
 		/*
 		 * Add space paddings to time_buf to display a fixed width
@@ -748,6 +747,8 @@ static int git_blame_config(const char *var, const char *value,
 	}
 
 	if (!strcmp(var, "blame.coloring")) {
+		if (!value)
+			return config_error_nonbool(var);
 		if (!strcmp(value, "repeatedLines")) {
 			coloring_mode |= OUTPUT_COLOR_LINE;
 		} else if (!strcmp(value, "highlightRecent")) {
@@ -1028,7 +1029,7 @@ parse_done:
 		blame_date_width = sizeof("Thu Oct 19 16:00:04 2006 -0700");
 		break;
 	case DATE_STRFTIME:
-		blame_date_width = strlen(show_date(0, 0, &blame_date_mode)) + 1; /* add the null */
+		blame_date_width = strlen(show_date(0, 0, blame_date_mode)) + 1; /* add the null */
 		break;
 	}
 	blame_date_width -= 1; /* strip the null */

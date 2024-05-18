@@ -6,7 +6,6 @@
 #include "object-name.h"
 #include "refs.h"
 #include "reset.h"
-#include "run-command.h"
 #include "tree-walk.h"
 #include "tree.h"
 #include "unpack-trees.h"
@@ -158,6 +157,11 @@ int reset_head(struct repository *r, const struct reset_head_opts *opts)
 	}
 
 	tree = parse_tree_indirect(oid);
+	if (!tree) {
+		ret = error(_("unable to read tree (%s)"), oid_to_hex(oid));
+		goto leave_reset_head;
+	}
+
 	prime_cache_tree(r, r->index, tree);
 
 	if (write_locked_index(r->index, &lock, COMMIT_LOCK) < 0) {

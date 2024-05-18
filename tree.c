@@ -1,12 +1,9 @@
 #include "git-compat-util.h"
-#include "cache-tree.h"
 #include "hex.h"
 #include "tree.h"
 #include "object-name.h"
 #include "object-store-ll.h"
-#include "blob.h"
 #include "commit.h"
-#include "tag.h"
 #include "alloc.h"
 #include "tree-walk.h"
 #include "repository.h"
@@ -32,7 +29,7 @@ int read_tree_at(struct repository *r,
 	if (parse_tree(tree))
 		return -1;
 
-	init_tree_desc(&desc, tree->buffer, tree->size);
+	init_tree_desc(&desc, &tree->object.oid, tree->buffer, tree->size);
 
 	while (tree_entry(&desc, &entry)) {
 		if (retval != all_entries_interesting) {

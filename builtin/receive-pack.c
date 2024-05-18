@@ -22,7 +22,6 @@
 #include "connected.h"
 #include "strvec.h"
 #include "version.h"
-#include "tag.h"
 #include "gpg-interface.h"
 #include "sigchain.h"
 #include "fsck.h"
@@ -142,6 +141,7 @@ static enum deny_action parse_deny_action(const char *var, const char *value)
 static int receive_pack_config(const char *var, const char *value,
 			       const struct config_context *ctx, void *cb)
 {
+	const char *msg_id;
 	int status = parse_hide_refs_config(var, value, "receive", &hidden_refs);
 
 	if (status)
@@ -178,12 +178,14 @@ static int receive_pack_config(const char *var, const char *value,
 		return 0;
 	}
 
-	if (skip_prefix(var, "receive.fsck.", &var)) {
-		if (is_valid_msg_type(var, value))
+	if (skip_prefix(var, "receive.fsck.", &msg_id)) {
+		if (!value)
+			return config_error_nonbool(var);
+		if (is_valid_msg_type(msg_id, value))
 			strbuf_addf(&fsck_msg_types, "%c%s=%s",
-				fsck_msg_types.len ? ',' : '=', var, value);
+				fsck_msg_types.len ? ',' : '=', msg_id, value);
 		else
-			warning("skipping unknown msg id '%s'", var);
+			warning("skipping unknown msg id '%s'", msg_id);
 		return 0;
 	}
 
@@ -591,21 +593,6 @@ static char *prepare_push_cert_nonce(const char *path, timestamp_t stamp)
 	return strbuf_detach(&buf, NULL);
 }
 
-static char *find_header(const char *msg, size_t len, const char *key,
-			 const char **next_line)
-{
-	size_t out_len;
-	const char *val = find_header_mem(msg, len, key, &out_len);
-
-	if (!val)
-		return NULL;
-
-	if (next_line)
-		*next_line = val + out_len + 1;
-
-	return xmemdupz(val, out_len);
-}
-
 /*
  * Return zero if a and b are equal up to n bytes and nonzero if they are not.
  * This operation is guaranteed to run in constant time to avoid leaking data.
@@ -620,13 +607,14 @@ static int constant_memequal(const char *a, const char *b, size_t n)
 	return res;
 }
 
-static const char *check_nonce(const char *buf, size_t len)
+static const char *check_nonce(const char *buf)
 {
-	char *nonce = find_header(buf, len, "nonce", NULL);
+	size_t noncelen;
+	const char *found = find_commit_header(buf, "nonce", &noncelen);
+	char *nonce = found ? xmemdupz(found, noncelen) : NULL;
 	timestamp_t stamp, ostamp;
 	char *bohmac, *expect = NULL;
 	const char *retval = NONCE_BAD;
-	size_t noncelen;
 
 	if (!nonce) {
 		retval = NONCE_MISSING;
@@ -668,7 +656,6 @@ static const char *check_nonce(const char *buf, size_t len)
 		goto leave;
 	}
 
-	noncelen = strlen(nonce);
 	expect = prepare_push_cert_nonce(service_dir, stamp);
 	if (noncelen != strlen(expect)) {
 		/* This is not even the right size. */
@@ -716,35 +703,28 @@ leave:
 static int check_cert_push_options(const struct string_list *push_options)
 {
 	const char *buf = push_cert.buf;
-	int len = push_cert.len;
 
-	char *option;
-	const char *next_line;
+	const char *option;
+	size_t optionlen;
 	int options_seen = 0;
 
 	int retval = 1;
 
-	if (!len)
+	if (!*buf)
 		return 1;
 
-	while ((option = find_header(buf, len, "push-option", &next_line))) {
-		len -= (next_line - buf);
-		buf = next_line;
+	while ((option = find_commit_header(buf, "push-option", &optionlen))) {
+		buf = option + optionlen + 1;
 		options_seen++;
 		if (options_seen > push_options->nr
-		    || strcmp(option,
-			      push_options->items[options_seen - 1].string)) {
-			retval = 0;
-			goto leave;
-		}
-		free(option);
+		    || xstrncmpz(push_options->items[options_seen - 1].string,
+				 option, optionlen))
+			return 0;
 	}
 
 	if (options_seen != push_options->nr)
 		retval = 0;
 
-leave:
-	free(option);
 	return retval;
 }
 
@@ -771,7 +751,7 @@ static void prepare_push_cert_sha1(struct child_process *proc)
 		check_signature(&sigcheck, push_cert.buf + bogs,
 				push_cert.len - bogs);
 
-		nonce_status = check_nonce(push_cert.buf, bogs);
+		nonce_status = check_nonce(sigcheck.payload);
 	}
 	if (!is_null_oid(&push_cert_oid)) {
 		strvec_pushf(&proc->env, "GIT_PUSH_CERT=%s",
@@ -1546,6 +1526,7 @@ static const char *update(struct command *cmd, struct shallow_info *si)
 	    starts_with(name, "refs/heads/")) {
 		struct object *old_object, *new_object;
 		struct commit *old_commit, *new_commit;
+		int ret2;
 
 		old_object = parse_object(the_repository, old_oid);
 		new_object = parse_object(the_repository, new_oid);
@@ -1559,7 +1540,10 @@ static const char *update(struct command *cmd, struct shallow_info *si)
 		}
 		old_commit = (struct commit *)old_object;
 		new_commit = (struct commit *)new_object;
-		if (!repo_in_merge_bases(the_repository, old_commit, new_commit)) {
+		ret2 = repo_in_merge_bases(the_repository, old_commit, new_commit);
+		if (ret2 < 0)
+			exit(128);
+		if (!ret2) {
 			rp_error("denying non-fast-forward %s"
 				 " (you should pull first)", name);
 			ret = "non-fast-forward";
@@ -2601,17 +2585,16 @@ int cmd_receive_pack(int argc, const char **argv, const char *prefix)
 		if (auto_gc) {
 			struct child_process proc = CHILD_PROCESS_INIT;
 
-			proc.no_stdin = 1;
-			proc.stdout_to_stderr = 1;
-			proc.err = use_sideband ? -1 : 0;
-			proc.git_cmd = proc.close_object_store = 1;
-			strvec_pushl(&proc.args, "gc", "--auto", "--quiet",
-				     NULL);
+			if (prepare_auto_maintenance(1, &proc)) {
+				proc.no_stdin = 1;
+				proc.stdout_to_stderr = 1;
+				proc.err = use_sideband ? -1 : 0;
 
-			if (!start_command(&proc)) {
-				if (use_sideband)
-					copy_to_sideband(proc.err, -1, NULL);
-				finish_command(&proc);
+				if (!start_command(&proc)) {
+					if (use_sideband)
+						copy_to_sideband(proc.err, -1, NULL);
+					finish_command(&proc);
+				}
 			}
 		}
 		if (auto_update_server_info)

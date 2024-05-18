@@ -2,14 +2,9 @@
 #include "dir.h"
 #include "gettext.h"
 #include "hex.h"
-#include "tag.h"
 #include "commit.h"
-#include "tree.h"
-#include "blob.h"
 #include "diff.h"
-#include "tree-walk.h"
 #include "revision.h"
-#include "list-objects.h"
 #include "list-objects-filter.h"
 #include "list-objects-filter-options.h"
 #include "oidmap.h"
@@ -716,15 +711,6 @@ static void filter_combine__free(void *filter_data)
 	free(d);
 }
 
-static void add_all(struct oidset *dest, struct oidset *src) {
-	struct oidset_iter iter;
-	struct object_id *src_oid;
-
-	oidset_iter_init(src, &iter);
-	while ((src_oid = oidset_iter_next(&iter)) != NULL)
-		oidset_insert(dest, src_oid);
-}
-
 static void filter_combine__finalize_omits(
 	struct oidset *omits,
 	void *filter_data)
@@ -733,7 +719,7 @@ static void filter_combine__finalize_omits(
 	size_t sub;
 
 	for (sub = 0; sub < d->nr; sub++) {
-		add_all(omits, &d->sub[sub].omits);
+		oidset_insert_from_set(omits, &d->sub[sub].omits);
 		oidset_clear(&d->sub[sub].omits);
 	}
 }

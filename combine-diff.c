@@ -2,7 +2,6 @@
 #include "object-store-ll.h"
 #include "commit.h"
 #include "convert.h"
-#include "blob.h"
 #include "diff.h"
 #include "diffcore.h"
 #include "environment.h"
@@ -338,6 +337,8 @@ static char *grab_blob(struct repository *r,
 		free_filespec(df);
 	} else {
 		blob = repo_read_object_file(r, oid, &type, size);
+		if (!blob)
+			die(_("unable to read %s"), oid_to_hex(oid));
 		if (type != OBJ_BLOB)
 			die("object '%s' is not a blob!", oid_to_hex(oid));
 	}

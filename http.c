@@ -4,7 +4,6 @@
 #include "http.h"
 #include "config.h"
 #include "pack.h"
-#include "sideband.h"
 #include "run-command.h"
 #include "url.h"
 #include "urlmatch.h"
@@ -15,7 +14,6 @@
 #include "trace.h"
 #include "transport.h"
 #include "packfile.h"
-#include "protocol.h"
 #include "string-list.h"
 #include "object-file.h"
 #include "object-store-ll.h"
@@ -1454,6 +1452,7 @@ struct active_request_slot *get_active_slot(void)
 	curl_easy_setopt(slot->curl, CURLOPT_READFUNCTION, NULL);
 	curl_easy_setopt(slot->curl, CURLOPT_WRITEFUNCTION, NULL);
 	curl_easy_setopt(slot->curl, CURLOPT_POSTFIELDS, NULL);
+	curl_easy_setopt(slot->curl, CURLOPT_POSTFIELDSIZE, -1L);
 	curl_easy_setopt(slot->curl, CURLOPT_UPLOAD, 0);
 	curl_easy_setopt(slot->curl, CURLOPT_HTTPGET, 1);
 	curl_easy_setopt(slot->curl, CURLOPT_FAILONERROR, 1);
@@ -1902,7 +1901,7 @@ static void write_accept_language(struct strbuf *buf)
 	 * MAX_DECIMAL_PLACES must not be larger than 3. If it is larger than
 	 * that, q-value will be smaller than 0.001, the minimum q-value the
 	 * HTTP specification allows. See
-	 * http://tools.ietf.org/html/rfc7231#section-5.3.1 for q-value.
+	 * https://datatracker.ietf.org/doc/html/rfc7231#section-5.3.1 for q-value.
 	 */
 	const int MAX_DECIMAL_PLACES = 3;
 	const int MAX_LANGUAGE_TAGS = 1000;

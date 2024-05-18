@@ -359,7 +359,9 @@ create_tags () {
 
 	# now assign tags to all the dangling commits we created above
 	tag=$(perl -e "print \"bla\" x 30") &&
-	sed -e "s|^:\([^ ]*\) \(.*\)$|\2 refs/tags/$tag-\1|" <marks >>packed-refs
+	sed -e "s|^:\([^ ]*\) \(.*\)$|create refs/tags/$tag-\1 \2|" <marks >input &&
+	git update-ref --stdin <input &&
+	rm input
 }
 
 test_expect_success 'create 2,000 tags in the repo' '
@@ -729,6 +731,24 @@ test_expect_success 'no empty path components' '
 
 	strip_access_log >log &&
 	! grep "//" log
+'
+
+test_expect_success 'tag following always works over v0 http' '
+	upstream=$HTTPD_DOCUMENT_ROOT_PATH/tags &&
+	git init "$upstream" &&
+	(
+		cd "$upstream" &&
+		git commit --allow-empty -m base &&
+		git tag not-annotated &&
+		git tag -m foo annotated
+	) &&
+	git init tags &&
+	git -C tags -c protocol.version=0 \
+		fetch --depth 1 $HTTPD_URL/smart/tags \
+		refs/tags/annotated:refs/tags/annotated &&
+	git -C "$upstream" for-each-ref refs/tags >expect &&
+	git -C tags for-each-ref >actual &&
+	test_cmp expect actual
 '
 
 test_done

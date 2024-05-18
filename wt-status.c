@@ -70,7 +70,7 @@ static void status_vprintf(struct wt_status *s, int at_bol, const char *color,
 	strbuf_vaddf(&sb, fmt, ap);
 	if (!sb.len) {
 		if (s->display_comment_prefix) {
-			strbuf_addch(&sb, comment_line_char);
+			strbuf_addstr(&sb, comment_line_str);
 			if (!trail)
 				strbuf_addch(&sb, ' ');
 		}
@@ -85,7 +85,7 @@ static void status_vprintf(struct wt_status *s, int at_bol, const char *color,
 
 		strbuf_reset(&linebuf);
 		if (at_bol && s->display_comment_prefix) {
-			strbuf_addch(&linebuf, comment_line_char);
+			strbuf_addstr(&linebuf, comment_line_str);
 			if (*line != '\n' && *line != '\t')
 				strbuf_addch(&linebuf, ' ');
 		}
@@ -861,6 +861,7 @@ void wt_status_state_free_buffers(struct wt_status_state *state)
 	FREE_AND_NULL(state->branch);
 	FREE_AND_NULL(state->onto);
 	FREE_AND_NULL(state->detached_from);
+	FREE_AND_NULL(state->bisecting_from);
 }
 
 static void wt_longstatus_print_unmerged(struct wt_status *s)
@@ -1027,7 +1028,7 @@ static void wt_longstatus_print_submodule_summary(struct wt_status *s, int uncom
 	if (s->display_comment_prefix) {
 		size_t len;
 		summary_content = strbuf_detach(&summary, &len);
-		strbuf_add_commented_lines(&summary, summary_content, len, comment_line_char);
+		strbuf_add_commented_lines(&summary, summary_content, len, comment_line_str);
 		free(summary_content);
 	}
 
@@ -1089,11 +1090,14 @@ size_t wt_status_locate_end(const char *s, size_t len)
 	const char *p;
 	struct strbuf pattern = STRBUF_INIT;
 
-	strbuf_addf(&pattern, "\n%c %s", comment_line_char, cut_line);
+	strbuf_addf(&pattern, "\n%s %s", comment_line_str, cut_line);
 	if (starts_with(s, pattern.buf + 1))
 		len = 0;
-	else if ((p = strstr(s, pattern.buf)))
-		len = p - s + 1;
+	else if ((p = strstr(s, pattern.buf))) {
+		size_t newlen = p - s + 1;
+		if (newlen < len)
+			len = newlen;
+	}
 	strbuf_release(&pattern);
 	return len;
 }
@@ -1102,16 +1106,19 @@ void wt_status_append_cut_line(struct strbuf *buf)
 {
 	const char *explanation = _("Do not modify or remove the line above.\nEverything below it will be ignored.");
 
-	strbuf_commented_addf(buf, comment_line_char, "%s", cut_line);
-	strbuf_add_commented_lines(buf, explanation, strlen(explanation), comment_line_char);
+	strbuf_commented_addf(buf, comment_line_str, "%s", cut_line);
+	strbuf_add_commented_lines(buf, explanation, strlen(explanation), comment_line_str);
 }
 
-void wt_status_add_cut_line(FILE *fp)
+void wt_status_add_cut_line(struct wt_status *s)
 {
 	struct strbuf buf = STRBUF_INIT;
 
+	if (s->added_cut_line)
+		return;
+	s->added_cut_line = 1;
 	wt_status_append_cut_line(&buf);
-	fputs(buf.buf, fp);
+	fputs(buf.buf, s->fp);
 	strbuf_release(&buf);
 }
 
@@ -1142,11 +1149,12 @@ static void wt_longstatus_print_verbose(struct wt_status *s)
 	 * file (and even the "auto" setting won't work, since it
 	 * will have checked isatty on stdout). But we then do want
 	 * to insert the scissor line here to reliably remove the
-	 * diff before committing.
+	 * diff before committing, if we didn't already include one
+	 * before.
 	 */
 	if (s->fp != stdout) {
 		rev.diffopt.use_color = 0;
-		wt_status_add_cut_line(s->fp);
+		wt_status_add_cut_line(s);
 	}
 	if (s->verbose > 1 && s->committable) {
 		/* print_updated() printed a header, so do we */
@@ -1175,8 +1183,6 @@ static void wt_longstatus_print_tracking(struct wt_status *s)
 	struct strbuf sb = STRBUF_INIT;
 	const char *cp, *ep, *branch_name;
 	struct branch *branch;
-	char comment_line_string[3];
-	int i;
 	uint64_t t_begin = 0;
 
 	assert(s->branch && !s->is_initial);
@@ -1201,20 +1207,15 @@ static void wt_longstatus_print_tracking(struct wt_status *s)
 		}
 	}
 
-	i = 0;
-	if (s->display_comment_prefix) {
-		comment_line_string[i++] = comment_line_char;
-		comment_line_string[i++] = ' ';
-	}
-	comment_line_string[i] = '\0';
-
 	for (cp = sb.buf; (ep = strchr(cp, '\n')) != NULL; cp = ep + 1)
 		color_fprintf_ln(s->fp, color(WT_STATUS_HEADER, s),
-				 "%s%.*s", comment_line_string,
+				 "%s%s%.*s",
+				 s->display_comment_prefix ? comment_line_str : "",
+				 s->display_comment_prefix ? " " : "",
 				 (int)(ep - cp), cp);
 	if (s->display_comment_prefix)
-		color_fprintf_ln(s->fp, color(WT_STATUS_HEADER, s), "%c",
-				 comment_line_char);
+		color_fprintf_ln(s->fp, color(WT_STATUS_HEADER, s), "%s",
+				 comment_line_str);
 	else
 		fputs("\n", s->fp);
 	strbuf_release(&sb);
@@ -1295,26 +1296,32 @@ static char *read_line_from_git_path(const char *filename)
 static int split_commit_in_progress(struct wt_status *s)
 {
 	int split_in_progress = 0;
-	char *head, *orig_head, *rebase_amend, *rebase_orig_head;
+	struct object_id head_oid, orig_head_oid;
+	char *rebase_amend, *rebase_orig_head;
+	int head_flags, orig_head_flags;
 
 	if ((!s->amend && !s->nowarn && !s->workdir_dirty) ||
 	    !s->branch || strcmp(s->branch, "HEAD"))
 		return 0;
 
-	head = read_line_from_git_path("HEAD");
-	orig_head = read_line_from_git_path("ORIG_HEAD");
+	if (read_ref_full("HEAD", RESOLVE_REF_READING | RESOLVE_REF_NO_RECURSE,
+			  &head_oid, &head_flags) ||
+	    read_ref_full("ORIG_HEAD", RESOLVE_REF_READING | RESOLVE_REF_NO_RECURSE,
+			  &orig_head_oid, &orig_head_flags))
+		return 0;
+	if (head_flags & REF_ISSYMREF || orig_head_flags & REF_ISSYMREF)
+		return 0;
+
 	rebase_amend = read_line_from_git_path("rebase-merge/amend");
 	rebase_orig_head = read_line_from_git_path("rebase-merge/orig-head");
 
-	if (!head || !orig_head || !rebase_amend || !rebase_orig_head)
+	if (!rebase_amend || !rebase_orig_head)
 		; /* fall through, no split in progress */
 	else if (!strcmp(rebase_amend, rebase_orig_head))
-		split_in_progress = !!strcmp(head, rebase_amend);
-	else if (strcmp(orig_head, rebase_orig_head))
+		split_in_progress = !!strcmp(oid_to_hex(&head_oid), rebase_amend);
+	else if (strcmp(oid_to_hex(&orig_head_oid), rebase_orig_head))
 		split_in_progress = 1;
 
-	free(head);
-	free(orig_head);
 	free(rebase_amend);
 	free(rebase_orig_head);
 
@@ -1375,7 +1382,7 @@ static int read_rebase_todolist(const char *fname, struct string_list *lines)
 			  git_path("%s", fname));
 	}
 	while (!strbuf_getline_lf(&line, f)) {
-		if (line.len && line.buf[0] == comment_line_char)
+		if (starts_with(line.buf, comment_line_str))
 			continue;
 		strbuf_trim(&line);
 		if (!line.len)
@@ -1569,10 +1576,10 @@ static void show_revert_in_progress(struct wt_status *s,
 static void show_bisect_in_progress(struct wt_status *s,
 				    const char *color)
 {
-	if (s->state.branch)
+	if (s->state.bisecting_from)
 		status_printf_ln(s, color,
 				 _("You are currently bisecting, started from branch '%s'."),
-				 s->state.branch);
+				 s->state.bisecting_from);
 	else
 		status_printf_ln(s, color,
 				 _("You are currently bisecting."));
@@ -1733,7 +1740,7 @@ int wt_status_check_bisect(const struct worktree *wt,
 
 	if (!stat(worktree_git_path(wt, "BISECT_LOG"), &st)) {
 		state->bisect_in_progress = 1;
-		state->branch = get_branch(wt, "BISECT_START");
+		state->bisecting_from = get_branch(wt, "BISECT_START");
 		return 1;
 	}
 	return 0;

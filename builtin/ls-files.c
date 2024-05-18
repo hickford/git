@@ -14,19 +14,15 @@
 #include "gettext.h"
 #include "object-name.h"
 #include "strbuf.h"
-#include "tree.h"
-#include "cache-tree.h"
 #include "parse-options.h"
 #include "resolve-undo.h"
 #include "string-list.h"
 #include "path.h"
 #include "pathspec.h"
 #include "read-cache.h"
-#include "run-command.h"
 #include "setup.h"
 #include "sparse-index.h"
 #include "submodule.h"
-#include "submodule-config.h"
 #include "object-store.h"
 #include "hex.h"
 
@@ -270,7 +266,6 @@ static void show_ce_fmt(struct repository *repo, const struct cache_entry *ce,
 	struct strbuf sb = STRBUF_INIT;
 
 	while (strbuf_expand_step(&sb, &format)) {
-		const char *end;
 		size_t len;
 		struct stat st;
 
@@ -278,12 +273,6 @@ static void show_ce_fmt(struct repository *repo, const struct cache_entry *ce,
 			strbuf_addch(&sb, '%');
 		else if ((len = strbuf_expand_literal(&sb, format)))
 			format += len;
-		else if (*format != '(')
-			die(_("bad ls-files format: element '%s' "
-			      "does not start with '('"), format);
-		else if (!(end = strchr(format + 1, ')')))
-			die(_("bad ls-files format: element '%s' "
-			      "does not end in ')'"), format);
 		else if (skip_prefix(format, "(objectmode)", &format))
 			strbuf_addf(&sb, "%06o", ce->ce_mode);
 		else if (skip_prefix(format, "(objectname)", &format))
@@ -312,8 +301,7 @@ static void show_ce_fmt(struct repository *repo, const struct cache_entry *ce,
 		else if (skip_prefix(format, "(path)", &format))
 			write_name_to_buf(&sb, fullname);
 		else
-			die(_("bad ls-files format: %%%.*s"),
-			    (int)(end - format + 1), format);
+			strbuf_expand_bad_format(format, "ls-files");
 	}
 	strbuf_addch(&sb, line_terminator);
 	fwrite(sb.buf, sb.len, 1, stdout);

@@ -16,14 +16,12 @@
 #include "tree-walk.h"
 #include "cache-tree.h"
 #include "unpack-trees.h"
-#include "dir.h"
 #include "parse-options.h"
 #include "repository.h"
 #include "resolve-undo.h"
 #include "setup.h"
 #include "sparse-index.h"
 #include "submodule.h"
-#include "submodule-config.h"
 
 static int nr_trees;
 static int read_empty;
@@ -263,8 +261,9 @@ int cmd_read_tree(int argc, const char **argv, const char *cmd_prefix)
 	cache_tree_free(&the_index.cache_tree);
 	for (i = 0; i < nr_trees; i++) {
 		struct tree *tree = trees[i];
-		parse_tree(tree);
-		init_tree_desc(t+i, tree->buffer, tree->size);
+		if (parse_tree(tree) < 0)
+			return 128;
+		init_tree_desc(t+i, &tree->object.oid, tree->buffer, tree->size);
 	}
 	if (unpack_trees(nr_trees, t, &opts))
 		return 128;

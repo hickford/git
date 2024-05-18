@@ -10,7 +10,7 @@ SYNOPSIS
 [verse]
 'git for-each-ref' [--count=<count>] [--shell|--perl|--python|--tcl]
 		   [(--sort=<key>)...] [--format=<format>]
-		   [ --stdin | <pattern>... ]
+		   [--include-root-refs] [ --stdin | <pattern>... ]
 		   [--points-at=<object>]
 		   [--merged[=<object>]] [--no-merged[=<object>]]
 		   [--contains[=<object>]] [--no-contains[=<object>]]
@@ -51,17 +51,14 @@ OPTIONS
 	key.
 
 --format=<format>::
-	A string that interpolates `%(fieldname)` from a ref being shown
-	and the object it points at.  If `fieldname`
-	is prefixed with an asterisk (`*`) and the ref points
-	at a tag object, use the value for the field in the object
-	which the tag object refers to (instead of the field in the tag object).
-	When unspecified, `<format>` defaults to
-	`%(objectname) SPC %(objecttype) TAB %(refname)`.
-	It also interpolates `%%` to `%`, and `%xx` where `xx`
-	are hex digits interpolates to character with hex code
-	`xx`; for example `%00` interpolates to `\0` (NUL),
-	`%09` to `\t` (TAB) and `%0a` to `\n` (LF).
+	A string that interpolates `%(fieldname)` from a ref being shown and
+	the object it points at. In addition, the string literal `%%`
+	renders as `%` and `%xx` - where `xx` are hex digits - renders as
+	the character with hex code `xx`. For example, `%00` interpolates to
+	`\0` (NUL), `%09` to `\t` (TAB), and `%0a` to `\n` (LF).
++
+When unspecified, `<format>` defaults to `%(objectname) SPC %(objecttype)
+TAB %(refname)`.
 
 --color[=<when>]::
 	Respect any colors specified in the `--format` option. The
@@ -107,6 +104,9 @@ OPTIONS
 	If one or more patterns are given, only refs which do not match
 	any excluded pattern(s) are shown. Matching is done using the
 	same rules as `<pattern>` above.
+
+--include-root-refs::
+	List root refs (HEAD and pseudorefs) apart from regular refs.
 
 FIELD NAMES
 -----------
@@ -298,6 +298,10 @@ fields will correspond to the appropriate date or name-email-date tuple
 from the `committer` or `tagger` fields depending on the object type.
 These are intended for working on a mix of annotated and lightweight tags.
 
+For tag objects, a `fieldname` prefixed with an asterisk (`*`) expands to
+the `fieldname` value of the peeled object, rather than that of the tag
+object itself.
+
 Fields that have name-email-date tuple as its value (`author`,
 `committer`, and `tagger`) can be suffixed with `name`, `email`,
 and `date` to extract the named component.  For email fields (`authoremail`,
@@ -358,9 +362,11 @@ In any case, a field name that refers to a field inapplicable to
 the object referred by the ref does not cause an error.  It
 returns an empty string instead.
 
-As a special case for the date-type fields, you may specify a format for
-the date by adding `:` followed by date format name (see the
-values the `--date` option to linkgit:git-rev-list[1] takes).
+As a special case for the date-type fields, you may specify a format for the
+date by adding `:` followed by date format name (see the values the `--date`
+option to linkgit:git-rev-list[1] takes). If this formatting is provided in
+a `--sort` key, references will be sorted according to the byte-value of the
+formatted string rather than the numeric value of the underlying timestamp.
 
 Some atoms like %(align) and %(if) always require a matching %(end).
 We call them "opening atoms" and sometimes denote them as %($open).

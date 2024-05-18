@@ -1,17 +1,16 @@
 #include "builtin.h"
 #include "commit.h"
 #include "config.h"
-#include "dir.h"
 #include "environment.h"
 #include "gettext.h"
 #include "hex.h"
-#include "lockfile.h"
 #include "parse-options.h"
 #include "repository.h"
 #include "commit-graph.h"
 #include "object-store-ll.h"
 #include "progress.h"
 #include "replace-object.h"
+#include "strbuf.h"
 #include "tag.h"
 #include "trace2.h"
 
@@ -22,7 +21,7 @@
 	N_("git commit-graph write [--object-dir <dir>] [--append]\n" \
 	   "                       [--split[=<strategy>]] [--reachable | --stdin-packs | --stdin-commits]\n" \
 	   "                       [--changed-paths] [--[no-]max-new-filters <n>] [--[no-]progress]\n" \
-	   "                       <split options>")
+	   "                       <split-options>")
 
 static const char * builtin_commit_graph_verify_usage[] = {
 	BUILTIN_COMMIT_GRAPH_VERIFY_USAGE,

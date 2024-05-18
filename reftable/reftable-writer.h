@@ -46,6 +46,9 @@ struct reftable_write_options {
 	 *   is a single line, and add '\n' if missing.
 	 */
 	unsigned exact_log_message : 1;
+
+	/* boolean: Prevent auto-compaction of tables. */
+	unsigned disable_auto_compact : 1;
 };
 
 /* reftable_block_stats holds statistics for a single block type */
@@ -88,6 +91,7 @@ struct reftable_stats {
 /* reftable_new_writer creates a new writer */
 struct reftable_writer *
 reftable_new_writer(ssize_t (*writer_func)(void *, const void *, size_t),
+		    int (*flush_func)(void *),
 		    void *writer_arg, struct reftable_write_options *opts);
 
 /* Set the range of update indices for the records we will add. When writing a

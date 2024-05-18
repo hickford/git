@@ -157,6 +157,23 @@ test_expect_success 'clone --mirror does not repeat tags' '
 
 '
 
+test_expect_success 'clone with files ref format' '
+	test_when_finished "rm -rf ref-storage" &&
+	git clone --ref-format=files --mirror src ref-storage &&
+	echo files >expect &&
+	git -C ref-storage rev-parse --show-ref-format >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success 'clone with garbage ref format' '
+	cat >expect <<-EOF &&
+	fatal: unknown ref storage format ${SQ}garbage${SQ}
+	EOF
+	test_must_fail git clone --ref-format=garbage --mirror src ref-storage 2>err &&
+	test_cmp expect err &&
+	test_path_is_missing ref-storage
+'
+
 test_expect_success 'clone to destination with trailing /' '
 
 	git clone src target-1/ &&
@@ -633,6 +650,21 @@ test_expect_success CASE_INSENSITIVE_FS 'colliding file detection' '
 	test_grep "the following paths have collided" icasefs/warning
 '
 
+test_expect_success CASE_INSENSITIVE_FS,SYMLINKS \
+		'colliding symlink/directory keeps directory' '
+	git init icasefs-colliding-symlink &&
+	(
+		cd icasefs-colliding-symlink &&
+		a=$(printf a | git hash-object -w --stdin) &&
+		printf "100644 %s 0\tA/dir/b\n120000 %s 0\ta\n" $a $a >idx &&
+		git update-index --index-info <idx &&
+		test_tick &&
+		git commit -m initial
+	) &&
+	git clone icasefs-colliding-symlink icasefs-colliding-symlink-clone &&
+	test_file_not_empty icasefs-colliding-symlink-clone/A/dir/b
+'
+
 test_expect_success 'clone with GIT_DEFAULT_HASH' '
 	(
 		sane_unset GIT_DEFAULT_HASH &&
@@ -756,8 +788,71 @@ test_expect_success 'batch missing blob request does not inadvertently try to fe
 	git clone --filter=blob:limit=0 "file://$(pwd)/server" client
 '
 
+test_expect_success 'clone with init.templatedir runs hooks' '
+	git init tmpl/hooks &&
+	write_script tmpl/hooks/post-checkout <<-EOF &&
+	echo HOOK-RUN >&2
+	echo I was here >hook.run
+	EOF
+	git -C tmpl/hooks add . &&
+	test_tick &&
+	git -C tmpl/hooks commit -m post-checkout &&
+
+	test_when_finished "git config --global --unset init.templateDir || :" &&
+	test_when_finished "git config --unset init.templateDir || :" &&
+	(
+		sane_unset GIT_TEMPLATE_DIR &&
+		NO_SET_GIT_TEMPLATE_DIR=t &&
+		export NO_SET_GIT_TEMPLATE_DIR &&
+
+		git -c core.hooksPath="$(pwd)/tmpl/hooks" \
+			clone tmpl/hooks hook-run-hookspath 2>err &&
+		test_grep ! "active .* hook found" err &&
+		test_path_is_file hook-run-hookspath/hook.run &&
+
+		git -c init.templateDir="$(pwd)/tmpl" \
+			clone tmpl/hooks hook-run-config 2>err &&
+		test_grep ! "active .* hook found" err &&
+		test_path_is_file hook-run-config/hook.run &&
+
+		git clone --template=tmpl tmpl/hooks hook-run-option 2>err &&
+		test_grep ! "active .* hook found" err &&
+		test_path_is_file hook-run-option/hook.run &&
+
+		git config --global init.templateDir "$(pwd)/tmpl" &&
+		git clone tmpl/hooks hook-run-global-config 2>err &&
+		git config --global --unset init.templateDir &&
+		test_grep ! "active .* hook found" err &&
+		test_path_is_file hook-run-global-config/hook.run &&
+
+		# clone ignores local `init.templateDir`; need to create
+		# a new repository because we deleted `.git/` in the
+		# `setup` test case above
+		git init local-clone &&
+		cd local-clone &&
+
+		git config init.templateDir "$(pwd)/../tmpl" &&
+		git clone ../tmpl/hooks hook-run-local-config 2>err &&
+		git config --unset init.templateDir &&
+		test_grep ! "active .* hook found" err &&
+		test_path_is_missing hook-run-local-config/hook.run
+	)
+'
+
 . "$TEST_DIRECTORY"/lib-httpd.sh
 start_httpd
+
+test_expect_success 'clone with includeIf' '
+	test_when_finished "rm -rf repo \"$HTTPD_DOCUMENT_ROOT_PATH/repo.git\"" &&
+	git clone --bare --no-local src "$HTTPD_DOCUMENT_ROOT_PATH/repo.git" &&
+
+	test_when_finished "rm \"$HOME\"/.gitconfig" &&
+	cat >"$HOME"/.gitconfig <<-EOF &&
+	[includeIf "onbranch:something"]
+		path = /does/not/exist.inc
+	EOF
+	git clone $HTTPD_URL/smart/repo.git repo
+'
 
 test_expect_success 'partial clone using HTTP' '
 	partial_clone "$HTTPD_DOCUMENT_ROOT_PATH/server" "$HTTPD_URL/smart/server"

@@ -26,7 +26,6 @@
 #include "connected.h"
 #include "strvec.h"
 #include "utf8.h"
-#include "packfile.h"
 #include "pager.h"
 #include "path.h"
 #include "pkt-line.h"
@@ -38,7 +37,6 @@
 #include "shallow.h"
 #include "trace.h"
 #include "trace2.h"
-#include "worktree.h"
 #include "bundle-uri.h"
 
 #define FORCED_UPDATES_DELAY_WARNING_IN_MS (10 * 1000)
@@ -102,6 +100,7 @@ static struct string_list negotiation_tip = STRING_LIST_INIT_NODUP;
 
 struct fetch_config {
 	enum display_format display_format;
+	int all;
 	int prune;
 	int prune_tags;
 	int show_forced_updates;
@@ -114,6 +113,11 @@ static int git_fetch_config(const char *k, const char *v,
 			    const struct config_context *ctx, void *cb)
 {
 	struct fetch_config *fetch_config = cb;
+
+	if (!strcmp(k, "fetch.all")) {
+		fetch_config->all = git_config_bool(k, v);
+		return 0;
+	}
 
 	if (!strcmp(k, "fetch.prune")) {
 		fetch_config->prune = git_config_bool(k, v);
@@ -134,6 +138,7 @@ static int git_fetch_config(const char *k, const char *v,
 		int r = git_config_bool(k, v) ?
 			RECURSE_SUBMODULES_ON : RECURSE_SUBMODULES_OFF;
 		fetch_config->recurse_submodules = r;
+		return 0;
 	}
 
 	if (!strcmp(k, "submodule.fetchjobs")) {
@@ -444,9 +449,8 @@ static void filter_prefetch_refspec(struct refspec *rs)
 			continue;
 		if (!rs->items[i].dst ||
 		    (rs->items[i].src &&
-		     !strncmp(rs->items[i].src,
-			      ref_namespace[NAMESPACE_TAGS].ref,
-			      strlen(ref_namespace[NAMESPACE_TAGS].ref)))) {
+		     starts_with(rs->items[i].src,
+				 ref_namespace[NAMESPACE_TAGS].ref))) {
 			int j;
 
 			free(rs->items[i].src);
@@ -978,6 +982,8 @@ static int update_local_ref(struct ref *ref,
 		uint64_t t_before = getnanotime();
 		fast_forward = repo_in_merge_bases(the_repository, current,
 						   updated);
+		if (fast_forward < 0)
+			exit(128);
 		forced_updates_ms += (getnanotime() - t_before) / 1000000;
 	} else {
 		fast_forward = 1;
@@ -1651,7 +1657,7 @@ static int do_fetch(struct transport *transport,
 	if (atomic_fetch) {
 		transaction = ref_transaction_begin(&err);
 		if (!transaction) {
-			retcode = error("%s", err.buf);
+			retcode = -1;
 			goto cleanup;
 		}
 	}
@@ -1711,7 +1717,6 @@ static int do_fetch(struct transport *transport,
 
 		retcode = ref_transaction_commit(transaction, &err);
 		if (retcode) {
-			error("%s", err.buf);
 			ref_transaction_free(transaction);
 			transaction = NULL;
 			goto cleanup;
@@ -1775,9 +1780,14 @@ static int do_fetch(struct transport *transport,
 	}
 
 cleanup:
-	if (retcode && transaction) {
-		ref_transaction_abort(transaction, &err);
-		error("%s", err.buf);
+	if (retcode) {
+		if (err.len) {
+			error("%s", err.buf);
+			strbuf_reset(&err);
+		}
+		if (transaction && ref_transaction_abort(transaction, &err) &&
+		    err.len)
+			error("%s", err.buf);
 	}
 
 	display_state_release(&display_state);
@@ -2128,7 +2138,7 @@ int cmd_fetch(int argc, const char **argv, const char *prefix)
 	const char *bundle_uri;
 	struct string_list list = STRING_LIST_INIT_DUP;
 	struct remote *remote = NULL;
-	int all = 0, multiple = 0;
+	int all = -1, multiple = 0;
 	int result = 0;
 	int prune_tags_ok = 1;
 	int enable_auto_gc = 1;
@@ -2333,11 +2343,20 @@ int cmd_fetch(int argc, const char **argv, const char *prefix)
 	    fetch_bundle_uri(the_repository, bundle_uri, NULL))
 		warning(_("failed to fetch bundles from '%s'"), bundle_uri);
 
+	if (all < 0) {
+		/*
+		 * no --[no-]all given;
+		 * only use config option if no remote was explicitly specified
+		 */
+		all = (!argc) ? config.all : 0;
+	}
+
 	if (all) {
 		if (argc == 1)
 			die(_("fetch --all does not take a repository argument"));
 		else if (argc > 1)
 			die(_("fetch --all does not make sense with refspecs"));
+
 		(void) for_each_remote(get_one_remote_for_fetch, &list);
 
 		/* do not do fetch_multiple() of one */

@@ -12,12 +12,10 @@
 #include "dir.h"
 #include "resolve-undo.h"
 #include "merge-ll.h"
-#include "attr.h"
 #include "path.h"
 #include "pathspec.h"
 #include "object-file.h"
 #include "object-store-ll.h"
-#include "hash-lookup.h"
 #include "strmap.h"
 
 #define RESOLVED 0
@@ -221,6 +219,11 @@ static void read_rr(struct repository *r, struct string_list *rr)
 		buf.buf[hexsz] = '\0';
 		id = new_rerere_id_hex(buf.buf);
 		id->variant = variant;
+		/*
+		 * make sure id->collection->status has enough space
+		 * for the variant we are interested in
+		 */
+		fit_variant(id->collection, variant);
 		string_list_insert(rr, path)->util = id;
 	}
 	strbuf_release(&buf);
@@ -975,6 +978,9 @@ static int handle_cache(struct index_state *istate,
 			mmfile[i].ptr = repo_read_object_file(the_repository,
 							      &ce->oid, &type,
 							      &size);
+			if (!mmfile[i].ptr)
+				die(_("unable to read %s"),
+				    oid_to_hex(&ce->oid));
 			mmfile[i].size = size;
 		}
 	}

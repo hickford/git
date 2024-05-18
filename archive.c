@@ -5,6 +5,7 @@
 #include "environment.h"
 #include "gettext.h"
 #include "hex.h"
+#include "object-name.h"
 #include "path.h"
 #include "pretty.h"
 #include "setup.h"
@@ -17,7 +18,6 @@
 #include "archive.h"
 #include "parse-options.h"
 #include "unpack-trees.h"
-#include "dir.h"
 #include "quote.h"
 
 static char const * const archive_usage[] = {
@@ -339,7 +339,8 @@ int write_archive_entries(struct archiver_args *args,
 		opts.src_index = args->repo->index;
 		opts.dst_index = args->repo->index;
 		opts.fn = oneway_merge;
-		init_tree_desc(&t, args->tree->buffer, args->tree->size);
+		init_tree_desc(&t, &args->tree->object.oid,
+			       args->tree->buffer, args->tree->size);
 		if (unpack_trees(1, &t, &opts))
 			return -1;
 		git_attr_set_direction(GIT_ATTR_INDEX);
@@ -685,6 +686,8 @@ static int parse_archive_args(int argc, const char **argv,
 		base = "";
 
 	if (list) {
+		if (argc)
+			die(_("extra command line parameter '%s'"), *argv);
 		for (i = 0; i < nr_archivers; i++)
 			if (!is_remote || archivers[i]->flags & ARCHIVER_REMOTE)
 				printf("%s\n", archivers[i]->name);

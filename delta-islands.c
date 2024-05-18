@@ -1,18 +1,13 @@
 #include "git-compat-util.h"
-#include "attr.h"
 #include "object.h"
-#include "blob.h"
 #include "commit.h"
 #include "gettext.h"
 #include "hex.h"
 #include "tag.h"
 #include "tree.h"
-#include "delta.h"
 #include "pack.h"
 #include "tree-walk.h"
 #include "diff.h"
-#include "revision.h"
-#include "list-objects.h"
 #include "progress.h"
 #include "refs.h"
 #include "khash.h"
@@ -289,7 +284,7 @@ void resolve_tree_islands(struct repository *r,
 		if (!tree || parse_tree(tree) < 0)
 			die(_("bad tree object %s"), oid_to_hex(&ent->idx.oid));
 
-		init_tree_desc(&desc, tree->buffer, tree->size);
+		init_tree_desc(&desc, &tree->object.oid, tree->buffer, tree->size);
 		while (tree_entry(&desc, &entry)) {
 			struct object *obj;
 

@@ -334,7 +334,7 @@ test_expect_success 'cone mode: set with nested folders' '
 
 test_expect_success 'cone mode: add independent path' '
 	git -C repo sparse-checkout set deep/deeper1 &&
-	git -C repo sparse-checkout add folder1 &&
+	git -C repo sparse-checkout add --end-of-options folder1 &&
 	cat >expect <<-\EOF &&
 	/*
 	!/*/
@@ -886,6 +886,12 @@ test_expect_success 'by default, cone mode will error out when passed files' '
 	grep ".gitignore.*is not a directory" error
 '
 
+test_expect_success 'error on mistyped command line options' '
+	test_must_fail git -C repo sparse-checkout add --sikp-checks .gitignore 2>error &&
+
+	grep "unknown option.*sikp-checks" error
+'
+
 test_expect_success 'by default, non-cone mode will warn on individual files' '
 	git -C repo sparse-checkout reapply --no-cone &&
 	git -C repo sparse-checkout add .gitignore 2>warning &&
@@ -962,7 +968,7 @@ test_expect_success 'check-rules non-cone mode' '
 	git -C bare sparse-checkout check-rules --no-cone --rules-file ../rules\
 		>check-rules-file <all-files &&
 
-	cat rules | git -C repo sparse-checkout set --no-cone --stdin &&
+	git -C repo sparse-checkout set --no-cone --stdin <rules &&
 	git -C repo ls-files -t >out &&
 	sed -n "/^S /!s/^. //p" out >ls-files &&
 

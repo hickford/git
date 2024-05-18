@@ -169,6 +169,7 @@ test_expect_success REFFILES 'fetch --prune fails to delete branches' '
 	git clone . prune-fail &&
 	cd prune-fail &&
 	git update-ref refs/remotes/origin/extrabranch main &&
+	git pack-refs --all &&
 	: this will prevent --prune from locking packed-refs for deleting refs, but adding loose refs still succeeds  &&
 	>.git/packed-refs.new &&
 
@@ -802,7 +803,8 @@ test_expect_success 'fetch.writeCommitGraph with submodules' '
 		cd super-clone &&
 		rm -rf .git/objects/info &&
 		git -c fetch.writeCommitGraph=true fetch origin &&
-		test_path_is_file .git/objects/info/commit-graphs/commit-graph-chain
+		test_path_is_file .git/objects/info/commit-graphs/commit-graph-chain &&
+		git -c fetch.writeCommitGraph=true fetch --recurse-submodules origin
 	)
 '
 
@@ -1248,6 +1250,30 @@ test_expect_success '--negotiation-tip rejects missing OIDs' '
 EOF
 	grep fatal: err >fatal-actual &&
 	test_cmp fatal-expect fatal-actual
+'
+
+test_expect_success SYMLINKS 'clone does not get confused by a D/F conflict' '
+	git init df-conflict &&
+	(
+		cd df-conflict &&
+		ln -s .git a &&
+		git add a &&
+		test_tick &&
+		git commit -m symlink &&
+		test_commit a- &&
+		rm a &&
+		mkdir -p a/hooks &&
+		write_script a/hooks/post-checkout <<-EOF &&
+		echo WHOOPSIE >&2
+		echo whoopsie >"$TRASH_DIRECTORY"/whoops
+		EOF
+		git add a/hooks/post-checkout &&
+		test_tick &&
+		git commit -m post-checkout
+	) &&
+	git clone df-conflict clone 2>err &&
+	test_grep ! WHOOPS err &&
+	test_path_is_missing whoops
 '
 
 . "$TEST_DIRECTORY"/lib-httpd.sh

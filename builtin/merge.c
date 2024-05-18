@@ -31,8 +31,6 @@
 #include "unpack-trees.h"
 #include "cache-tree.h"
 #include "dir.h"
-#include "utf8.h"
-#include "log-tree.h"
 #include "color.h"
 #include "rerere.h"
 #include "help.h"
@@ -42,10 +40,8 @@
 #include "resolve-undo.h"
 #include "remote.h"
 #include "fmt-merge-msg.h"
-#include "gpg-interface.h"
 #include "sequencer.h"
 #include "string-list.h"
-#include "packfile.h"
 #include "tag.h"
 #include "alias.h"
 #include "branch.h"
@@ -196,8 +192,7 @@ static struct strategy *get_strategy(const char *name)
 			int j, found = 0;
 			struct cmdname *ent = main_cmds.names[i];
 			for (j = 0; !found && j < ARRAY_SIZE(all_strategy); j++)
-				if (!strncmp(ent->name, all_strategy[j].name, ent->len)
-						&& !all_strategy[j].name[ent->len])
+				if (!xstrncmpz(all_strategy[j].name, ent->name, ent->len))
 					found = 1;
 			if (!found)
 				add_cmdname(&not_strategies, ent->name, ent->len);
@@ -480,7 +475,7 @@ static void finish(struct commit *head_commit,
 	run_hooks_l("post-merge", squash ? "1" : "0", NULL);
 
 	if (new_head)
-		apply_autostash(git_path_merge_autostash(the_repository));
+		apply_autostash_ref(the_repository, "MERGE_AUTOSTASH");
 	strbuf_release(&reflog_message);
 }
 
@@ -682,7 +677,8 @@ static int read_tree_trivial(struct object_id *common, struct object_id *head,
 	cache_tree_free(&the_index.cache_tree);
 	for (i = 0; i < nr_trees; i++) {
 		parse_tree(trees[i]);
-		init_tree_desc(t+i, trees[i]->buffer, trees[i]->size);
+		init_tree_desc(t+i, &trees[i]->object.oid,
+			       trees[i]->buffer, trees[i]->size);
 	}
 	if (unpack_trees(nr_trees, t, &opts))
 		return -1;
@@ -826,7 +822,7 @@ static const char scissors_editor_comment[] =
 N_("An empty message aborts the commit.\n");
 
 static const char no_scissors_editor_comment[] =
-N_("Lines starting with '%c' will be ignored, and an empty message aborts\n"
+N_("Lines starting with '%s' will be ignored, and an empty message aborts\n"
    "the commit.\n");
 
 static void write_merge_heads(struct commit_list *);
@@ -857,19 +853,19 @@ static void prepare_to_commit(struct commit_list *remoteheads)
 		strbuf_addch(&msg, '\n');
 		if (cleanup_mode == COMMIT_MSG_CLEANUP_SCISSORS) {
 			wt_status_append_cut_line(&msg);
-			strbuf_commented_addf(&msg, comment_line_char, "\n");
+			strbuf_commented_addf(&msg, comment_line_str, "\n");
 		}
-		strbuf_commented_addf(&msg, comment_line_char,
+		strbuf_commented_addf(&msg, comment_line_str,
 				      _(merge_editor_comment));
 		if (cleanup_mode == COMMIT_MSG_CLEANUP_SCISSORS)
-			strbuf_commented_addf(&msg, comment_line_char,
+			strbuf_commented_addf(&msg, comment_line_str,
 					      _(scissors_editor_comment));
 		else
-			strbuf_commented_addf(&msg, comment_line_char,
-				_(no_scissors_editor_comment), comment_line_char);
+			strbuf_commented_addf(&msg, comment_line_str,
+				_(no_scissors_editor_comment), comment_line_str);
 	}
 	if (signoff)
-		append_signoff(&msg, ignore_non_trailer(msg.buf, msg.len), 0);
+		append_signoff(&msg, ignored_log_message_bytes(msg.buf, msg.len), 0);
 	write_merge_heads(remoteheads);
 	write_file_buf(git_path_merge_msg(the_repository), msg.buf, msg.len);
 	if (run_commit_hook(0 < option_edit, get_index_file(), NULL,
@@ -1319,7 +1315,8 @@ int cmd_merge(int argc, const char **argv, const char *prefix)
 	if (abort_current_merge) {
 		int nargc = 2;
 		const char *nargv[] = {"reset", "--merge", NULL};
-		struct strbuf stash_oid = STRBUF_INIT;
+		char stash_oid_hex[GIT_MAX_HEXSZ + 1];
+		struct object_id stash_oid = {0};
 
 		if (orig_argc != 2)
 			usage_msg_opt(_("--abort expects no arguments"),
@@ -1328,17 +1325,17 @@ int cmd_merge(int argc, const char **argv, const char *prefix)
 		if (!file_exists(git_path_merge_head(the_repository)))
 			die(_("There is no merge to abort (MERGE_HEAD missing)."));
 
-		if (read_oneliner(&stash_oid, git_path_merge_autostash(the_repository),
-		    READ_ONELINER_SKIP_IF_EMPTY))
-			unlink(git_path_merge_autostash(the_repository));
+		if (!read_ref("MERGE_AUTOSTASH", &stash_oid))
+			delete_ref("", "MERGE_AUTOSTASH", &stash_oid, REF_NO_DEREF);
 
 		/* Invoke 'git reset --merge' */
 		ret = cmd_reset(nargc, nargv, prefix);
 
-		if (stash_oid.len)
-			apply_autostash_oid(stash_oid.buf);
+		if (!is_null_oid(&stash_oid)) {
+			oid_to_hex_r(stash_oid_hex, &stash_oid);
+			apply_autostash_oid(stash_oid_hex);
+		}
 
-		strbuf_release(&stash_oid);
 		goto done;
 	}
 
@@ -1517,13 +1514,20 @@ int cmd_merge(int argc, const char **argv, const char *prefix)
 
 	if (!remoteheads)
 		; /* already up-to-date */
-	else if (!remoteheads->next)
-		common = repo_get_merge_bases(the_repository, head_commit,
-					      remoteheads->item);
-	else {
+	else if (!remoteheads->next) {
+		if (repo_get_merge_bases(the_repository, head_commit,
+					 remoteheads->item, &common) < 0) {
+			ret = 2;
+			goto done;
+		}
+	} else {
 		struct commit_list *list = remoteheads;
 		commit_list_insert(head_commit, &list);
-		common = get_octopus_merge_bases(list);
+		if (get_octopus_merge_bases(list, &common) < 0) {
+			free(list);
+			ret = 2;
+			goto done;
+		}
 		free(list);
 	}
 
@@ -1567,13 +1571,12 @@ int cmd_merge(int argc, const char **argv, const char *prefix)
 		}
 
 		if (autostash)
-			create_autostash(the_repository,
-					 git_path_merge_autostash(the_repository));
+			create_autostash_ref(the_repository, "MERGE_AUTOSTASH");
 		if (checkout_fast_forward(the_repository,
 					  &head_commit->object.oid,
 					  &commit->object.oid,
 					  overwrite_ignore)) {
-			apply_autostash(git_path_merge_autostash(the_repository));
+			apply_autostash_ref(the_repository, "MERGE_AUTOSTASH");
 			ret = 1;
 			goto done;
 		}
@@ -1631,7 +1634,7 @@ int cmd_merge(int argc, const char **argv, const char *prefix)
 		struct commit_list *j;
 
 		for (j = remoteheads; j; j = j->next) {
-			struct commit_list *common_one;
+			struct commit_list *common_one = NULL;
 			struct commit *common_item;
 
 			/*
@@ -1639,9 +1642,10 @@ int cmd_merge(int argc, const char **argv, const char *prefix)
 			 * merge_bases again, otherwise "git merge HEAD^
 			 * HEAD^^" would be missed.
 			 */
-			common_one = repo_get_merge_bases(the_repository,
-							  head_commit,
-							  j->item);
+			if (repo_get_merge_bases(the_repository, head_commit,
+						 j->item, &common_one) < 0)
+				exit(128);
+
 			common_item = common_one->item;
 			free_commit_list(common_one);
 			if (!oideq(&common_item->object.oid, &j->item->object.oid)) {
@@ -1659,8 +1663,7 @@ int cmd_merge(int argc, const char **argv, const char *prefix)
 		die_ff_impossible();
 
 	if (autostash)
-		create_autostash(the_repository,
-				 git_path_merge_autostash(the_repository));
+		create_autostash_ref(the_repository, "MERGE_AUTOSTASH");
 
 	/* We are going to make a new commit. */
 	git_committer_info(IDENT_STRICT);
@@ -1745,7 +1748,7 @@ int cmd_merge(int argc, const char **argv, const char *prefix)
 		else
 			fprintf(stderr, _("Merge with strategy %s failed.\n"),
 				use_strategies[0]->name);
-		apply_autostash(git_path_merge_autostash(the_repository));
+		apply_autostash_ref(the_repository, "MERGE_AUTOSTASH");
 		ret = 2;
 		goto done;
 	} else if (best_strategy == wt_strategy)

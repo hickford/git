@@ -549,6 +549,13 @@ int fspathncmp(const char *a, const char *b, size_t count);
 unsigned int fspathhash(const char *str);
 
 /*
+ * Reports whether paths collide. This may be because the paths differ only in
+ * case on a case-sensitive filesystem, or that one path refers to a symlink
+ * that collides with one of the parent directories of the other.
+ */
+int paths_collide(const char *a, const char *b);
+
+/*
  * The prefix part of pattern must not contains wildcards.
  */
 struct pathspec_item;
@@ -576,6 +583,13 @@ int cmp_dir_entry(const void *p1, const void *p2);
 int check_dir_entry_contains(const struct dir_entry *out, const struct dir_entry *in);
 
 void untracked_cache_invalidate_path(struct index_state *, const char *, int safe_path);
+/*
+ * Invalidate the untracked-cache for this path, but first strip
+ * off a trailing slash, if present.
+ */
+void untracked_cache_invalidate_trimmed_path(struct index_state *,
+					     const char *path,
+					     int safe_path);
 void untracked_cache_remove_from_index(struct index_state *, const char *);
 void untracked_cache_add_to_index(struct index_state *, const char *);
 

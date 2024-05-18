@@ -28,8 +28,6 @@ static int get_st_mode_bits(const char *path, int *mode)
 	return 0;
 }
 
-static char bad_path[] = "/bad-path/";
-
 static struct strbuf *get_pathname(void)
 {
 	static struct strbuf pathname_array[4] = {
@@ -57,21 +55,6 @@ static void strbuf_cleanup_path(struct strbuf *sb)
 	const char *path = cleanup_path(sb->buf);
 	if (path > sb->buf)
 		strbuf_remove(sb, 0, path - sb->buf);
-}
-
-char *mksnpath(char *buf, size_t n, const char *fmt, ...)
-{
-	va_list args;
-	unsigned len;
-
-	va_start(args, fmt);
-	len = vsnprintf(buf, n, fmt, args);
-	va_end(args);
-	if (len >= n) {
-		strlcpy(buf, bad_path, n);
-		return buf;
-	}
-	return (char *)cleanup_path(buf);
 }
 
 static int dir_prefix(const char *buf, const char *dir)
@@ -846,6 +829,7 @@ const char *enter_repo(const char *path, int strict)
 		if (!suffix[i])
 			return NULL;
 		gitfile = read_gitfile(used_path.buf);
+		die_upon_dubious_ownership(gitfile, NULL, used_path.buf);
 		if (gitfile) {
 			strbuf_reset(&used_path);
 			strbuf_addstr(&used_path, gitfile);
@@ -856,6 +840,7 @@ const char *enter_repo(const char *path, int strict)
 	}
 	else {
 		const char *gitfile = read_gitfile(path);
+		die_upon_dubious_ownership(gitfile, NULL, path);
 		if (gitfile)
 			path = gitfile;
 		if (chdir(path))
@@ -871,7 +856,7 @@ const char *enter_repo(const char *path, int strict)
 	return NULL;
 }
 
-static int calc_shared_perm(int mode)
+int calc_shared_perm(int mode)
 {
 	int tweak;
 
@@ -1588,7 +1573,5 @@ REPO_GIT_PATH_FUNC(merge_msg, "MERGE_MSG")
 REPO_GIT_PATH_FUNC(merge_rr, "MERGE_RR")
 REPO_GIT_PATH_FUNC(merge_mode, "MERGE_MODE")
 REPO_GIT_PATH_FUNC(merge_head, "MERGE_HEAD")
-REPO_GIT_PATH_FUNC(merge_autostash, "MERGE_AUTOSTASH")
-REPO_GIT_PATH_FUNC(auto_merge, "AUTO_MERGE")
 REPO_GIT_PATH_FUNC(fetch_head, "FETCH_HEAD")
 REPO_GIT_PATH_FUNC(shallow, "shallow")

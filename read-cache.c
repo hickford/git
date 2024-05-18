@@ -20,7 +20,6 @@
 #include "oid-array.h"
 #include "tree.h"
 #include "commit.h"
-#include "blob.h"
 #include "environment.h"
 #include "gettext.h"
 #include "mem-pool.h"
@@ -31,7 +30,6 @@
 #include "read-cache.h"
 #include "resolve-undo.h"
 #include "revision.h"
-#include "run-command.h"
 #include "strbuf.h"
 #include "trace2.h"
 #include "varint.h"
@@ -195,6 +193,33 @@ void fill_stat_cache_info(struct index_state *istate, struct cache_entry *ce, st
 		ce_mark_uptodate(ce);
 		mark_fsmonitor_valid(istate, ce);
 	}
+}
+
+static unsigned int st_mode_from_ce(const struct cache_entry *ce)
+{
+	extern int trust_executable_bit, has_symlinks;
+
+	switch (ce->ce_mode & S_IFMT) {
+	case S_IFLNK:
+		return has_symlinks ? S_IFLNK : (S_IFREG | 0644);
+	case S_IFREG:
+		return (ce->ce_mode & (trust_executable_bit ? 0755 : 0644)) | S_IFREG;
+	case S_IFGITLINK:
+		return S_IFDIR | 0755;
+	case S_IFDIR:
+		return ce->ce_mode;
+	default:
+		BUG("unsupported ce_mode: %o", ce->ce_mode);
+	}
+}
+
+int fake_lstat(const struct cache_entry *ce, struct stat *st)
+{
+	fake_lstat_data(&ce->ce_stat_data, st);
+	st->st_mode = st_mode_from_ce(ce);
+
+	/* always succeed as lstat() replacement */
+	return 0;
 }
 
 static int ce_compare_data(struct index_state *istate,
@@ -1091,19 +1116,32 @@ static int has_dir_name(struct index_state *istate,
 			istate->cache[istate->cache_nr - 1]->name,
 			&len_eq_last);
 		if (cmp_last > 0) {
-			if (len_eq_last == 0) {
+			if (name[len_eq_last] != '/') {
 				/*
 				 * The entry sorts AFTER the last one in the
-				 * index and their paths have no common prefix,
-				 * so there cannot be a F/D conflict.
+				 * index.
+				 *
+				 * If there were a conflict with "file", then our
+				 * name would start with "file/" and the last index
+				 * entry would start with "file" but not "file/".
+				 *
+				 * The next character after common prefix is
+				 * not '/', so there can be no conflict.
 				 */
 				return retval;
 			} else {
 				/*
 				 * The entry sorts AFTER the last one in the
-				 * index, but has a common prefix.  Fall through
-				 * to the loop below to disect the entry's path
-				 * and see where the difference is.
+				 * index, and the next character after common
+				 * prefix is '/'.
+				 *
+				 * Either the last index entry is a file in
+				 * conflict with this entry, or it has a name
+				 * which sorts between this entry and the
+				 * potential conflicting file.
+				 *
+				 * In both cases, we fall through to the loop
+				 * below and let the regular search code handle it.
 				 */
 			}
 		} else if (cmp_last == 0) {
@@ -1126,53 +1164,6 @@ static int has_dir_name(struct index_state *istate,
 				return retval;
 		}
 		len = slash - name;
-
-		if (cmp_last > 0) {
-			/*
-			 * (len + 1) is a directory boundary (including
-			 * the trailing slash).  And since the loop is
-			 * decrementing "slash", the first iteration is
-			 * the longest directory prefix; subsequent
-			 * iterations consider parent directories.
-			 */
-
-			if (len + 1 <= len_eq_last) {
-				/*
-				 * The directory prefix (including the trailing
-				 * slash) also appears as a prefix in the last
-				 * entry, so the remainder cannot collide (because
-				 * strcmp said the whole path was greater).
-				 *
-				 * EQ: last: xxx/A
-				 *     this: xxx/B
-				 *
-				 * LT: last: xxx/file_A
-				 *     this: xxx/file_B
-				 */
-				return retval;
-			}
-
-			if (len > len_eq_last) {
-				/*
-				 * This part of the directory prefix (excluding
-				 * the trailing slash) is longer than the known
-				 * equal portions, so this sub-directory cannot
-				 * collide with a file.
-				 *
-				 * GT: last: xxxA
-				 *     this: xxxB/file
-				 */
-				return retval;
-			}
-
-			/*
-			 * This is a possible collision. Fall through and
-			 * let the regular search code handle it.
-			 *
-			 * last: xxx
-			 * this: xxx/file
-			 */
-		}
 
 		pos = index_name_stage_pos(istate, name, len, stage, EXPAND_SPARSE);
 		if (pos >= 0) {
@@ -3933,8 +3924,8 @@ static void update_callback(struct diff_queue_struct *q,
 }
 
 int add_files_to_cache(struct repository *repo, const char *prefix,
-		       const struct pathspec *pathspec, int include_sparse,
-		       int flags)
+		       const struct pathspec *pathspec, char *ps_matched,
+		       int include_sparse, int flags)
 {
 	struct update_callback_data data;
 	struct rev_info rev;
@@ -3946,8 +3937,10 @@ int add_files_to_cache(struct repository *repo, const char *prefix,
 
 	repo_init_revisions(repo, &rev, prefix);
 	setup_revisions(0, NULL, &rev, NULL);
-	if (pathspec)
+	if (pathspec) {
 		copy_pathspec(&rev.prune_data, pathspec);
+		rev.ps_matched = ps_matched;
+	}
 	rev.diffopt.output_format = DIFF_FORMAT_CALLBACK;
 	rev.diffopt.format_callback = update_callback;
 	rev.diffopt.format_callback_data = &data;

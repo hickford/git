@@ -14,6 +14,8 @@ const char *rebase_path_todo(void);
 const char *rebase_path_todo_backup(void);
 const char *rebase_path_dropped(void);
 
+extern const char *rebase_resolvemsg;
+
 #define APPEND_SIGNOFF_DEDUP (1u << 0)
 
 enum replay_action {
@@ -225,9 +227,12 @@ void commit_post_rewrite(struct repository *r,
 			 const struct object_id *new_head);
 
 void create_autostash(struct repository *r, const char *path);
+void create_autostash_ref(struct repository *r, const char *refname);
 int save_autostash(const char *path);
+int save_autostash_ref(struct repository *r, const char *refname);
 int apply_autostash(const char *path);
 int apply_autostash_oid(const char *stash_oid);
+int apply_autostash_ref(struct repository *r, const char *refname);
 
 #define SUMMARY_INITIAL_COMMIT   (1 << 0)
 #define SUMMARY_SHOW_AUTHOR_DATE (1 << 1)

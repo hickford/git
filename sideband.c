@@ -69,7 +69,10 @@ void list_config_color_sideband_slots(struct string_list *list, const char *pref
  * of the line. This should be called for a single line only, which is
  * passed as the first N characters of the SRC array.
  *
- * NEEDSWORK: use "size_t n" instead for clarity.
+ * It is fine to use "int n" here instead of "size_t n" as all calls to this
+ * function pass an 'int' parameter. Additionally, the buffer involved in
+ * storing these 'int' values takes input from a packet via the pkt-line
+ * interface, which is capable of transferring only 64kB at a time.
  */
 static void maybe_colorize_sideband(struct strbuf *dest, const char *src, int n)
 {
@@ -217,7 +220,7 @@ int demultiplex_sideband(const char *me, int status,
 			}
 
 			strbuf_addch(scratch, *brk);
-			xwrite(2, scratch->buf, scratch->len);
+			write_in_full(2, scratch->buf, scratch->len);
 			strbuf_reset(scratch);
 
 			b = brk + 1;
@@ -244,7 +247,7 @@ cleanup:
 		die("%s", scratch->buf);
 	if (scratch->len) {
 		strbuf_addch(scratch, '\n');
-		xwrite(2, scratch->buf, scratch->len);
+		write_in_full(2, scratch->buf, scratch->len);
 	}
 	strbuf_release(scratch);
 	return 1;

@@ -243,7 +243,7 @@ named remote is not being used both values will be the same.
 Information about what is to be pushed is provided on the hook's standard
 input with lines of the form:
 
-  <local ref> SP <local object name> SP <remote ref> SP <remote object name> LF
+  <local-ref> SP <local-object-name> SP <remote-ref> SP <remote-object-name> LF
 
 For instance, if the command +git push origin master:foreign+ were run the
 hook would receive a line like the following:
@@ -251,9 +251,9 @@ hook would receive a line like the following:
   refs/heads/master 67890 refs/heads/foreign 12345
 
 although the full object name would be supplied.  If the foreign ref does not
-yet exist the `<remote object name>` will be the all-zeroes object name.  If a
-ref is to be deleted, the `<local ref>` will be supplied as `(delete)` and the
-`<local object name>` will be the all-zeroes object name.  If the local commit
+yet exist the `<remote-object-name>` will be the all-zeroes object name.  If a
+ref is to be deleted, the `<local-ref>` will be supplied as `(delete)` and the
+`<local-object-name>` will be the all-zeroes object name.  If the local commit
 was specified by something other than a name which could be expanded (such as
 `HEAD~`, or an object name) it will be supplied as it was originally given.
 
@@ -275,12 +275,12 @@ This hook executes once for the receive operation. It takes no
 arguments, but for each ref to be updated it receives on standard
 input a line of the format:
 
-  <old-value> SP <new-value> SP <ref-name> LF
+  <old-oid> SP <new-oid> SP <ref-name> LF
 
-where `<old-value>` is the old object name stored in the ref,
-`<new-value>` is the new object name to be stored in the ref and
+where `<old-oid>` is the old object name stored in the ref,
+`<new-oid>` is the new object name to be stored in the ref and
 `<ref-name>` is the full name of the ref.
-When creating a new ref, `<old-value>` is the all-zeroes object name.
+When creating a new ref, `<old-oid>` is the all-zeroes object name.
 
 If the hook exits with non-zero status, none of the refs will be
 updated. If the hook exits with zero, updating of individual refs can
@@ -503,13 +503,13 @@ given reference transaction is in:
 For each reference update that was added to the transaction, the hook
 receives on standard input a line of the format:
 
-  <old-value> SP <new-value> SP <ref-name> LF
+  <old-oid> SP <new-oid> SP <ref-name> LF
 
-where `<old-value>` is the old object name passed into the reference
-transaction, `<new-value>` is the new object name to be stored in the
+where `<old-oid>` is the old object name passed into the reference
+transaction, `<new-oid>` is the new object name to be stored in the
 ref and `<ref-name>` is the full name of the ref. When force updating
 the reference regardless of its current value or when the reference is
-to be created anew, `<old-value>` is the all-zeroes object name. To
+to be created anew, `<old-oid>` is the all-zeroes object name. To
 distinguish these cases, you can inspect the current value of
 `<ref-name>` via `git rev-parse`.
 

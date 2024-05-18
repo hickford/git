@@ -11,6 +11,98 @@ export GIT_TEST_DEFAULT_INITIAL_BRANCH_NAME
 TEST_PASSES_SANITIZE_LEAK=true
 . ./test-lib.sh
 
+test_expect_success 'setup whitespace config' '
+	sed -e "s/^|//" \
+	    -e "s/[$]$//" \
+	    -e "s/X/	/g" >.git/config <<-\EOF
+	[section]
+	|	solid = rock
+	|	sparse = big XX blue
+	|	sparseAndTail = big XX blue $
+	|	sparseAndTailQuoted = "big XX blue "
+	|	sparseAndBiggerTail = big XX blue X X
+	|	sparseAndBiggerTailQuoted = "big XX blue X X"
+	|	sparseAndBiggerTailQuotedPlus = "big XX blue X X"X $
+	|	headAndTail = Xbig blue $
+	|	headAndTailQuoted = "Xbig blue "
+	|	headAndTailQuotedPlus = "Xbig blue " $
+	|	annotated = big blueX# to be discarded
+	|	annotatedQuoted = "big blue"X# to be discarded
+	EOF
+'
+
+test_expect_success 'no internal whitespace' '
+	echo "rock" >expect &&
+	git config --get section.solid >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success 'internal whitespace' '
+	echo "big QQ blue" | q_to_tab >expect &&
+	git config --get section.sparse >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success 'internal and trailing whitespace' '
+	echo "big QQ blue" | q_to_tab >expect &&
+	git config --get section.sparseAndTail >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success 'internal and trailing whitespace, all quoted' '
+	echo "big QQ blue " | q_to_tab >expect &&
+	git config --get section.sparseAndTailQuoted >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success 'internal and more trailing whitespace' '
+	echo "big QQ blue" | q_to_tab >expect &&
+	git config --get section.sparseAndBiggerTail >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success 'internal and more trailing whitespace, all quoted' '
+	echo "big QQ blue Q Q" | q_to_tab >expect &&
+	git config --get section.sparseAndBiggerTailQuoted >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success 'internal and more trailing whitespace, not all quoted' '
+	echo "big QQ blue Q Q" | q_to_tab >expect &&
+	git config --get section.sparseAndBiggerTailQuotedPlus >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success 'leading and trailing whitespace' '
+	echo "big blue" >expect &&
+	git config --get section.headAndTail >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success 'leading and trailing whitespace, all quoted' '
+	echo "Qbig blue " | q_to_tab >expect &&
+	git config --get section.headAndTailQuoted >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success 'leading and trailing whitespace, not all quoted' '
+	echo "Qbig blue " | q_to_tab >expect &&
+	git config --get section.headAndTailQuotedPlus >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success 'inline comment' '
+	echo "big blue" >expect &&
+	git config --get section.annotated >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success 'inline comment, quoted' '
+	echo "big blue" >expect &&
+	git config --get section.annotatedQuoted >actual &&
+	test_cmp expect actual
+'
+
 test_expect_success 'clear default config' '
 	rm -f .git/config
 '
@@ -69,13 +161,31 @@ test_expect_success 'replace with non-match (actually matching)' '
 
 cat > expect << EOF
 [section]
-	penguin = very blue
 	Movie = BadPhysics
 	UPPERCASE = true
-	penguin = kingpin
+	penguin = gentoo # Pygoscelis papua
+	disposition = peckish # find fish
+	foo = bar #abc
+	spsp = value # and comment
+	htsp = value	# and comment
 [Sections]
 	WhatEver = Second
 EOF
+
+test_expect_success 'append comments' '
+	git config --replace-all --comment="Pygoscelis papua" section.penguin gentoo &&
+	git config --comment="find fish" section.disposition peckish &&
+	git config --comment="#abc" section.foo bar &&
+
+	git config --comment="and comment" section.spsp value &&
+	git config --comment="	# and comment" section.htsp value &&
+
+	test_cmp expect .git/config
+'
+
+test_expect_success 'Prohibited LF in comment' '
+	test_must_fail git config --comment="a${LF}b" section.k v
+'
 
 test_expect_success 'non-match result' 'test_cmp expect .git/config'
 
@@ -1066,9 +1176,25 @@ test_expect_success '--null --get-regexp' '
 	test_cmp expect result
 '
 
-test_expect_success 'inner whitespace kept verbatim' '
-	git config section.val "foo 	  bar" &&
-	test_cmp_config "foo 	  bar" section.val
+test_expect_success 'inner whitespace kept verbatim, spaces only' '
+	echo "foo   bar" >expect &&
+	git config section.val "foo   bar" &&
+	git config --get section.val >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success 'inner whitespace kept verbatim, horizontal tabs only' '
+	echo "fooQQbar" | q_to_tab >expect &&
+	git config section.val "$(cat expect)" &&
+	git config --get section.val >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success 'inner whitespace kept verbatim, horizontal tabs and spaces' '
+	echo "foo Q  bar" | q_to_tab >expect &&
+	git config section.val "$(cat expect)" &&
+	git config --get section.val >actual &&
+	test_cmp expect actual
 '
 
 test_expect_success SYMLINKS 'symlinked configuration' '
@@ -1098,15 +1224,20 @@ test_expect_success SYMLINKS 'symlink to nonexistent configuration' '
 	test_must_fail git config --file=linktolinktonada --list
 '
 
-test_expect_success 'check split_cmdline return' "
-	git config alias.split-cmdline-fix 'echo \"' &&
-	test_must_fail git split-cmdline-fix &&
-	echo foo > foo &&
-	git add foo &&
-	git commit -m 'initial commit' &&
-	git config branch.main.mergeoptions 'echo \"' &&
-	test_must_fail git merge main
-"
+test_expect_success 'check split_cmdline return' '
+	test_when_finished "rm -rf repo" &&
+	git init repo &&
+	(
+		cd repo &&
+		git config alias.split-cmdline-fix "echo \"" &&
+		test_must_fail git split-cmdline-fix &&
+		echo foo >foo &&
+		git add foo &&
+		git commit -m "initial commit" &&
+		git config branch.main.mergeoptions "echo \"" &&
+		test_must_fail git merge main
+	)
+'
 
 test_expect_success 'git -c "key=value" support' '
 	cat >expect <<-\EOF &&
@@ -1157,10 +1288,16 @@ test_expect_success 'git -c works with aliases of builtins' '
 '
 
 test_expect_success 'aliases can be CamelCased' '
-	test_config alias.CamelCased "rev-parse HEAD" &&
-	git CamelCased >out &&
-	git rev-parse HEAD >expect &&
-	test_cmp expect out
+	test_when_finished "rm -rf repo" &&
+	git init repo &&
+	(
+		cd repo &&
+		test_commit A &&
+		git config alias.CamelCased "rev-parse HEAD" &&
+		git CamelCased >out &&
+		git rev-parse HEAD >expect &&
+		test_cmp expect out
+	)
 '
 
 test_expect_success 'git -c does not split values on equals' '
@@ -2009,11 +2146,11 @@ test_expect_success '--show-origin getting a single key' '
 '
 
 test_expect_success 'set up custom config file' '
-	CUSTOM_CONFIG_FILE="custom.conf" &&
-	cat >"$CUSTOM_CONFIG_FILE" <<-\EOF
+	cat >"custom.conf" <<-\EOF &&
 	[user]
 		custom = true
 	EOF
+	CUSTOM_CONFIG_FILE="$(test-tool path-utils real_path custom.conf)"
 '
 
 test_expect_success !MINGW 'set up custom config file with special name characters' '
@@ -2052,22 +2189,33 @@ test_expect_success '--show-origin stdin with file include' '
 '
 
 test_expect_success '--show-origin blob' '
-	blob=$(git hash-object -w "$CUSTOM_CONFIG_FILE") &&
-	cat >expect <<-EOF &&
-	blob:$blob	user.custom=true
-	EOF
-	git config --blob=$blob --show-origin --list >output &&
-	test_cmp expect output
+	test_when_finished "rm -rf repo" &&
+	git init repo &&
+	(
+		cd repo &&
+		blob=$(git hash-object -w "$CUSTOM_CONFIG_FILE") &&
+		cat >expect <<-EOF &&
+		blob:$blob	user.custom=true
+		EOF
+		git config --blob=$blob --show-origin --list >output &&
+		test_cmp expect output
+	)
 '
 
 test_expect_success '--show-origin blob ref' '
-	cat >expect <<-\EOF &&
-	blob:main:custom.conf	user.custom=true
-	EOF
-	git add "$CUSTOM_CONFIG_FILE" &&
-	git commit -m "new config file" &&
-	git config --blob=main:"$CUSTOM_CONFIG_FILE" --show-origin --list >output &&
-	test_cmp expect output
+	test_when_finished "rm -rf repo" &&
+	git init repo &&
+	(
+		cd repo &&
+		cat >expect <<-\EOF &&
+		blob:main:custom.conf	user.custom=true
+		EOF
+		cp "$CUSTOM_CONFIG_FILE" custom.conf &&
+		git add custom.conf &&
+		git commit -m "new config file" &&
+		git config --blob=main:custom.conf --show-origin --list >output &&
+		test_cmp expect output
+	)
 '
 
 test_expect_success '--show-origin with --default' '

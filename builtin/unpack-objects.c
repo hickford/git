@@ -10,12 +10,8 @@
 #include "delta.h"
 #include "pack.h"
 #include "blob.h"
-#include "commit.h"
 #include "replace-object.h"
 #include "strbuf.h"
-#include "tag.h"
-#include "tree.h"
-#include "tree-walk.h"
 #include "progress.h"
 #include "decorate.h"
 #include "fsck.h"
@@ -683,13 +679,7 @@ int cmd_unpack_objects(int argc, const char **argv, const char *prefix UNUSED)
 	use(the_hash_algo->rawsz);
 
 	/* Write the last part of the buffer to stdout */
-	while (len) {
-		int ret = xwrite(1, buffer + offset, len);
-		if (ret <= 0)
-			break;
-		len -= ret;
-		offset += ret;
-	}
+	write_in_full(1, buffer + offset, len);
 
 	/* All done */
 	return has_errors;

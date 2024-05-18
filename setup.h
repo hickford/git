@@ -41,6 +41,18 @@ const char *read_gitfile_gently(const char *path, int *return_error_code);
 const char *resolve_gitdir_gently(const char *suspect, int *return_error_code);
 #define resolve_gitdir(path) resolve_gitdir_gently((path), NULL)
 
+/*
+ * Check if a repository is safe and die if it is not, by verifying the
+ * ownership of the worktree (if any), the git directory, and the gitfile (if
+ * any).
+ *
+ * Exemptions for known-safe repositories can be added via `safe.directory`
+ * config settings; for non-bare repositories, their worktree needs to be
+ * added, for bare ones their git directory.
+ */
+void die_upon_dubious_ownership(const char *gitfile, const char *worktree,
+				const char *gitdir);
+
 void setup_work_tree(void);
 
 /*
@@ -115,6 +127,8 @@ struct repository_format {
 	int worktree_config;
 	int is_bare;
 	int hash_algo;
+	int compat_hash_algo;
+	unsigned int ref_storage_format;
 	int sparse_index;
 	char *work_tree;
 	struct string_list unknown_extensions;
@@ -131,6 +145,7 @@ struct repository_format {
 	.version = -1, \
 	.is_bare = -1, \
 	.hash_algo = GIT_HASH_SHA1, \
+	.ref_storage_format = REF_STORAGE_FORMAT_FILES, \
 	.unknown_extensions = STRING_LIST_INIT_DUP, \
 	.v1_only_extensions = STRING_LIST_INIT_DUP, \
 }
@@ -169,14 +184,22 @@ int verify_repository_format(const struct repository_format *format,
  */
 void check_repository_format(struct repository_format *fmt);
 
-#define INIT_DB_QUIET 0x0001
-#define INIT_DB_EXIST_OK 0x0002
+const char *get_template_dir(const char *option_template);
+
+#define INIT_DB_QUIET      (1 << 0)
+#define INIT_DB_EXIST_OK   (1 << 1)
+#define INIT_DB_SKIP_REFDB (1 << 2)
 
 int init_db(const char *git_dir, const char *real_git_dir,
 	    const char *template_dir, int hash_algo,
+	    unsigned int ref_storage_format,
 	    const char *initial_branch, int init_shared_repository,
 	    unsigned int flags);
-void initialize_repository_version(int hash_algo, int reinit);
+void initialize_repository_version(int hash_algo,
+				   unsigned int ref_storage_format,
+				   int reinit);
+void create_reference_database(unsigned int ref_storage_format,
+			       const char *initial_branch, int quiet);
 
 /*
  * NOTE NOTE NOTE!!

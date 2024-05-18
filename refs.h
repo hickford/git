@@ -11,6 +11,9 @@ struct string_list;
 struct string_list_item;
 struct worktree;
 
+unsigned int ref_storage_format_by_name(const char *name);
+const char *ref_storage_format_to_name(unsigned int ref_storage_format);
+
 /*
  * Resolve a reference, recursively following symbolic refererences.
  *
@@ -56,18 +59,12 @@ struct worktree;
  * Even with RESOLVE_REF_ALLOW_BAD_NAME, names that escape the refs/
  * directory and do not consist of all caps and underscores cannot be
  * resolved. The function returns NULL for such ref names.
- * Caps and underscores refers to the special refs, such as HEAD,
+ * Caps and underscores refers to the pseudorefs, such as HEAD,
  * FETCH_HEAD and friends, that all live outside of the refs/ directory.
  */
 #define RESOLVE_REF_READING 0x01
 #define RESOLVE_REF_NO_RECURSE 0x02
 #define RESOLVE_REF_ALLOW_BAD_NAME 0x04
-
-struct pack_refs_opts {
-	unsigned int flags;
-	struct ref_exclusions *exclusions;
-	struct string_list *includes;
-};
 
 const char *refs_resolve_ref_unsafe(struct ref_store *refs,
 				    const char *refname,
@@ -123,7 +120,9 @@ int should_autocreate_reflog(const char *refname);
 
 int is_branch(const char *refname);
 
-int refs_init_db(struct strbuf *err);
+#define REFS_INIT_DB_IS_WORKTREE (1 << 0)
+
+int refs_init_db(struct ref_store *refs, int flags, struct strbuf *err);
 
 /*
  * Return the peeled value of the oid currently being iterated via
@@ -394,6 +393,12 @@ int refs_for_each_rawref(struct ref_store *refs, each_ref_fn fn, void *cb_data);
 int for_each_rawref(each_ref_fn fn, void *cb_data);
 
 /*
+ * Iterates over all refs including root refs, i.e. pseudorefs and HEAD.
+ */
+int refs_for_each_include_root_refs(struct ref_store *refs, each_ref_fn fn,
+				    void *cb_data);
+
+/*
  * Normalizes partial refs to their fully qualified form.
  * Will prepend <prefix> to the <pattern> if it doesn't start with 'refs/'.
  * <prefix> will default to 'refs/' if NULL.
@@ -417,10 +422,18 @@ void warn_dangling_symrefs(FILE *fp, const char *msg_fmt,
 /*
  * Flags for controlling behaviour of pack_refs()
  * PACK_REFS_PRUNE: Prune loose refs after packing
- * PACK_REFS_ALL:   Pack _all_ refs, not just tags and already packed refs
+ * PACK_REFS_AUTO: Pack refs on a best effort basis. The heuristics and end
+ *                 result are decided by the ref backend. Backends may ignore
+ *                 this flag and fall back to a normal repack.
  */
-#define PACK_REFS_PRUNE 0x0001
-#define PACK_REFS_ALL   0x0002
+#define PACK_REFS_PRUNE (1 << 0)
+#define PACK_REFS_AUTO  (1 << 1)
+
+struct pack_refs_opts {
+	unsigned int flags;
+	struct ref_exclusions *exclusions;
+	struct string_list *includes;
+};
 
 /*
  * Write a packed-refs file for the current repository.
@@ -435,7 +448,20 @@ int refs_create_reflog(struct ref_store *refs, const char *refname,
 		       struct strbuf *err);
 int safe_create_reflog(const char *refname, struct strbuf *err);
 
-/** Reads log for the value of ref during at_time. **/
+/**
+ * Reads log for the value of ref during at_time (in which case "cnt" should be
+ * negative) or the reflog "cnt" entries from the top (in which case "at_time"
+ * should be 0).
+ *
+ * If we found the reflog entry in question, returns 0 (and details of the
+ * entry can be found in the out-parameters).
+ *
+ * If we ran out of reflog entries, the out-parameters are filled with the
+ * details of the oldest entry we did find, and the function returns 1. Note
+ * that there is one important special case here! If the reflog was empty
+ * and the caller asked for the 0-th cnt, we will return "1" but leave the
+ * "oid" field untouched.
+ **/
 int read_ref_at(struct ref_store *refs,
 		const char *refname, unsigned int flags,
 		timestamp_t at_time, int cnt,
@@ -530,11 +556,18 @@ int for_each_reflog_ent(const char *refname, each_reflog_ent_fn fn, void *cb_dat
 int for_each_reflog_ent_reverse(const char *refname, each_reflog_ent_fn fn, void *cb_data);
 
 /*
+ * The signature for the callback function for the {refs_,}for_each_reflog()
+ * functions below. The memory pointed to by the refname argument is only
+ * guaranteed to be valid for the duration of a single callback invocation.
+ */
+typedef int each_reflog_fn(const char *refname, void *cb_data);
+
+/*
  * Calls the specified function for each reflog file until it returns nonzero,
  * and returns the value. Reflog file order is unspecified.
  */
-int refs_for_each_reflog(struct ref_store *refs, each_ref_fn fn, void *cb_data);
-int for_each_reflog(each_ref_fn fn, void *cb_data);
+int refs_for_each_reflog(struct ref_store *refs, each_reflog_fn fn, void *cb_data);
+int for_each_reflog(each_reflog_fn fn, void *cb_data);
 
 #define REFNAME_ALLOW_ONELEVEL 1
 #define REFNAME_REFSPEC_PATTERN 2
@@ -1017,5 +1050,8 @@ extern struct ref_namespace_info ref_namespace[NAMESPACE__COUNT];
  * variables. Modify a namespace as specified by its ref_namespace key.
  */
 void update_ref_namespace(enum ref_namespace namespace, char *ref);
+
+int is_pseudoref(struct ref_store *refs, const char *refname);
+int is_headref(struct ref_store *refs, const char *refname);
 
 #endif /* REFS_H */

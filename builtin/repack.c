@@ -8,7 +8,6 @@
 #include "path.h"
 #include "run-command.h"
 #include "server-info.h"
-#include "sigchain.h"
 #include "strbuf.h"
 #include "string-list.h"
 #include "strvec.h"
@@ -315,8 +314,9 @@ static int write_oid(const struct object_id *oid,
 			die(_("could not start pack-objects to repack promisor objects"));
 	}
 
-	xwrite(cmd->in, oid_to_hex(oid), the_hash_algo->hexsz);
-	xwrite(cmd->in, "\n", 1);
+	if (write_in_full(cmd->in, oid_to_hex(oid), the_hash_algo->hexsz) < 0 ||
+	    write_in_full(cmd->in, "\n", 1) < 0)
+		die(_("failed to feed promisor objects to pack-objects"));
 	return 0;
 }
 
@@ -1203,18 +1203,12 @@ int cmd_repack(int argc, const char **argv, const char *prefix)
 	if (delete_redundant && repository_format_precious_objects)
 		die(_("cannot delete packs in a precious-objects repo"));
 
-	if (keep_unreachable &&
-	    (unpack_unreachable || (pack_everything & LOOSEN_UNREACHABLE)))
-		die(_("options '%s' and '%s' cannot be used together"), "--keep-unreachable", "-A");
+	die_for_incompatible_opt3(unpack_unreachable || (pack_everything & LOOSEN_UNREACHABLE), "-A",
+				  keep_unreachable, "-k/--keep-unreachable",
+				  pack_everything & PACK_CRUFT, "--cruft");
 
-	if (pack_everything & PACK_CRUFT) {
+	if (pack_everything & PACK_CRUFT)
 		pack_everything |= ALL_INTO_ONE;
-
-		if (unpack_unreachable || (pack_everything & LOOSEN_UNREACHABLE))
-			die(_("options '%s' and '%s' cannot be used together"), "--cruft", "-A");
-		if (keep_unreachable)
-			die(_("options '%s' and '%s' cannot be used together"), "--cruft", "-k");
-	}
 
 	if (write_bitmaps < 0) {
 		if (!write_midx &&

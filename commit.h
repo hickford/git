@@ -294,8 +294,8 @@ const char *find_header_mem(const char *msg, size_t len,
 const char *find_commit_header(const char *msg, const char *key,
 			       size_t *out_len);
 
-/* Find the end of the log message, the right place for a new trailer. */
-size_t ignore_non_trailer(const char *buf, size_t len);
+/* Find the number of bytes to ignore from the end of a log message. */
+size_t ignored_log_message_bytes(const char *buf, size_t len);
 
 typedef int (*each_mergetag_fn)(struct commit *commit, struct commit_extra_header *extra,
 				void *cb_data);
@@ -370,5 +370,6 @@ int parse_buffer_signed_by_header(const char *buffer,
 				  struct strbuf *payload,
 				  struct strbuf *signature,
 				  const struct git_hash_algo *algop);
+int add_header_signature(struct strbuf *buf, struct strbuf *sig, const struct git_hash_algo *algo);
 
 #endif /* COMMIT_H */

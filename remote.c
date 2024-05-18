@@ -15,7 +15,6 @@
 #include "diff.h"
 #include "revision.h"
 #include "dir.h"
-#include "tag.h"
 #include "setup.h"
 #include "string-list.h"
 #include "strvec.h"
@@ -106,7 +105,7 @@ static int remotes_hash_cmp(const void *cmp_data UNUSED,
 	b = container_of(entry_or_key, const struct remote, ent);
 
 	if (key)
-		return strncmp(a->name, key->str, key->len) || a->name[key->len];
+		return !!xstrncmpz(a->name, key->str, key->len);
 	else
 		return strcmp(a->name, b->name);
 }
@@ -190,8 +189,7 @@ static int branches_hash_cmp(const void *cmp_data UNUSED,
 	b = container_of(entry_or_key, const struct branch, ent);
 
 	if (key)
-		return strncmp(a->name, key->str, key->len) ||
-		       a->name[key->len];
+		return !!xstrncmpz(a->name, key->str, key->len);
 	else
 		return strcmp(a->name, b->name);
 }
@@ -509,7 +507,7 @@ static void alias_all_urls(struct remote_state *remote_state)
 	}
 }
 
-static void read_config(struct repository *repo)
+static void read_config(struct repository *repo, int early)
 {
 	int flag;
 
@@ -518,7 +516,7 @@ static void read_config(struct repository *repo)
 	repo->remote_state->initialized = 1;
 
 	repo->remote_state->current_branch = NULL;
-	if (startup_info->have_repository) {
+	if (startup_info->have_repository && !early) {
 		const char *head_ref = refs_resolve_ref_unsafe(
 			get_main_ref_store(repo), "HEAD", 0, NULL, &flag);
 		if (head_ref && (flag & REF_ISSYMREF) &&
@@ -561,7 +559,7 @@ static const char *remotes_remote_for_branch(struct remote_state *remote_state,
 
 const char *remote_for_branch(struct branch *branch, int *explicit)
 {
-	read_config(the_repository);
+	read_config(the_repository, 0);
 	die_on_missing_branch(the_repository, branch);
 
 	return remotes_remote_for_branch(the_repository->remote_state, branch,
@@ -587,7 +585,7 @@ remotes_pushremote_for_branch(struct remote_state *remote_state,
 
 const char *pushremote_for_branch(struct branch *branch, int *explicit)
 {
-	read_config(the_repository);
+	read_config(the_repository, 0);
 	die_on_missing_branch(the_repository, branch);
 
 	return remotes_pushremote_for_branch(the_repository->remote_state,
@@ -599,7 +597,7 @@ static struct remote *remotes_remote_get(struct remote_state *remote_state,
 
 const char *remote_ref_for_branch(struct branch *branch, int for_push)
 {
-	read_config(the_repository);
+	read_config(the_repository, 0);
 	die_on_missing_branch(the_repository, branch);
 
 	if (branch) {
@@ -709,7 +707,13 @@ remotes_remote_get(struct remote_state *remote_state, const char *name)
 
 struct remote *remote_get(const char *name)
 {
-	read_config(the_repository);
+	read_config(the_repository, 0);
+	return remotes_remote_get(the_repository->remote_state, name);
+}
+
+struct remote *remote_get_early(const char *name)
+{
+	read_config(the_repository, 1);
 	return remotes_remote_get(the_repository->remote_state, name);
 }
 
@@ -722,7 +726,7 @@ remotes_pushremote_get(struct remote_state *remote_state, const char *name)
 
 struct remote *pushremote_get(const char *name)
 {
-	read_config(the_repository);
+	read_config(the_repository, 0);
 	return remotes_pushremote_get(the_repository->remote_state, name);
 }
 
@@ -738,7 +742,7 @@ int remote_is_configured(struct remote *remote, int in_repo)
 int for_each_remote(each_remote_fn fn, void *priv)
 {
 	int i, result = 0;
-	read_config(the_repository);
+	read_config(the_repository, 0);
 	for (i = 0; i < the_repository->remote_state->remotes_nr && !result;
 	     i++) {
 		struct remote *remote =
@@ -1831,7 +1835,7 @@ struct branch *branch_get(const char *name)
 {
 	struct branch *ret;
 
-	read_config(the_repository);
+	read_config(the_repository, 0);
 	if (!name || !*name || !strcmp(name, "HEAD"))
 		ret = the_repository->remote_state->current_branch;
 	else
@@ -1973,7 +1977,7 @@ static const char *branch_get_push_1(struct remote_state *remote_state,
 
 const char *branch_get_push(struct branch *branch, struct strbuf *err)
 {
-	read_config(the_repository);
+	read_config(the_repository, 0);
 	die_on_missing_branch(the_repository, branch);
 
 	if (!branch)
@@ -2675,7 +2679,7 @@ static int is_reachable_in_reflog(const char *local, const struct ref *remote)
 		if (MERGE_BASES_BATCH_SIZE < size)
 			size = MERGE_BASES_BATCH_SIZE;
 
-		if ((ret = repo_in_merge_bases_many(the_repository, commit, size, chunk)))
+		if ((ret = repo_in_merge_bases_many(the_repository, commit, size, chunk, 0)))
 			break;
 	}
 

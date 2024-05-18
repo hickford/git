@@ -16,7 +16,6 @@
 #include "object-file.h"
 #include "object-store-ll.h"
 #include "path.h"
-#include "attr.h"
 #include "refs.h"
 #include "wildmatch.h"
 #include "pathspec.h"
@@ -99,6 +98,18 @@ int fspatheq(const char *a, const char *b)
 int fspathncmp(const char *a, const char *b, size_t count)
 {
 	return ignore_case ? strncasecmp(a, b, count) : strncmp(a, b, count);
+}
+
+int paths_collide(const char *a, const char *b)
+{
+	size_t len_a = strlen(a), len_b = strlen(b);
+
+	if (len_a == len_b)
+		return fspatheq(a, b);
+
+	if (len_a < len_b)
+		return is_dir_sep(b[len_a]) && !fspathncmp(a, b, len_a);
+	return is_dir_sep(a[len_b]) && !fspathncmp(a, b, len_b);
 }
 
 unsigned int fspathhash(const char *str)
@@ -2179,7 +2190,8 @@ static int exclude_matches_pathspec(const char *path, int pathlen,
 		       PATHSPEC_LITERAL |
 		       PATHSPEC_GLOB |
 		       PATHSPEC_ICASE |
-		       PATHSPEC_EXCLUDE);
+		       PATHSPEC_EXCLUDE |
+		       PATHSPEC_ATTR);
 
 	for (i = 0; i < pathspec->nr; i++) {
 		const struct pathspec_item *item = &pathspec->items[i];
@@ -3916,6 +3928,26 @@ void untracked_cache_invalidate_path(struct index_state *istate,
 		return;
 	invalidate_one_component(istate->untracked, istate->untracked->root,
 				 path, strlen(path));
+}
+
+void untracked_cache_invalidate_trimmed_path(struct index_state *istate,
+					     const char *path,
+					     int safe_path)
+{
+	size_t len = strlen(path);
+
+	if (!len)
+		BUG("untracked_cache_invalidate_trimmed_path given zero length path");
+
+	if (path[len - 1] != '/') {
+		untracked_cache_invalidate_path(istate, path, safe_path);
+	} else {
+		struct strbuf tmp = STRBUF_INIT;
+
+		strbuf_add(&tmp, path, len - 1);
+		untracked_cache_invalidate_path(istate, tmp.buf, safe_path);
+		strbuf_release(&tmp);
+	}
 }
 
 void untracked_cache_remove_from_index(struct index_state *istate,
