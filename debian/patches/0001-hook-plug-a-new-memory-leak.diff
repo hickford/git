@@ -1,0 +1,34 @@
+From 94f95a123b10f3837e181ad93b81f1a4f53bb8fc Mon Sep 17 00:00:00 2001
+From: Johannes Schindelin <johannes.schindelin@gmx.de>
+Date: Sat, 18 May 2024 10:32:39 +0000
+Subject: hook: plug a new memory leak
+
+commit 2811ce3a79dc8a0105a6defb59718b35f5b397aa upstream.
+
+In 8db1e8743c0 (clone: prevent hooks from running during a clone,
+2024-03-28), I introduced an inadvertent memory leak that was
+unfortunately not caught before v2.45.1 was released. Here is a fix.
+
+Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>
+Signed-off-by: Junio C Hamano <gitster@pobox.com>
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+---
+ hook.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/hook.c b/hook.c
+index eebc4d44734..8de469b134a 100644
+--- a/hook.c
++++ b/hook.c
+@@ -26,8 +26,10 @@ static int identical_to_template_hook(const char *name, const char *path)
+ 		found_template_hook = access(template_path.buf, X_OK) >= 0;
+ 	}
+ #endif
+-	if (!found_template_hook)
++	if (!found_template_hook) {
++		strbuf_release(&template_path);
+ 		return 0;
++	}
+ 
+ 	ret = do_files_match(template_path.buf, path);
+ 

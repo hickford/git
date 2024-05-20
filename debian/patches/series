@@ -1,0 +1,7 @@
+0001-hook-plug-a-new-memory-leak.diff
+0002-Revert-core.hooksPath-add-some-protection-while-cloni.diff
+0003-tests-verify-that-clone-c-core.hooksPath-dev-null-wor.diff
+0004-hook-clone-protections-add-escape-hatch.diff
+0005-hooks-clone-protections-special-case-current-Git-LFS-.diff
+0006-hooks-clone-protections-simplify-templates-hooks-vali.diff
+0007-Revert-Add-a-helper-function-to-compare-file-contents.diff

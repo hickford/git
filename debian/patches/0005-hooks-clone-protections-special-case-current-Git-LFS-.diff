@@ -1,0 +1,82 @@
+From 09595d6984b41cbb6f653643f826fe009c56b493 Mon Sep 17 00:00:00 2001
+From: Johannes Schindelin <johannes.schindelin@gmx.de>
+Date: Sat, 18 May 2024 10:32:44 +0000
+Subject: hooks(clone protections): special-case current Git LFS hooks
+
+commit c65d0f9ee6894cdf7feeb51639870bfaf826c905 upstream.
+
+A notable regression in v2.45.1 and friends (all the way down to
+v2.39.4) has been that Git LFS-enabled clones error out with a message
+indicating that the `post-checkout` hook has been tampered with while
+cloning, and as a safety measure it is not executed.
+
+A generic fix for benign third-party applications wishing to write hooks
+during clone operations has been implemented in the parent of this
+commit: said applications are expected to add `safe.hook.sha256` values
+to a protected config.
+
+However, the current version of Git LFS, v3.5.1, cannot be adapted
+retroactively; Therefore, let's just hard-code the SHA-256 values for
+this version. That way, Git LFS usage will no longer be broken, and the
+next Git LFS version can be taught to add those `safe.hook.sha256`
+entries.
+
+Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>
+Signed-off-by: Junio C Hamano <gitster@pobox.com>
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+---
+ hook.c          | 11 +++++++++++
+ t/t1800-hook.sh | 20 ++++++++++++++++++++
+ 2 files changed, 31 insertions(+)
+
+diff --git a/hook.c b/hook.c
+index 9eca6c0103a..fc0548edb66 100644
+--- a/hook.c
++++ b/hook.c
+@@ -88,6 +88,17 @@ static int is_hook_safe_during_clone(const char *name, const char *path, char *s
+ 
+ 	if (!safe_hook_sha256s_initialized) {
+ 		safe_hook_sha256s_initialized = 1;
++
++		/* Hard-code known-safe values for Git LFS v3.4.0..v3.5.1 */
++		/* pre-push */
++		strset_add(&safe_hook_sha256s, "df5417b2daa3aa144c19681d1e997df7ebfe144fb7e3e05138bd80ae998008e4");
++		/* post-checkout */
++		strset_add(&safe_hook_sha256s, "791471b4ff472aab844a4fceaa48bbb0a12193616f971e8e940625498b4938a6");
++		/* post-commit */
++		strset_add(&safe_hook_sha256s, "21e961572bb3f43a5f2fbafc1cc764d86046cc2e5f0bbecebfe9684a0b73b664");
++		/* post-merge */
++		strset_add(&safe_hook_sha256s, "75da0da66a803b4b030ad50801ba57062c6196105eb1d2251590d100edb9390b");
++
+ 		git_protected_config(safe_hook_cb, &safe_hook_sha256s);
+ 	}
+ 
+diff --git a/t/t1800-hook.sh b/t/t1800-hook.sh
+index cbdf60c451a..c51be5f7a06 100755
+--- a/t/t1800-hook.sh
++++ b/t/t1800-hook.sh
+@@ -200,4 +200,24 @@ test_expect_success '`safe.hook.sha256` and clone protections' '
+ 	test "called hook" = "$(cat safe-hook/safe-hook.log)"
+ '
+ 
++write_lfs_pre_push_hook () {
++	write_script "$1" <<-\EOF
++	command -v git-lfs >/dev/null 2>&1 || { echo >&2 "\nThis repository is configured for Git LFS but 'git-lfs' was not found on your path. If you no longer wish to use Git LFS, remove this hook by deleting the 'pre-push' file in the hooks directory (set by 'core.hookspath'; usually '.git/hooks').\n"; exit 2; }
++	git lfs pre-push "$@"
++	EOF
++}
++
++test_expect_success 'Git LFS special-handling in clone protections' '
++	git init lfs-hooks &&
++	write_lfs_pre_push_hook lfs-hooks/.git/hooks/pre-push &&
++	write_script git-lfs <<-\EOF &&
++	echo "called $*" >fake-git-lfs.log
++	EOF
++
++	PATH="$PWD:$PATH" GIT_CLONE_PROTECTION_ACTIVE=true \
++		git -C lfs-hooks hook run pre-push &&
++	test_write_lines "called pre-push" >expect &&
++	test_cmp lfs-hooks/fake-git-lfs.log expect
++'
++
+ test_done
