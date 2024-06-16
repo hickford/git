@@ -1,3 +1,26 @@
+Version v2.45.2; changes since v2.45.1:
+---------------------------------------
+
+Jeff King (5):
+      send-email: drop FakeTerm hack
+      send-email: avoid creating more than one Term::ReadLine object
+      ci: drop mention of BREW_INSTALL_PACKAGES variable
+      ci: avoid bare "gcc" for osx-gcc job
+      ci: stop installing "gcc-13" for osx-gcc
+
+Johannes Schindelin (6):
+      hook: plug a new memory leak
+      init: use the correct path of the templates directory again
+      Revert "core.hooksPath: add some protection while cloning"
+      tests: verify that `clone -c core.hooksPath=/dev/null` works again
+      clone: drop the protections where hooks aren't run
+      Revert "Add a helper function to compare file contents"
+
+Junio C Hamano (2):
+      Revert "fsck: warn about symlink pointing inside a gitdir"
+      Git 2.39.5
+
+
 Version v2.45.1; changes since v2.45.0:
 ---------------------------------------
 
@@ -175,7 +198,7 @@ Yehezkel Bernat (1):
       t9604: Fix test for musl libc and new Debian
 
 
-Version v2.45.0-rc0; changes since v2.44.1:
+Version v2.45.0-rc0; changes since v2.44.2:
 -------------------------------------------
 
 Ahelenia Ziemiańska (1):
@@ -772,6 +795,29 @@ shejialuo (1):
       t9117: prefer test_path_* helper functions
 
 
+Version v2.44.2; changes since v2.44.1:
+---------------------------------------
+
+Jeff King (5):
+      send-email: drop FakeTerm hack
+      send-email: avoid creating more than one Term::ReadLine object
+      ci: drop mention of BREW_INSTALL_PACKAGES variable
+      ci: avoid bare "gcc" for osx-gcc job
+      ci: stop installing "gcc-13" for osx-gcc
+
+Johannes Schindelin (6):
+      hook: plug a new memory leak
+      init: use the correct path of the templates directory again
+      Revert "core.hooksPath: add some protection while cloning"
+      tests: verify that `clone -c core.hooksPath=/dev/null` works again
+      clone: drop the protections where hooks aren't run
+      Revert "Add a helper function to compare file contents"
+
+Junio C Hamano (2):
+      Revert "fsck: warn about symlink pointing inside a gitdir"
+      Git 2.39.5
+
+
 Version v2.44.1; changes since v2.44.0:
 ---------------------------------------
 
@@ -966,7 +1012,7 @@ Victoria Dye (1):
       ref-filter.c: sort formatted dates by byte value
 
 
-Version v2.44.0-rc0; changes since v2.43.4:
+Version v2.44.0-rc0; changes since v2.43.5:
 -------------------------------------------
 
 Achu Luma (2):
@@ -1313,6 +1359,29 @@ Victoria Dye (14):
 
 Zach FettersMoore (1):
       subtree: fix split processing with multiple subtrees present
+
+
+Version v2.43.5; changes since v2.43.4:
+---------------------------------------
+
+Jeff King (5):
+      send-email: drop FakeTerm hack
+      send-email: avoid creating more than one Term::ReadLine object
+      ci: drop mention of BREW_INSTALL_PACKAGES variable
+      ci: avoid bare "gcc" for osx-gcc job
+      ci: stop installing "gcc-13" for osx-gcc
+
+Johannes Schindelin (6):
+      hook: plug a new memory leak
+      init: use the correct path of the templates directory again
+      Revert "core.hooksPath: add some protection while cloning"
+      tests: verify that `clone -c core.hooksPath=/dev/null` works again
+      clone: drop the protections where hooks aren't run
+      Revert "Add a helper function to compare file contents"
+
+Junio C Hamano (2):
+      Revert "fsck: warn about symlink pointing inside a gitdir"
+      Git 2.39.5
 
 
 Version v2.43.4; changes since v2.43.3:
@@ -1763,7 +1832,7 @@ brian m. carlson (1):
       merge-file: add an option to process object IDs
 
 
-Version v2.43.0-rc0; changes since v2.42.2:
+Version v2.43.0-rc0; changes since v2.42.3:
 -------------------------------------------
 
 Alyssa Ross (1):
@@ -2159,6 +2228,29 @@ brian m. carlson (1):
       doc: correct the 50 characters soft limit (+)
 
 
+Version v2.42.3; changes since v2.42.2:
+---------------------------------------
+
+Jeff King (5):
+      send-email: drop FakeTerm hack
+      send-email: avoid creating more than one Term::ReadLine object
+      ci: drop mention of BREW_INSTALL_PACKAGES variable
+      ci: avoid bare "gcc" for osx-gcc job
+      ci: stop installing "gcc-13" for osx-gcc
+
+Johannes Schindelin (6):
+      hook: plug a new memory leak
+      init: use the correct path of the templates directory again
+      Revert "core.hooksPath: add some protection while cloning"
+      tests: verify that `clone -c core.hooksPath=/dev/null` works again
+      clone: drop the protections where hooks aren't run
+      Revert "Add a helper function to compare file contents"
+
+Junio C Hamano (2):
+      Revert "fsck: warn about symlink pointing inside a gitdir"
+      Git 2.39.5
+
+
 Version v2.42.2; changes since v2.42.1:
 ---------------------------------------
 
@@ -2477,7 +2569,7 @@ brian m. carlson (2):
       gitignore: ignore clangd .cache directory
 
 
-Version v2.42.0-rc0; changes since v2.41.1:
+Version v2.42.0-rc0; changes since v2.41.2:
 -------------------------------------------
 
 Alejandro R. Sedeño (1):
@@ -2965,6 +3057,29 @@ brian m. carlson (7):
       var: add config file locations
 
 
+Version v2.41.2; changes since v2.41.1:
+---------------------------------------
+
+Jeff King (5):
+      send-email: drop FakeTerm hack
+      send-email: avoid creating more than one Term::ReadLine object
+      ci: drop mention of BREW_INSTALL_PACKAGES variable
+      ci: avoid bare "gcc" for osx-gcc job
+      ci: stop installing "gcc-13" for osx-gcc
+
+Johannes Schindelin (6):
+      hook: plug a new memory leak
+      init: use the correct path of the templates directory again
+      Revert "core.hooksPath: add some protection while cloning"
+      tests: verify that `clone -c core.hooksPath=/dev/null` works again
+      clone: drop the protections where hooks aren't run
+      Revert "Add a helper function to compare file contents"
+
+Junio C Hamano (2):
+      Revert "fsck: warn about symlink pointing inside a gitdir"
+      Git 2.39.5
+
+
 Version v2.41.1; changes since v2.41.0:
 ---------------------------------------
 
@@ -3113,7 +3228,7 @@ brian m. carlson (1):
       upload-pack: advertise capabilities when cloning empty repos
 
 
-Version v2.41.0-rc0; changes since v2.40.2:
+Version v2.41.0-rc0; changes since v2.40.3:
 -------------------------------------------
 
 Adam Johnson (1):
@@ -3700,6 +3815,29 @@ ZheNing Hu (2):
       branch, for-each-ref, tag: add option to omit empty lines
 
 
+Version v2.40.3; changes since v2.40.2:
+---------------------------------------
+
+Jeff King (5):
+      send-email: drop FakeTerm hack
+      send-email: avoid creating more than one Term::ReadLine object
+      ci: drop mention of BREW_INSTALL_PACKAGES variable
+      ci: avoid bare "gcc" for osx-gcc job
+      ci: stop installing "gcc-13" for osx-gcc
+
+Johannes Schindelin (6):
+      hook: plug a new memory leak
+      init: use the correct path of the templates directory again
+      Revert "core.hooksPath: add some protection while cloning"
+      tests: verify that `clone -c core.hooksPath=/dev/null` works again
+      clone: drop the protections where hooks aren't run
+      Revert "Add a helper function to compare file contents"
+
+Junio C Hamano (2):
+      Revert "fsck: warn about symlink pointing inside a gitdir"
+      Git 2.39.5
+
+
 Version v2.40.2; changes since v2.40.1:
 ---------------------------------------
 
@@ -3929,7 +4067,7 @@ idriss fekir (1):
       trace.c, git.c: remove unnecessary parameter to trace_repo_setup()
 
 
-Version v2.40.0-rc0; changes since v2.39.4:
+Version v2.40.0-rc0; changes since v2.39.5:
 -------------------------------------------
 
 Adam Szkoda (1):
@@ -4335,6 +4473,29 @@ ZheNing Hu (1):
       bisect--helper: identify as bisect when report error
       bisect--helper: log: allow arbitrary number of arguments
       date.c: allow ISO 8601 reduced precision times
+
+
+Version v2.39.5; changes since v2.39.4:
+---------------------------------------
+
+Jeff King (5):
+      send-email: drop FakeTerm hack
+      send-email: avoid creating more than one Term::ReadLine object
+      ci: drop mention of BREW_INSTALL_PACKAGES variable
+      ci: avoid bare "gcc" for osx-gcc job
+      ci: stop installing "gcc-13" for osx-gcc
+
+Johannes Schindelin (6):
+      hook: plug a new memory leak
+      init: use the correct path of the templates directory again
+      Revert "core.hooksPath: add some protection while cloning"
+      tests: verify that `clone -c core.hooksPath=/dev/null` works again
+      clone: drop the protections where hooks aren't run
+      Revert "Add a helper function to compare file contents"
+
+Junio C Hamano (2):
+      Revert "fsck: warn about symlink pointing inside a gitdir"
+      Git 2.39.5
 
 
 Version v2.39.4; changes since v2.39.3:
