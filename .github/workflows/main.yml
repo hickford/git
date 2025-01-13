@@ -300,6 +300,8 @@ jobs:
           - jobname: linux-meson
             cc: gcc
             pool: ubuntu-latest
+          - jobname: windows-meson
+            pool: windows-latest
     env:
       CC: ${{matrix.vector.cc}}
       CC_PACKAGE: ${{matrix.vector.cc_package}}
