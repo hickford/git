@@ -3,12 +3,16 @@
 # Build and test Git
 #
 
+echo "MGH0"
 . ${0%/*}/lib.sh
+echo "MGH1"
 
 case "$CI_OS_NAME" in
 windows*) cmd //c mklink //j t\\.prove "$(cygpath -aw "$cache_dir/.prove")";;
 *) ln -s "$cache_dir/.prove" t/.prove;;
 esac
+
+echo "MGH2"
 
 run_tests=t
 
